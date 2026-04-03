@@ -1,6 +1,14 @@
+{{--
+        Sidebar component
+
+        - `mobileOpen` (Alpine boolean) controls mobile sliding animation via the
+            translate-x classes. On small screens the sidebar slides in/out.
+        - On large screens the sidebar is fixed (lg:translate-x-0) and the outer
+            layout wrapper controls collapse by changing its width (lg:w-72 / lg:w-0).
+--}}
 <aside
-    :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
-    class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[#050938] px-4 py-6 text-slate-100 transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0"
+        :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
+        class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[#050938] px-4 py-6 text-slate-100 transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0"
 >
     <div class="mb-8 flex items-center gap-3 px-2">
         <x-application-logo />
@@ -9,6 +17,8 @@
             <p class="text-xs text-indigo-200">Management System</p>
         </div>
 
+        {{-- Close button for mobile only: closes the mobile overlay/sidebar by
+             setting `mobileOpen = false`. Hidden on lg screens. --}}
         <button
             type="button"
             @click="mobileOpen = false"
