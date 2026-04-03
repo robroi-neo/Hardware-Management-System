@@ -2,7 +2,7 @@
     <x-slot name="header">
         <h2 class="text-3xl font-semibold leading-tight text-slate-900">POS</h2>
     </x-slot>
-    <div x-data="posApp()" class="grid grid-cols-1 lg:grid-cols-3 gap-6" x-init="(() => { const setMain = ()=>{ const h = (document.querySelector('header')?.getBoundingClientRect().height)||0; const value = `calc(100vh - ${h}px)`; $el.style.height = value; document.documentElement.style.overflowY = 'hidden'; }; setMain(); window.addEventListener('resize', setMain); })()">
+    <div x-data="posApp()" class="grid grid-cols-1 lg:grid-cols-3 gap-6" x-init="setPosMain($el)">
         <!-- Left: Items panel (spans 2 cols on large screens) -->
         <section class="lg:col-span-2 bg-white rounded shadow-sm p-4 h-full flex flex-col">
             <div class="flex items-center justify-between mb-4">
@@ -85,4 +85,22 @@
         </aside>
     </div>
 </x-app-layout>
+
+@push('scripts')
+<script>
+// Move layout sizing logic out of the inline attribute for readability.
+// `setPosMain(el)` will set the container height to (100vh - headerHeight)
+// and keep it updated on window resize. It also hides the document
+// scrollbar so inner panels can manage scrolling.
+function setPosMain(el){
+    const setMain = ()=>{
+        const h = (document.querySelector('header')?.getBoundingClientRect().height) || 0;
+        el.style.height = `calc(100vh - ${h}px)`;
+        document.documentElement.style.overflowY = 'hidden';
+    };
+    setMain();
+    window.addEventListener('resize', setMain);
+}
+</script>
+@endpush
 
