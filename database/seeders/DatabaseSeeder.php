@@ -107,6 +107,24 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // Default cashier user
+        $cashier = User::firstOrCreate(
+            ['phone'=>'09287476832'],
+            [
+                'name'=> 'Cashier',
+                'pin' => '1234'
+            ]
+        )
+        // Default manager user
+        $manager = User::firstOrCreate(
+            ['phone'=>'09108712969'],
+            [
+                'name'=> 'Manager',
+                'pin' => '1234'
+            ]
+        )
         $admin->assignRole('admin');
+        $cashier->assignRole('cashier');
+        $manager->assignRole('manager');
     }
 }
