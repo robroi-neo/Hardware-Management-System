@@ -33,14 +33,27 @@
             <span>Dashboard</span>
         </x-sidebar-link>
 
+        @can('pos.access')
+            <x-sidebar-link
+                href="{{ route('pos') }}"
+                :active="request()->routeIs('pos')"
+                @click="mobileOpen = false"
+            >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 8.25h16.5M3.75 12h16.5M8.25 15.75h7.5" />
+                </svg>
+                <span>POS</span>
+            </x-sidebar-link>
+        @endcan
+
         <x-sidebar-link href="#">
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 8.25h16.5M3.75 12h16.5M8.25 15.75h7.5" />
             </svg>
-            <span>POS</span>
+            <span>Sales</span>
         </x-sidebar-link>
 
-        <x-sidebar-dropdown label="Sales">
+        <x-sidebar-dropdown label="Inventory">
             <x-slot:icon>
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3.75h10.5A2.25 2.25 0 0119.5 6v12a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 18V6a2.25 2.25 0 012.25-2.25z" />
@@ -52,30 +65,61 @@
                 href="#"
                 class="block rounded-lg bg-indigo-500 px-3 py-2 text-sm text-white hover:bg-indigo-500/90"
             >
-                New Sales
+                Stock Overview
+            </a>
+            <a
+                href="#"
+                class="block rounded-lg bg-indigo-500 px-3 py-2 text-sm text-white hover:bg-indigo-500/90"
+            >
+                Stock In
+            </a>
+            <a
+                href="#"
+                class="block rounded-lg bg-indigo-500 px-3 py-2 text-sm text-white hover:bg-indigo-500/90"
+            >
+                Stock Out
             </a>
             <a
                 href="#"
                 class="block rounded-lg px-3 py-2 text-sm text-indigo-100 hover:bg-white/10"
             >
-                Sales History
+                Stock Movements
+            </a>
+            <a
+                href="#"
+                class="block rounded-lg px-3 py-2 text-sm text-indigo-100 hover:bg-white/10"
+            >
+                Archives
             </a>
         </x-sidebar-dropdown>
 
-        <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-indigo-100 transition hover:bg-white/10">
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 7.5h16.5v10.5H3.75V7.5z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 7.5V5.25h9V7.5" />
-            </svg>
-            Inventory
-        </a>
+        <x-sidebar-dropdown label="Audit Logs">
+            <x-slot:icon>
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3.75h10.5A2.25 2.25 0 0119.5 6v12a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 18V6a2.25 2.25 0 012.25-2.25z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 8.25h7.5m-7.5 3h7.5m-7.5 3h4.5" />
+                </svg>
+            </x-slot:icon>
 
-        <x-sidebar-link href="#">
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 3h6m-9 5.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
-            </svg>
-            <span>Audit Logs</span>
-        </x-sidebar-link>
+            <a
+                href="#"
+                class="block rounded-lg bg-indigo-500 px-3 py-2 text-sm text-white hover:bg-indigo-500/90"
+            >
+                User Activity
+            </a>
+            <a
+                href="#"
+                class="block rounded-lg px-3 py-2 text-sm text-indigo-100 hover:bg-white/10"
+            >
+                System Logs
+            </a>
+            <a
+                href="#"
+                class="block rounded-lg px-3 py-2 text-sm text-indigo-100 hover:bg-white/10"
+            >
+                Archives
+            </a>
+        </x-sidebar-dropdown>
 
         <a href="#" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-indigo-100 transition hover:bg-white/10">
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
