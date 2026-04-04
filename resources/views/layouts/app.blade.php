@@ -51,7 +51,7 @@
                 :class="sidebarOpen ? 'lg:w-72' : 'lg:w-0'"
                 class="relative lg:flex-shrink-0 lg:overflow-hidden lg:transition-[width] lg:duration-200"
             >
-                <x-sidebar />
+                <x-sidebar.container />
             </div>
 
             <!-- Main content -->

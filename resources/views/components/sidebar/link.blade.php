@@ -12,15 +12,4 @@
 
 <a href="{{ $href }}" {{ $attributes->merge(['class' => $classes]) }}>
     {{ $slot }}
-    
-    {{-- Example usage (in sidebar):
-    <x-sidebar-link
-        href="{{ route('dashboard') }}"
-        :active="request()->routeIs('dashboard')"
-        @click="mobileOpen = false"
-    >
-        <svg>...</svg>
-        <span>Dashboard</span>
-    </x-sidebar-link>
-    --}}
 </a>
