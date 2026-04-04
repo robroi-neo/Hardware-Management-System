@@ -30,6 +30,10 @@ class DatabaseSeeder extends Seeder
             'sales.refund',
             'sales.print-receipt',
 
+            // Purchasing
+            'purchases.create',
+            'purchases.view-history',
+
             // Inventory
             'inventory.view-overview',
             'inventory.update',
@@ -72,10 +76,15 @@ class DatabaseSeeder extends Seeder
         // Manager: mostly sales, inventory, reports, users
         $managerRole->syncPermissions([
             'dashboard.view',
+
             'pos.access',
+
             'sales.create',
             'sales.view-history',
             'sales.refund',
+            
+            'purchases.create',
+            'purchases.view-history',
             'inventory.view-overview',
             'inventory.update',
             'inventory.view-movements',

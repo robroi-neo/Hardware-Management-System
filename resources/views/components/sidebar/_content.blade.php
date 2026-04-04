@@ -39,7 +39,7 @@
         @can('pos.access')
         <x-sidebar.dropdown
             label="POS"
-            :open="request()->routeIs('pos')"
+            :open="request()->routeIs('pos*')"
         >
             <x-slot:icon>
                 {{-- POS: card/terminal icon --}}
@@ -55,14 +55,19 @@
             >
                 New Sale
             </x-sidebar.item>
-            <x-sidebar.item href="#">
+            <x-sidebar.item
+                href="{{ route('pos.transactions') }}"
+                :active="request()->routeIs('pos.transactions')"
+            >
                 Transactions
             </x-sidebar.item>
         </x-sidebar.dropdown>
         @endcan
 
+        @canany(['purchases.create', 'purchases.view-history'])
         <x-sidebar.dropdown
             label="Purchasing"
+            :open="request()->routeIs('purchasing.*')"
         >
             <x-slot:icon>
                 {{-- POS: card/terminal icon --}}
@@ -73,15 +78,21 @@
             </x-slot:icon>
 
             <x-sidebar.item 
-                href="#"
+                href="{{ route('purchasing.new-invoice') }}"
+                :active="request()->routeIs('purchasing.new-invoice')"
             >
                 New Invoice
             </x-sidebar.item>
-            <x-sidebar.item href="#">
+            <x-sidebar.item
+                href="{{ route('purchasing.invoice-history') }}"
+                :active="request()->routeIs('purchasing.invoice-history')"
+            >
                 Invoice History
             </x-sidebar.item>
         </x-sidebar.dropdown>
+        @endcanany
 
+        @canany(['inventory.view-overview', 'inventory.update', 'inventory.view-movements', 'inventory.archive'])
         <x-sidebar.dropdown
             label="Inventory"
             :open="request()->routeIs('inventory.*')"
@@ -95,23 +106,40 @@
                 </svg>
             </x-slot:icon>
 
-            <x-sidebar.item href="#">
+            <x-sidebar.item
+                href="{{ route('inventory.overview') }}"
+                :active="request()->routeIs('inventory.overview')"
+            >
                 Stock Overview
             </x-sidebar.item>
-            <x-sidebar.item href="#">
+            <x-sidebar.item
+                href="{{ route('inventory.manual-stock-in') }}"
+                :active="request()->routeIs('inventory.manual-stock-in')"
+            >
                 Manual Stock In
             </x-sidebar.item>
-            <x-sidebar.item href="#">
+            <x-sidebar.item
+                href="{{ route('inventory.stock-out') }}"
+                :active="request()->routeIs('inventory.stock-out')"
+            >
                 Stock Out
             </x-sidebar.item>
-            <x-sidebar.item href="#">
+            <x-sidebar.item
+                href="{{ route('inventory.stock-movements') }}"
+                :active="request()->routeIs('inventory.stock-movements')"
+            >
                 Stock Movements
             </x-sidebar.item>
-            <x-sidebar.item href="#">
+            <x-sidebar.item
+                href="{{ route('inventory.archives') }}"
+                :active="request()->routeIs('inventory.archives')"
+            >
                 Archives
             </x-sidebar.item>
         </x-sidebar.dropdown>
+        @endcanany
 
+        @canany(['audit.user-activity.view', 'audit.system-logs.view'])
         <x-sidebar.dropdown
             label="Audit Logs"
             :open="request()->routeIs('audit-logs.*')"
@@ -124,23 +152,39 @@
                 </svg>
             </x-slot:icon>
 
-            <x-sidebar.item href="#" variant="primary">
+            <x-sidebar.item
+                href="{{ route('audit-logs.user-activity') }}"
+                :active="request()->routeIs('audit-logs.user-activity')"
+            >
                 User Activity
             </x-sidebar.item>
-            <x-sidebar.item href="#">
+            <x-sidebar.item
+                href="{{ route('audit-logs.system-logs') }}"
+                :active="request()->routeIs('audit-logs.system-logs')"
+            >
                 System Logs
             </x-sidebar.item>
-            <x-sidebar.item href="#">
+            <x-sidebar.item
+                href="{{ route('audit-logs.archives') }}"
+                :active="request()->routeIs('audit-logs.archives')"
+            >
                 Archives
             </x-sidebar.item>
         </x-sidebar.dropdown>
+        @endcanany
 
-        <x-sidebar.item href="#" class="flex items-center gap-3">
+        @can('suppliers.view')
+        <x-sidebar.item
+            href="{{ route('suppliers.index') }}"
+            :active="request()->routeIs('suppliers.*')"
+            class="flex items-center gap-3"
+        >
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12.75h16.5M7.5 8.25h9m-9 9h9M4.5 5.25h15A1.5 1.5 0 0121 6.75v10.5a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 17.25V6.75a1.5 1.5 0 011.5-1.5z" />
             </svg>
             <span>Supplier Records</span>
         </x-sidebar.item>
+        @endcan
 
         <x-sidebar.link
             href="{{ route('profile.edit') }}"
