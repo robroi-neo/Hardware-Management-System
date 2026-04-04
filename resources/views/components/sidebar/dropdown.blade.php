@@ -1,8 +1,9 @@
 @props([
     'label',
+    'open' => false,
 ])
 
-<div x-data="{ open: false }" class="space-y-1">
+<div x-data="{ open: @js($open) }" class="space-y-1">
     <button
         type="button"
         @click="open = !open"

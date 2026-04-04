@@ -37,7 +37,10 @@
         </x-sidebar.link>
 
         @can('pos.access')
-        <x-sidebar.dropdown label="POS">
+        <x-sidebar.dropdown
+            label="POS"
+            :open="request()->routeIs('pos')"
+        >
             <x-slot:icon>
                 {{-- POS: card/terminal icon --}}
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -58,7 +61,10 @@
         </x-sidebar.dropdown>
         @endcan
 
-        <x-sidebar.dropdown label="Inventory">
+        <x-sidebar.dropdown
+            label="Inventory"
+            :open="request()->routeIs('inventory.*')"
+        >
             <x-slot:icon>
                 {{-- Inventory: box icon --}}
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -85,7 +91,10 @@
             </x-sidebar.item>
         </x-sidebar.dropdown>
 
-        <x-sidebar.dropdown label="Audit Logs">
+        <x-sidebar.dropdown
+            label="Audit Logs"
+            :open="request()->routeIs('audit-logs.*')"
+        >
             <x-slot:icon>
                 {{-- Audit Logs: document with check icon --}}
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
