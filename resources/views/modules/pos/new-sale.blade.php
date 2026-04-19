@@ -3,8 +3,8 @@
         <h2 class="text-3xl font-semibold leading-tight text-slate-900">POS</h2>
     </x-slot>
 
-    <div x-data="posApp()" class="grid grid-cols-1 lg:grid-cols-3 gap-6" x-init="setPosMain($el); initPos()">
-        <section class="lg:col-span-2 bg-white rounded shadow-sm p-4 h-full flex flex-col">
+    <div x-data="posApp()" class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-0" x-init="setPosMain($el); initPos()">
+        <section class="lg:col-span-2 bg-white rounded shadow-sm p-4 h-full min-h-0 flex flex-col">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-full max-w-md relative" @click.outside="closeTypeahead()">
                     <label class="relative block">
@@ -65,10 +65,11 @@
                 </button>
             </div>
 
-            <div class="border border-gray-200 rounded flex-1 overflow-auto">
+            <div class="border border-gray-200 rounded flex-1 min-h-0 flex flex-col overflow-hidden">
                 <div class="px-4 py-3 bg-gray-100 border-b border-gray-200 font-medium">Current Order</div>
+                <div class="flex-1 min-h-0 overflow-y-auto">
                 <table class="min-w-full text-sm">
-                    <thead class="text-left text-gray-600 bg-gray-50">
+                    <thead class="text-left text-gray-600 bg-gray-50 sticky top-0 z-10">
                         <tr>
                             <th class="px-4 py-3">Product ID</th>
                             <th class="px-4 py-3">Product Name</th>
@@ -92,9 +93,14 @@
                                         min="1"
                                         step="1"
                                         :value="item.quantity"
+                                        :max="Math.max(1, getOrderMaxQty(item))"
+                                        @input="onOrderQtyInput(item, $event.target)"
                                         @change="updateOrderQuantity(item.product_id, $event.target.value)"
                                         class="w-20 border rounded px-2 py-1 text-sm"
                                     />
+                                    <div class="text-xs text-red-600 mt-1" x-show="Number(item.quantity) >= getOrderMaxQty(item)">
+                                        Max: <span x-text="formatQty(getOrderMaxQty(item))"></span>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3">P<span x-text="formatPrice(item.subtotal)"></span></td>
                                 <td class="px-4 py-3 text-right">
@@ -109,10 +115,11 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
         </section>
 
-        <aside class="bg-white rounded shadow-sm p-6 h-full flex flex-col">
+        <aside class="bg-white rounded shadow-sm p-6 h-full min-h-0 flex flex-col">
             <h3 class="text-2xl font-semibold mb-4 text-center">Summary</h3>
 
             <div class="border-t border-b py-2 mb-4">
@@ -124,7 +131,7 @@
                 </div>
             </div>
 
-            <div class="space-y-2 overflow-auto flex-1 mb-6">
+            <div class="space-y-2 overflow-y-auto flex-1 min-h-0 mb-6 pr-1">
                 <template x-for="item in order" :key="item.product_id">
                     <div class="grid grid-cols-4 gap-2 items-center text-sm px-1">
                         <div class="text-gray-700" x-text="item.product_name"></div>
@@ -144,10 +151,92 @@
                     <div class="text-lg font-semibold">P<span x-text="formatPrice(total)"></span></div>
                 </div>
 
-                <button class="w-full bg-black text-white py-3 rounded mb-3" :disabled="order.length === 0">Checkout</button>
+                <button @click="openCheckoutModal" class="w-full bg-black text-white py-3 rounded mb-3 disabled:opacity-50" :disabled="order.length === 0 || checkout.processing">Checkout</button>
                 <button @click="clearOrder" class="w-full border border-gray-300 py-3 rounded text-gray-600">Cancel Transaction</button>
             </div>
         </aside>
+
+        <x-modal name="checkout-cash" maxWidth="md" focusable>
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-slate-900">Checkout</h3>
+                    <button @click="$dispatch('close-modal', 'checkout-cash')" class="text-sm text-slate-500 hover:text-slate-700">Close</button>
+                </div>
+
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-600">Payment Method</span>
+                        <span class="font-medium text-slate-900">Cash</span>
+                    </div>
+                    <div class="flex items-center justify-between border-t pt-3">
+                        <span class="text-slate-600">Amount Due</span>
+                        <span class="text-base font-semibold text-slate-900">P<span x-text="formatPrice(total)"></span></span>
+                    </div>
+                </div>
+
+                <p x-show="checkout.error" class="mt-4 text-sm text-red-600" x-text="checkout.error"></p>
+
+                <div class="mt-6 flex items-center justify-end gap-3">
+                    <button @click="$dispatch('close-modal', 'checkout-cash')" class="px-4 py-2 border rounded text-sm text-slate-700">Cancel</button>
+                    <button @click="confirmCheckout" :disabled="checkout.processing || order.length === 0" class="px-4 py-2 rounded bg-black text-white text-sm disabled:opacity-50">
+                        <span x-show="!checkout.processing">Confirm Cash Payment</span>
+                        <span x-show="checkout.processing">Processing...</span>
+                    </button>
+                </div>
+            </div>
+        </x-modal>
+
+        <x-modal name="receipt-preview" maxWidth="md" focusable>
+            <div class="p-6 text-sm text-slate-800">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">Receipt</h3>
+                    <button @click="$dispatch('close-modal', 'receipt-preview')" class="text-sm text-slate-500 hover:text-slate-700">Close</button>
+                </div>
+
+                <template x-if="receipt">
+                    <div id="receipt-content" class="space-y-3">
+                        <div class="border-b pb-3">
+                            <div><span class="text-slate-500">Sale ID:</span> <span class="font-medium" x-text="receipt.sale_id"></span></div>
+                            <div><span class="text-slate-500">Date:</span> <span x-text="receipt.date"></span></div>
+                            <div><span class="text-slate-500">Cashier:</span> <span x-text="receipt.cashier"></span></div>
+                            <div><span class="text-slate-500">Branch:</span> <span x-text="receipt.branch_name || ('#' + receipt.branch_id)"></span></div>
+                            <div><span class="text-slate-500">Terminal:</span> T<span x-text="receipt.terminal_id"></span> - <span x-text="receipt.terminal_name"></span></div>
+                            <div><span class="text-slate-500">Payment:</span> <span class="uppercase" x-text="receipt.payment_method"></span></div>
+                        </div>
+
+                        <div>
+                            <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-slate-500 mb-2">
+                                <div class="col-span-5">Item</div>
+                                <div class="col-span-2 text-right">Qty</div>
+                                <div class="col-span-2 text-right">Price</div>
+                                <div class="col-span-3 text-right">Subtotal</div>
+                            </div>
+                            <template x-for="item in (receipt.items || [])" :key="item.product_id">
+                                <div class="grid grid-cols-12 gap-2 py-1 border-t border-slate-100">
+                                    <div class="col-span-5">
+                                        <div class="font-medium" x-text="item.product_name"></div>
+                                        <div class="text-xs text-slate-500">#<span x-text="item.product_id"></span> · <span x-text="item.unit"></span></div>
+                                    </div>
+                                    <div class="col-span-2 text-right" x-text="formatQty(item.quantity)"></div>
+                                    <div class="col-span-2 text-right">P<span x-text="formatPrice(item.unit_price)"></span></div>
+                                    <div class="col-span-3 text-right">P<span x-text="formatPrice(item.subtotal)"></span></div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div class="border-t pt-3 flex items-center justify-between text-base">
+                            <span class="font-medium">Total</span>
+                            <span class="font-semibold">P<span x-text="formatPrice(receipt.total)"></span></span>
+                        </div>
+                    </div>
+                </template>
+
+                <div class="mt-5 flex items-center justify-end gap-3">
+                    <button @click="printReceipt" :disabled="!receipt" class="px-4 py-2 border rounded text-sm text-slate-700 disabled:opacity-50">Print</button>
+                    <button @click="$dispatch('close-modal', 'receipt-preview')" class="px-4 py-2 rounded bg-black text-white text-sm">Done</button>
+                </div>
+            </div>
+        </x-modal>
 
         <x-modal name="browse-products" maxWidth="2xl" focusable>
             <div class="p-6" x-on:keydown.escape.window="$dispatch('close-modal', 'browse-products')">
@@ -163,6 +252,7 @@
                         placeholder="Search product name or unit"
                         class="w-full border border-slate-300 rounded px-3 py-2 text-sm"
                     />
+                    <p x-show="requestError" class="mt-2 text-sm text-red-600" x-text="requestError"></p>
                 </div>
 
                 <div class="border rounded-lg overflow-hidden">
@@ -198,13 +288,19 @@
                                                 min="1"
                                                 step="1"
                                                 x-model.number="browse.qty[product.id]"
+                                                @input="onBrowseQtyInput(product)"
+                                                :max="Math.max(1, getRemainingStock(product))"
                                                 class="w-16 border rounded px-2 py-1"
                                             />
+                                            <div class="text-xs text-red-600 mt-1" x-show="getRequestedQty(product) > getRemainingStock(product)">
+                                                Max addable: <span x-text="formatQty(getRemainingStock(product))"></span>
+                                            </div>
                                         </td>
                                         <td class="px-3 py-2 text-right">
                                             <button
                                                 @click="addProductToCart(product)"
-                                                class="px-3 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700"
+                                                :disabled="!canAddToCart(product)"
+                                                class="px-3 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 Add
                                             </button>
@@ -265,8 +361,12 @@ function posApp() {
     return {
         order: [],
         total: 0,
-        branchId: null,
         requestError: '',
+        checkout: {
+            processing: false,
+            error: '',
+        },
+        receipt: null,
         typeahead: {
             q: '',
             items: [],
@@ -298,6 +398,118 @@ function posApp() {
             await this.fetchBrowseProducts(1);
         },
 
+        openCheckoutModal() {
+            this.checkout.error = '';
+            this.$dispatch('open-modal', 'checkout-cash');
+        },
+
+        async confirmCheckout() {
+            if (this.checkout.processing || this.order.length === 0) {
+                return;
+            }
+
+            this.checkout.processing = true;
+            this.checkout.error = '';
+
+            try {
+                const result = await this.postJson(`{{ route('pos.api.checkout.finalize') }}`, {
+                    payment_method: 'cash',
+                });
+
+                this.$dispatch('close-modal', 'checkout-cash');
+                await this.refreshOrder();
+                this.receipt = result.receipt ?? null;
+                if (this.receipt) {
+                    this.$dispatch('open-modal', 'receipt-preview');
+                }
+            } catch (error) {
+                this.checkout.error = error instanceof Error ? error.message : 'Checkout failed.';
+                this.setRequestError(error);
+            } finally {
+                this.checkout.processing = false;
+            }
+        },
+
+        printReceipt() {
+            if (!this.receipt) {
+                return;
+            }
+
+            const rows = (this.receipt.items || []).map((item) => {
+                return `
+                    <tr>
+                        <td style="padding:4px 0;">${this.escapeHtml(item.product_name)}<br><small>#${item.product_id} · ${this.escapeHtml(item.unit ?? '')}</small></td>
+                        <td style="padding:4px 0; text-align:right;">${this.formatQty(item.quantity)}</td>
+                        <td style="padding:4px 0; text-align:right;">P${this.formatPrice(item.unit_price)}</td>
+                        <td style="padding:4px 0; text-align:right;">P${this.formatPrice(item.subtotal)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const html = `
+                <!doctype html>
+                <html>
+                <head>
+                    <meta charset="utf-8" />
+                    <title>Receipt #${this.receipt.sale_id}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 16px; color: #111; }
+                        h1 { font-size: 18px; margin: 0 0 8px; }
+                        .meta { font-size: 12px; margin-bottom: 10px; }
+                        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                        th { text-align: left; border-bottom: 1px solid #ddd; padding: 6px 0; }
+                        td { border-bottom: 1px solid #f0f0f0; }
+                        .right { text-align: right; }
+                        .total { margin-top: 10px; text-align: right; font-weight: 700; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Sales Receipt</h1>
+                    <div class="meta">
+                        <div>Sale ID: ${this.receipt.sale_id}</div>
+                        <div>Date: ${this.escapeHtml(this.receipt.date ?? '')}</div>
+                        <div>Cashier: ${this.escapeHtml(this.receipt.cashier ?? '')}</div>
+                        <div>Branch: ${this.escapeHtml(this.receipt.branch_name ?? ('#' + this.receipt.branch_id))}</div>
+                        <div>Terminal: T${this.receipt.terminal_id} - ${this.escapeHtml(this.receipt.terminal_name ?? '')}</div>
+                        <div>Payment: ${this.escapeHtml((this.receipt.payment_method ?? 'cash').toUpperCase())}</div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th class="right">Qty</th>
+                                <th class="right">Price</th>
+                                <th class="right">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <div class="total">Total: P${this.formatPrice(this.receipt.total)}</div>
+                    <script>window.print();window.close();<\/script>
+                </body>
+                </html>
+            `;
+
+            const printWindow = window.open('', '_blank', 'width=420,height=700');
+            if (!printWindow) {
+                this.setRequestError(new Error('Unable to open print window. Please allow popups for this site.'));
+                return;
+            }
+
+            printWindow.document.open();
+            printWindow.document.write(html);
+            printWindow.document.close();
+        },
+
+        escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        },
+
         async searchFromTop() {
             this.browse.q = this.typeahead.q.trim();
             this.$dispatch('open-modal', 'browse-products');
@@ -327,9 +539,6 @@ function posApp() {
             this.typeahead.open = true;
 
             const params = new URLSearchParams({ q: query, limit: String(this.typeahead.limit) });
-            if (this.branchId) {
-                params.set('branch_id', String(this.branchId));
-            }
 
             try {
                 const data = await this.getJson(`{{ route('pos.api.products.search') }}?${params.toString()}`);
@@ -406,9 +615,6 @@ function posApp() {
                 params.set('q', this.browse.q);
             }
 
-            if (this.branchId) {
-                params.set('branch_id', String(this.branchId));
-            }
 
             try {
                 const data = await this.getJson(`{{ route('pos.api.products.browse') }}?${params.toString()}`);
@@ -442,11 +648,21 @@ function posApp() {
 
         async addProductToCart(product) {
             const qty = this.normalizeQty(this.browse.qty[product.id] ?? 1, 1);
-            if (qty <= 0) {
+            const remaining = this.getRemainingStock(product);
+
+            if (remaining < 1) {
+                this.setRequestError(new Error('No remaining stock for this product in the selected branch.'));
+                return;
+            }
+
+            if (qty > remaining) {
+                this.browse.qty[product.id] = remaining;
+                this.setRequestError(new Error(`Requested quantity exceeds stock. Max addable is ${remaining}.`));
                 return;
             }
 
             this.browse.qty[product.id] = qty;
+            this.requestError = '';
 
             await this.postJson(`{{ route('pos.api.cart.add') }}`, {
                 product_id: product.id,
@@ -461,6 +677,15 @@ function posApp() {
             if (qty < 1) {
                 return;
             }
+
+            const item = this.order.find((entry) => entry.product_id === productId);
+            if (item && qty > this.getOrderMaxQty(item)) {
+                this.setRequestError(new Error(`Requested quantity exceeds stock. Max allowed is ${this.getOrderMaxQty(item)}.`));
+                await this.refreshOrder();
+                return;
+            }
+
+            this.requestError = '';
 
             await this.postJson(`{{ route('pos.api.cart.update') }}`, {
                 product_id: productId,
@@ -503,6 +728,47 @@ function posApp() {
             const item = this.order.find((entry) => entry.product_id === productId);
 
             return item ? Number(item.quantity) : 0;
+        },
+
+        getOrderMaxQty(item) {
+            return Math.max(1, Math.floor(Number(item?.available_quantity ?? 0)));
+        },
+
+        onOrderQtyInput(item, inputEl) {
+            const max = this.getOrderMaxQty(item);
+            const parsed = this.normalizeQty(inputEl?.value, 1);
+
+            if (parsed > max) {
+                inputEl.value = String(max);
+            }
+        },
+
+        getAvailableStock(product) {
+            return Math.max(0, Math.floor(Number(product?.available_quantity ?? 0)));
+        },
+
+        getRemainingStock(product) {
+            return Math.max(0, this.getAvailableStock(product) - this.getOrderQty(product.id));
+        },
+
+        getRequestedQty(product) {
+            return this.normalizeQty(this.browse.qty[product.id] ?? 1, 1);
+        },
+
+        canAddToCart(product) {
+            const remaining = this.getRemainingStock(product);
+            const requested = this.getRequestedQty(product);
+
+            return remaining > 0 && requested <= remaining;
+        },
+
+        onBrowseQtyInput(product) {
+            const requested = this.getRequestedQty(product);
+            const remaining = this.getRemainingStock(product);
+
+            if (remaining > 0 && requested > remaining) {
+                this.browse.qty[product.id] = remaining;
+            }
         },
 
         formatPrice(value) {

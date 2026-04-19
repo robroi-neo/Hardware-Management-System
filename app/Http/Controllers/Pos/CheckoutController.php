@@ -12,11 +12,27 @@ use App\Models\BranchInventory;
 
 class CheckoutController extends Controller
 {
+    protected function resolveTerminalBranchId(Request $request): int
+    {
+        $branchId = (int) $request->session()->get('pos_terminal.branch_id');
+
+        if ($branchId < 1) {
+            abort(422, 'Terminal is not selected. Please select terminal again.');
+        }
+
+        return $branchId;
+    }
+
     public function prepare(Request $request)
     {
+        $branchId = $this->resolveTerminalBranchId($request);
         $cart = $request->session()->get('pos_cart', []);
         $productIds = array_column($cart, 'product_id');
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        $inventories = BranchInventory::where('branch_id', $branchId)
+            ->whereIn('product_id', $productIds)
+            ->get()
+            ->keyBy('product_id');
 
         $items = [];
         $total = 0;
@@ -30,6 +46,7 @@ class CheckoutController extends Controller
                 'product_name' => $p->name,
                 'unit' => $p->unit,
                 'quantity' => $qty,
+                'available_quantity' => (float) (optional($inventories->get($p->id))->quantity ?? 0),
                 'unit_price' => $unitPrice,
                 'cost' => $p->capital,
                 'subtotal' => $subtotal,
@@ -40,17 +57,19 @@ class CheckoutController extends Controller
         return response()->json([
             'items' => $items,
             'total' => $total,
-            'payment_methods' => ['cash','cheque'],
+            'payment_methods' => ['cash'],
         ]);
     }
 
     public function finalize(Request $request)
     {
         $data = $request->validate([
-            'branch_id' => 'required|integer',
-            'payment_method' => 'required|string|in:cash,cheque',
+            'payment_method' => 'required|string|in:cash',
             'payment_details' => 'nullable|array',
         ]);
+
+        $branchId = $this->resolveTerminalBranchId($request);
+        $terminal = $request->session()->get('pos_terminal', []);
 
         $cart = $request->session()->get('pos_cart', []);
         if (empty($cart)) {
@@ -59,8 +78,8 @@ class CheckoutController extends Controller
 
         $productIds = array_column($cart, 'product_id');
 
-        return DB::transaction(function () use ($request, $cart, $data, $productIds) {
-            $inventories = BranchInventory::where('branch_id', $data['branch_id'])
+        return DB::transaction(function () use ($request, $cart, $data, $productIds, $branchId, $terminal) {
+            $inventories = BranchInventory::where('branch_id', $branchId)
                 ->whereIn('product_id', $productIds)
                 ->lockForUpdate()
                 ->get()
@@ -86,7 +105,8 @@ class CheckoutController extends Controller
                 'date' => now(),
                 'user_id' => $request->user()->id,
                 'total_amount' => $total,
-                'branch_id' => $data['branch_id'],
+                'branch_id' => $branchId,
+                'payment_method' => $data['payment_method'],
             ]);
 
             foreach ($cart as $c) {
@@ -94,19 +114,46 @@ class CheckoutController extends Controller
                 $unitPrice = $p->capital;
                 $sale->items()->create([
                     'product_id' => $p->id,
-                    'product_name' => $p->name,
-                    'unit' => $p->unit,
                     'quantity' => $c['quantity'],
-                    'unit_price' => $unitPrice,
-                    'cost' => $p->capital,
+                    'markup' => 0,
                     'subtotal' => $unitPrice * $c['quantity'],
                 ]);
+            }
+
+            $receiptItems = [];
+            foreach ($cart as $c) {
+                $p = $products[$c['product_id']];
+                $unitPrice = (float) $p->capital;
+                $qty = (float) $c['quantity'];
+                $receiptItems[] = [
+                    'product_id' => $p->id,
+                    'product_name' => $p->name,
+                    'unit' => $p->unit,
+                    'quantity' => $qty,
+                    'unit_price' => $unitPrice,
+                    'subtotal' => $unitPrice * $qty,
+                ];
             }
 
             // clear cart
             $request->session()->forget('pos_cart');
 
-            return response()->json(['sale_id' => $sale->id, 'total' => $total]);
+            return response()->json([
+                'sale_id' => $sale->id,
+                'total' => $total,
+                'receipt' => [
+                    'sale_id' => $sale->id,
+                    'date' => optional($sale->date)->format('Y-m-d H:i:s'),
+                    'cashier' => $request->user()->name,
+                    'branch_id' => $branchId,
+                    'branch_name' => $terminal['branch_name'] ?? null,
+                    'terminal_id' => $terminal['terminal_id'] ?? null,
+                    'terminal_name' => $terminal['terminal_name'] ?? null,
+                    'payment_method' => $sale->payment_method,
+                    'items' => $receiptItems,
+                    'total' => (float) $total,
+                ],
+            ]);
         });
     }
 }
