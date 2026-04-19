@@ -18,6 +18,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // call database seeders
+        $this->call([
+            BranchSeeder::class,
+            ProductSeeder::class,
+            ProductFactorySeeder::class,
+            BranchInventorySeeder::class,
+        ]);
+
         // create permission for spatie (dot-separated resource.action format)
         $permissions = [
             // Dashboard
@@ -82,7 +90,7 @@ class DatabaseSeeder extends Seeder
             'sales.create',
             'sales.view-history',
             'sales.refund',
-            
+
             'purchases.create',
             'purchases.view-history',
             'inventory.view-overview',
