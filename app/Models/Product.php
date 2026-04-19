@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Product extends Model
 {
+    use HasFactory;
+
     protected $fillable = ['name','capital','unit','status'];
     protected $casts = [
         'capital' => 'float',
@@ -28,8 +31,15 @@ class Product extends Model
             return $query;
         }
 
-        $term = "%{$term}%";
-        return $query->where('name', 'like', $term)
-                     ->orWhere('unit', 'like', $term);
+        $like = "%{$term}%";
+
+        return $query->where(function (Builder $inner) use ($term, $like) {
+            $inner->where('name', 'like', $like)
+                ->orWhere('unit', 'like', $like);
+
+            if (is_numeric($term)) {
+                $inner->orWhere('id', (int) $term);
+            }
+        });
     }
 }
