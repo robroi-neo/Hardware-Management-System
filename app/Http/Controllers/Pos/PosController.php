@@ -19,10 +19,10 @@ class PosController extends Controller
     {
         $data = $request->validate([
             'product_id' => 'required|integer',
-            'quantity' => 'nullable|numeric|min:0.01',
+            'quantity' => 'nullable|integer|min:1',
         ]);
 
-        $quantity = $data['quantity'] ?? 1;
+        $quantity = (int) ($data['quantity'] ?? 1);
         $cart = $request->session()->get($this->sessionKey, []);
 
         // merge if exists
@@ -44,30 +44,6 @@ class PosController extends Controller
         return response()->json($cart);
     }
 
-    public function updateItem(Request $request)
-    {
-        $data = $request->validate([
-            'product_id' => 'required|integer',
-            'quantity' => 'required|numeric|min:0',
-        ]);
-
-        $cart = $request->session()->get($this->sessionKey, []);
-        foreach ($cart as $k => $item) {
-            if ($item['product_id'] == $data['product_id']) {
-                if ($data['quantity'] <= 0) {
-                    unset($cart[$k]);
-                } else {
-                    $cart[$k]['quantity'] = $data['quantity'];
-                }
-                break;
-            }
-        }
-
-        $cart = array_values($cart);
-        $request->session()->put($this->sessionKey, $cart);
-        return response()->json($cart);
-    }
-
     public function removeItem(Request $request)
     {
         $data = $request->validate([
@@ -78,6 +54,27 @@ class PosController extends Controller
         foreach ($cart as $k => $item) {
             if ($item['product_id'] == $data['product_id']) {
                 unset($cart[$k]);
+                break;
+            }
+        }
+
+        $cart = array_values($cart);
+        $request->session()->put($this->sessionKey, $cart);
+        return response()->json($cart);
+    }
+
+    public function updateItem(Request $request)
+    {
+        $data = $request->validate([
+            'product_id' => 'required|integer',
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        $quantity = (int) $data['quantity'];
+        $cart = $request->session()->get($this->sessionKey, []);
+        foreach ($cart as $k => $item) {
+            if ($item['product_id'] == $data['product_id']) {
+                $cart[$k]['quantity'] = $quantity;
                 break;
             }
         }
