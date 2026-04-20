@@ -440,8 +440,8 @@ function posApp() {
                     <tr>
                         <td style="padding:4px 0;">${this.escapeHtml(item.product_name)}<br><small>#${item.product_id} · ${this.escapeHtml(item.unit ?? '')}</small></td>
                         <td style="padding:4px 0; text-align:right;">${this.formatQty(item.quantity)}</td>
-                        <td style="padding:4px 0; text-align:right;">P${this.formatPrice(item.unit_price)}</td>
-                        <td style="padding:4px 0; text-align:right;">P${this.formatPrice(item.subtotal)}</td>
+                        <td style="padding:4px 0; text-align:right;">${this.formatPrice(item.unit_price)}</td>
+                        <td style="padding:4px 0; text-align:right;">${this.formatPrice(item.subtotal)}</td>
                     </tr>
                 `;
             }).join('');
@@ -470,7 +470,7 @@ function posApp() {
                         <div>Date: ${this.escapeHtml(this.receipt.date ?? '')}</div>
                         <div>Cashier: ${this.escapeHtml(this.receipt.cashier ?? '')}</div>
                         <div>Branch: ${this.escapeHtml(this.receipt.branch_name ?? ('#' + this.receipt.branch_id))}</div>
-                        <div>Terminal: T${this.receipt.terminal_id} - ${this.escapeHtml(this.receipt.terminal_name ?? '')}</div>
+                        <div>Terminal: ${this.receipt.terminal_id} - ${this.escapeHtml(this.receipt.terminal_name ?? '')}</div>
                         <div>Payment: ${this.escapeHtml((this.receipt.payment_method ?? 'cash').toUpperCase())}</div>
                     </div>
                     <table>

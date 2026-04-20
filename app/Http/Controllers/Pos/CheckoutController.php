@@ -23,6 +23,9 @@ class CheckoutController extends Controller
         return $branchId;
     }
 
+//  Prepare Function - This function is responsible for preparing the checkout data based on the current cart items stored in the session.
+//  It retrieves the product details and inventory information for the products in the cart, calculates the subtotal for each item,
+//  and returns a JSON response containing the items, total amount, and available payment methods.
     public function prepare(Request $request)
     {
         $branchId = $this->resolveTerminalBranchId($request);
@@ -60,7 +63,8 @@ class CheckoutController extends Controller
             'payment_methods' => ['cash'],
         ]);
     }
-
+//  Finalize Function - This function handles the finalization of the checkout process.
+// It validates the incoming request data, checks for sufficient stock in the branch inventory,
     public function finalize(Request $request)
     {
         $data = $request->validate([

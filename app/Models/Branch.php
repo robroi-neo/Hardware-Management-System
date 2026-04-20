@@ -17,5 +17,10 @@ class Branch extends Model
     {
         return $this->hasMany(User::class, 'branch_id');
     }
+
+    public function terminals()
+    {
+        return $this->hasMany(PosTerminal::class, 'branch_id');
+    }
 }
 

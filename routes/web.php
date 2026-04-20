@@ -16,10 +16,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/pos', function () {
         return view('modules.pos.new-sale');
     })->middleware('permission:pos.access')->name('pos');
+    
+    Route::get('/pos/transactions', [\App\Http\Controllers\Pos\TransactionController::class, 'index'])
+        ->middleware('permission:sales.view-history')->name('pos.transactions');
 
-    Route::get('/pos/transactions', function () {
-        return view('modules.pos.transactions');
-    })->middleware('permission:sales.view-history')->name('pos.transactions');
 
     Route::get('/purchasing/new-invoice', function () {
         return view('modules.purchasing.new-invoice');
@@ -64,7 +64,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/suppliers', function () {
         return view('modules.suppliers.index');
     })->middleware('permission:suppliers.view')->name('suppliers.index');
-    
+
+    // POS API endpoints
+    Route::prefix('pos/api')->group(function () {
+        Route::get('products/search', [\App\Http\Controllers\Pos\ProductController::class, 'search'])->name('pos.api.products.search');
+        Route::get('products/browse', [\App\Http\Controllers\Pos\ProductController::class, 'browse'])->name('pos.api.products.browse');
+
+        Route::get('cart', [\App\Http\Controllers\Pos\PosController::class, 'getCart'])->name('pos.api.cart.get');
+        Route::post('cart/add', [\App\Http\Controllers\Pos\PosController::class, 'addItem'])->name('pos.api.cart.add');
+        Route::post('cart/update', [\App\Http\Controllers\Pos\PosController::class, 'updateItem'])->name('pos.api.cart.update');
+        Route::post('cart/remove', [\App\Http\Controllers\Pos\PosController::class, 'removeItem'])->name('pos.api.cart.remove');
+
+        Route::get('checkout/prepare', [\App\Http\Controllers\Pos\CheckoutController::class, 'prepare'])->name('pos.api.checkout.prepare');
+        Route::post('checkout/finalize', [\App\Http\Controllers\Pos\CheckoutController::class, 'finalize'])->name('pos.api.checkout.finalize');
+    });
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

@@ -49,7 +49,7 @@
                 </svg>
             </x-slot:icon>
 
-            <x-sidebar.item 
+            <x-sidebar.item
                 href="{{ route('pos') }}"
                 :active="request()->routeIs('pos')"
             >
@@ -77,7 +77,7 @@
                 </svg>
             </x-slot:icon>
 
-            <x-sidebar.item 
+            <x-sidebar.item
                 href="{{ route('purchasing.new-invoice') }}"
                 :active="request()->routeIs('purchasing.new-invoice')"
             >
@@ -199,7 +199,7 @@
     </nav>
 
     <div class="mt-auto">
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" onsubmit="sessionStorage.removeItem('pos_terminal_id')">
             @csrf
             <button
                 type="submit"

@@ -9,14 +9,24 @@ use App\Models\BranchInventory;
 
 class ProductController extends Controller
 {
+    protected function resolveTerminalBranchId(Request $request): int
+    {
+        $branchId = (int) $request->session()->get('pos_terminal.branch_id');
+
+        if ($branchId < 1) {
+            abort(422, 'Terminal is not selected. Please select terminal again.');
+        }
+
+        return $branchId;
+    }
+
     public function search(Request $request)
     {
         // get query string
         $q = $request->query('q');
         $limit = min(max((int) $request->query('limit', 20), 1), 50);
 
-        // get branch id
-        $branchId = $request->query('branch_id');
+        $branchId = $this->resolveTerminalBranchId($request);
 
         // search all active products, limit to q if there is a query string
         $productsQuery = Product::query()
@@ -29,8 +39,8 @@ class ProductController extends Controller
             ->get(['id','name','unit','capital']);
 
 
-        // attach branch inventory qty when branch_id is provided
-        if ($branchId && $products->isNotEmpty()) {
+        // Always attach inventory from the terminal's branch context.
+        if ($products->isNotEmpty()) {
             $prodIds = $products->pluck('id')->all();
             $inventories = BranchInventory::where('branch_id', $branchId)
                 ->whereIn('product_id', $prodIds)
@@ -49,7 +59,7 @@ class ProductController extends Controller
     public function browse(Request $request)
     {
         $q = $request->query('q');
-        $branchId = $request->query('branch_id');
+        $branchId = $this->resolveTerminalBranchId($request);
         $perPage = min(max((int) $request->query('per_page', 25), 1), 100);
 
         $products = Product::query()
@@ -60,21 +70,15 @@ class ProductController extends Controller
         if ($products->isNotEmpty()) {
             $productIds = $products->getCollection()->pluck('id')->all();
 
-            $inventoryQuery = BranchInventory::query()
-                ->whereIn('product_id', $productIds);
-
-            if ($branchId) {
-                $inventoryQuery->where('branch_id', $branchId);
-            }
-
-            $availableByProduct = $inventoryQuery
+            $availableByProduct = BranchInventory::query()
+                ->where('branch_id', $branchId)
+                ->whereIn('product_id', $productIds)
                 ->get()
-                ->groupBy('product_id')
-                ->map(fn ($rows) => (float) $rows->sum('quantity'));
+                ->keyBy('product_id');
 
             $products->setCollection(
                 $products->getCollection()->map(function ($product) use ($availableByProduct) {
-                    $product->available_quantity = (float) ($availableByProduct->get($product->id) ?? 0);
+                    $product->available_quantity = (float) (optional($availableByProduct->get($product->id))->quantity ?? 0);
 
                     return $product;
                 })

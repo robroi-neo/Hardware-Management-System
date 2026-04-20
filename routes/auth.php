@@ -8,10 +8,17 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\TerminalSelectionController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
+    Route::get('terminal/select', [TerminalSelectionController::class, 'create'])
+        ->name('terminal.select');
+
+    Route::post('terminal/select', [TerminalSelectionController::class, 'store'])
+        ->name('terminal.store');
+
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
 

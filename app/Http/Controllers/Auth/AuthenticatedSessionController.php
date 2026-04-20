@@ -14,8 +14,12 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(Request $request): View|RedirectResponse
     {
+        if (! $request->session()->has('pos_terminal')) {
+            return redirect()->route('terminal.select');
+        }
+
         return view('auth.login');
     }
 
@@ -37,6 +41,8 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
+
+        $request->session()->forget('pos_terminal');
 
         $request->session()->invalidate();
 
