@@ -12,38 +12,35 @@
             <table class="min-w-full text-sm">
                 <thead class="bg-slate-100 text-left text-slate-700">
                     <tr>
-                        <th class="px-4 py-3 font-semibold">
-                            <a href="{{ route('pos.transactions', ['sort_by' => 'id', 'sort_dir' => $sortBy === 'id' && $sortDir === 'asc' ? 'desc' : 'asc']) }}" class="inline-flex items-center gap-1 hover:text-slate-900">
-                                ID
-                                <span class="{{ $sortBy === 'id' ? 'text-slate-900' : 'text-slate-400' }}">
-                                    {{ $sortBy === 'id' ? ($sortDir === 'asc' ? '↑' : '↓') : '↕' }}
-                                </span>
-                            </a>
-                        </th>
-                        <th class="px-4 py-3 font-semibold">
-                            <a href="{{ route('pos.transactions', ['sort_by' => 'date', 'sort_dir' => $sortBy === 'date' && $sortDir === 'asc' ? 'desc' : 'asc']) }}" class="inline-flex items-center gap-1 hover:text-slate-900">
-                                Date
-                                <span class="{{ $sortBy === 'date' ? 'text-slate-900' : 'text-slate-400' }}">
-                                    {{ $sortBy === 'date' ? ($sortDir === 'asc' ? '↑' : '↓') : '↕' }}
-                                </span>
-                            </a>
-                        </th>
-                        <th class="px-4 py-3 font-semibold">
-                            <a href="{{ route('pos.transactions', ['sort_by' => 'total_amount', 'sort_dir' => $sortBy === 'total_amount' && $sortDir === 'asc' ? 'desc' : 'asc']) }}" class="inline-flex items-center gap-1 hover:text-slate-900">
-                                Total Amount
-                                <span class="{{ $sortBy === 'total_amount' ? 'text-slate-900' : 'text-slate-400' }}">
-                                    {{ $sortBy === 'total_amount' ? ($sortDir === 'asc' ? '↑' : '↓') : '↕' }}
-                                </span>
-                            </a>
-                        </th>
-                        <th class="px-4 py-3 font-semibold">
-                            <a href="{{ route('pos.transactions', ['sort_by' => 'payment_method', 'sort_dir' => $sortBy === 'payment_method' && $sortDir === 'asc' ? 'desc' : 'asc']) }}" class="inline-flex items-center gap-1 hover:text-slate-900">
-                                Payment Method
-                                <span class="{{ $sortBy === 'payment_method' ? 'text-slate-900' : 'text-slate-400' }}">
-                                    {{ $sortBy === 'payment_method' ? ($sortDir === 'asc' ? '↑' : '↓') : '↕' }}
-                                </span>
-                            </a>
-                        </th>
+                        <x-table.sortable-header
+                            label="ID"
+                            :sortBy="$sortBy"
+                            :sortDir="$sortDir"
+                            column="id"
+                            route="pos.transactions"
+                        />
+                        <x-table.sortable-header
+                            label="Date"
+                            :sortBy="$sortBy"
+                            :sortDir="$sortDir"
+                            column="date"
+                            route="pos.transactions"
+                        />
+                        <x-table.sortable-header
+                            label="Total Amount"
+                            :sortBy="$sortBy"
+                            :sortDir="$sortDir"
+                            column="total_amount"
+                            route="pos.transactions"
+                            align="right"
+                        />
+                        <x-table.sortable-header
+                            label="Payment Method"
+                            :sortBy="$sortBy"
+                            :sortDir="$sortDir"
+                            column="payment_method"
+                            route="pos.transactions"
+                        />
                         <th class="px-4 py-3 font-semibold">Processed By</th>
                     </tr>
                 </thead>
@@ -61,26 +58,13 @@
                             <td class="px-4 py-3 text-slate-600">{{ $transaction->user->name ?? 'N/A' }}</td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="5" class="px-4 py-10 text-center text-slate-400">
-                                No transactions found.
-                            </td>
-                        </tr>
+                        <x-table.empty-state :colspan="5" message="No transactions found." />
                     @endforelse
                 </tbody>
             </table>
         </div>
 
         <!-- Pagination -->
-        <div class="mt-6 flex items-center justify-between">
-            <div class="text-sm text-slate-600">
-                Showing <span class="font-semibold">{{ $transactions->firstItem() ?? 0 }}</span>
-                to <span class="font-semibold">{{ $transactions->lastItem() ?? 0 }}</span>
-                of <span class="font-semibold">{{ $transactions->total() }}</span> transactions
-            </div>
-            <div>
-                {{ $transactions->links() }}
-            </div>
-        </div>
+        <x-table.pagination :paginator="$transactions" />
     </section>
 </x-app-layout>

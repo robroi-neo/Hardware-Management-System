@@ -33,26 +33,14 @@
                     </form>
                 </div>
 
-                @if($isAdmin && $allBranches->count() > 1)
-                    <form method="GET" action="{{ route('inventory.overview') }}" class="flex gap-2 sm:w-auto">
-                        <!-- Preserve search and sort params -->
-                        <input type="hidden" name="search" value="{{ $search }}" />
-                        <input type="hidden" name="sort_by" value="{{ $sortBy }}" />
-                        <input type="hidden" name="sort_dir" value="{{ $sortDir }}" />
-
-                        <select
-                            name="branch_id"
-                            onchange="this.form.submit()"
-                            class="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        >
-                            <option value="">All Branches</option>
-                            @foreach($allBranches as $branch)
-                                <option value="{{ $branch->id }}" {{ $filterBranchId == $branch->id ? 'selected' : '' }}>
-                                    {{ $branch->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </form>
+                @if($isAdmin)
+                    <x-filters.branch-select
+                        :branches="$allBranches"
+                        :selected="$filterBranchId"
+                        route="inventory.overview"
+                        :params="['search' => $search, 'sort_by' => $sortBy, 'sort_dir' => $sortDir]"
+                        label="Filter by Branch"
+                    />
                 @endif
             </div>
         </div>
@@ -83,35 +71,24 @@
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50">
                         <th class="px-4 py-3 text-left font-semibold text-slate-700">ID</th>
-                        <th class="px-4 py-3 text-left font-semibold text-slate-700">
-                            <a href="{{ route('inventory.overview', ['sort_by' => 'name', 'sort_dir' => $sortBy === 'name' && $sortDir === 'asc' ? 'desc' : 'asc', 'search' => $search]) }}" class="flex items-center gap-1 hover:text-blue-600">
-                                Product Name
-                                @if($sortBy === 'name')
-                                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                        @if($sortDir === 'asc')
-                                            <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-                                        @else
-                                            <path fill-rule="evenodd" d="M10 3a1 1 0 01.707.293l6 6a1 1 0 01-1.414 1.414L11 5.414V15a1 1 0 11-2 0V5.414L5.707 10.707a1 1 0 01-1.414-1.414l6-6A1 1 0 0110 3z" clip-rule="evenodd" />
-                                        @endif
-                                    </svg>
-                                @endif
-                            </a>
-                        </th>
+                        <x-table.sortable-header
+                            label="Product Name"
+                            :sortBy="$sortBy"
+                            :sortDir="$sortDir"
+                            column="name"
+                            route="inventory.overview"
+                            :params="['search' => $search]"
+                        />
                         <th class="px-4 py-3 text-left font-semibold text-slate-700">Unit</th>
-                        <th class="px-4 py-3 text-right font-semibold text-slate-700">
-                            <a href="{{ route('inventory.overview', ['sort_by' => 'quantity', 'sort_dir' => $sortBy === 'quantity' && $sortDir === 'asc' ? 'desc' : 'asc', 'search' => $search]) }}" class="flex items-center justify-end gap-1 hover:text-blue-600">
-                                Quantity
-                                @if($sortBy === 'quantity')
-                                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                        @if($sortDir === 'asc')
-                                            <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-                                        @else
-                                            <path fill-rule="evenodd" d="M10 3a1 1 0 01.707.293l6 6a1 1 0 01-1.414 1.414L11 5.414V15a1 1 0 11-2 0V5.414L5.707 10.707a1 1 0 01-1.414-1.414l6-6A1 1 0 0110 3z" clip-rule="evenodd" />
-                                        @endif
-                                    </svg>
-                                @endif
-                            </a>
-                        </th>
+                        <x-table.sortable-header
+                            label="Quantity"
+                            :sortBy="$sortBy"
+                            :sortDir="$sortDir"
+                            column="quantity"
+                            route="inventory.overview"
+                            :params="['search' => $search]"
+                            align="right"
+                        />
                         <th class="px-4 py-3 text-right font-semibold text-slate-700">Unit Cost</th>
                         <th class="px-4 py-3 text-right font-semibold text-slate-700">Total Value</th>
                         <th class="px-4 py-3 text-left font-semibold text-slate-700">Branch</th>
@@ -145,46 +122,17 @@
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-slate-500">
-                                No inventory records found. @if($search) Try adjusting your search filters. @endif
-                            </td>
-                        </tr>
+                        <x-table.empty-state
+                            :colspan="8"
+                            :message="$search ? 'No inventory records found. Try adjusting your search filters.' : 'No inventory records found.'"
+                        />
                     @endforelse
                 </tbody>
             </table>
         </div>
 
         <!-- Pagination -->
-        @if($inventories->hasPages())
-            <div class="mt-6 flex items-center justify-between">
-                <div class="text-sm text-slate-600">
-                    Showing <strong>{{ $inventories->firstItem() }}</strong> to <strong>{{ $inventories->lastItem() }}</strong>
-                    of <strong>{{ $inventories->total() }}</strong> results
-                </div>
-                <nav class="flex gap-1">
-                    @if($inventories->onFirstPage())
-                        <span class="rounded border border-slate-300 px-3 py-2 text-sm text-slate-400">Previous</span>
-                    @else
-                        <a href="{{ $inventories->previousPageUrl() }}" class="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">Previous</a>
-                    @endif
-
-                    @foreach($inventories->getUrlRange(1, $inventories->lastPage()) as $page => $url)
-                        @if($page == $inventories->currentPage())
-                            <span class="rounded border border-blue-500 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600">{{ $page }}</span>
-                        @else
-                            <a href="{{ $url }}" class="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">{{ $page }}</a>
-                        @endif
-                    @endforeach
-
-                    @if($inventories->hasMorePages())
-                        <a href="{{ $inventories->nextPageUrl() }}" class="rounded border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">Next</a>
-                    @else
-                        <span class="rounded border border-slate-300 px-3 py-2 text-sm text-slate-400">Next</span>
-                    @endif
-                </nav>
-            </div>
-        @endif
+        <x-table.pagination :paginator="$inventories" />
 
         <!-- Action Buttons -->
         <div class="mt-6 flex flex-wrap gap-3">

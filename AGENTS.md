@@ -93,6 +93,33 @@ Permissions are seeded in `database/seeders/DatabaseSeeder.php` when running see
 - `<x-sidebar.dropdown>` — Collapsible menu group (check with `@canany(['perm1', 'perm2'])`)
 - `<x-sidebar.item>` — Individual menu link (use `request()->routeIs('pattern*')` for active state)
 
+**Table Components** (`resources/views/components/table/`):
+- `<x-table.sortable-header>` — Reusable sortable column header with toggle arrows. Props: `label`, `sortBy`, `sortDir`, `column`, `route`, `params` (array), `align` ('left'|'center'|'right'). **Example usage**:
+  ```blade
+  <x-table.sortable-header 
+      label="Product Name"
+      :sortBy="$sortBy"
+      :sortDir="$sortDir"
+      column="name"
+      route="inventory.overview"
+      :params="['search' => $search]"
+  />
+  ```
+- `<x-table.pagination>` — Reusable pagination UI with results count and page links. Props: `paginator` (Paginator instance). Shows "Showing X to Y of Z results" with prev/next/page-number links.
+- `<x-table.empty-state>` — Reusable empty table message. Props: `colspan` (int), `message` (string).
+
+**Filter Components** (`resources/views/components/filters/`):
+- `<x-filters.branch-select>` — Admin-only branch dropdown (shows only if `$branches->count() > 1`). Props: `branches` (Collection), `selected` (branch_id), `route`, `params` (array to preserve during filter). Auto-submits on change. **Example**:
+  ```blade
+  <x-filters.branch-select 
+      :branches="$allBranches"
+      :selected="$filterBranchId"
+      route="inventory.overview"
+      :params="['search' => $search, 'sort_by' => $sortBy]"
+      label="Filter by Branch"
+  />
+  ```
+
 **Layout**:
 - `app.blade.php` — Main authenticated layout with sidebar, header, content area
 - Uses Alpine.js state: `mobileOpen` (mobile menu toggle) and `sidebarOpen` (desktop sidebar width)
@@ -235,6 +262,54 @@ public function scopeActive(Builder $query) {
 
 ---
 
+## Refactoring & Reusability Patterns
+
+### Table UI Components Strategy
+
+Instead of duplicating sort/filter/pagination UI across views, use reusable Blade components:
+
+**Sorting**: Use `<x-table.sortable-header>` for every sortable column. Benefits:
+- Consistent sort arrow UI across all tables
+- Single source of truth for sort URL generation
+- Eliminates duplicated route parameter handling
+
+**Pagination**: Use `<x-table.pagination>` instead of inline pagination logic. Ensures:
+- Consistent "Showing X to Y" text across all list views
+- Accessible markup (aria-labels, rel attributes)
+- Unified styling for page links
+
+**Empty States**: Use `<x-table.empty-state>` to standardize the "no records found" message.
+
+**Filters**: Use `<x-filters.branch-select>` for admin branch filtering. Automatically:
+- Hides if only 1 branch exists
+- Preserves other query parameters during filter submission
+- Auto-submits on selection
+
+### When to Extract Components
+
+Extract a Blade component when the UI pattern appears **2+ times** across different views. Current extractions:
+- **Sortable headers** → Used in `pos.transactions`, `inventory.overview`
+- **Branch filtering** → Used in `inventory.overview` (can reuse for reporting, purchasing, etc.)
+- **Pagination** → Used in all list views
+
+### Extending Table Components
+
+To add new sortable columns to existing tables, simply add a new `<x-table.sortable-header>`:
+```blade
+<x-table.sortable-header 
+    label="Status"
+    :sortBy="$sortBy"
+    :sortDir="$sortDir"
+    column="status"
+    route="current.route.name"
+    :params="['search' => $search]"
+/>
+```
+
+No need to modify controller or add new logic—columns are defined in the view.
+
+---
+
 ## Common Gotchas & Edge Cases
 
 1. **Cart Persistence**: POS cart lives in session, NOT database. Transactions lost on session expiry.
@@ -243,6 +318,8 @@ public function scopeActive(Builder $query) {
 4. **Permissions Depend on Seeding**: RBAC routes will 403 when DB is migrated without seeding; run seeder and verify `permissions` table.
 5. **Sale Item Schema Drift**: `Pos\CheckoutController::finalize()` writes `product_name`, `unit`, `unit_price`, and `cost`, but `sales_items` migration/model only include `sale_id`, `product_id`, `quantity`, `markup`, `subtotal`.
 6. **Vite Hot Reload**: Only works in development. Run `npm run dev` to enable CSS/JS changes without rebuilds.
+7. **Sortable Header Params**: When using `<x-table.sortable-header>`, always pass critical query params (e.g., `search`, `branch_id`) in the `:params` prop to preserve them across sort clicks. Otherwise, filters reset when user sorts.
+8. **Branch Filter Visibility**: `<x-filters.branch-select>` checks `$branches->count() > 1` before rendering. If you want it to always show, manually render the select element instead of using the component.
 
 ---
 
