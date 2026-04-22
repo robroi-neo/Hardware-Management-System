@@ -65,7 +65,6 @@ class ProductsInventorySeeder extends Seeder
                     'branch_id' => $branchId,
                     'product_id' => $productId,
                     'quantity' => $quantity,
-                    'capital' => $capital,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

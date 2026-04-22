@@ -29,7 +29,6 @@ class BranchInventorySeeder extends Seeder
                 'branch_id' => $branchId,
                 'product_id' => $product->id,
                 'quantity' => $quantity,
-                'capital' => 0, // Can be calculated based on product capital * quantity
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

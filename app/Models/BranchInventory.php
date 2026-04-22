@@ -7,10 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class BranchInventory extends Model
 {
     protected $table = 'branch_inventory';
-    protected $fillable = ['branch_id','product_id','quantity','capital'];
+    protected $fillable = ['branch_id','product_id','quantity'];
     protected $casts = [
         'quantity' => 'float',
-        'capital' => 'float',
     ];
 
     public function product()

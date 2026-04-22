@@ -16,7 +16,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/pos', function () {
         return view('modules.pos.new-sale');
     })->middleware('permission:pos.access')->name('pos');
-    
+
     Route::get('/pos/transactions', [\App\Http\Controllers\Pos\TransactionController::class, 'index'])
         ->middleware('permission:sales.view-history')->name('pos.transactions');
 
@@ -29,9 +29,8 @@ Route::middleware('auth')->group(function () {
         return view('modules.purchasing.invoice-history');
     })->middleware('permission:purchases.view-history')->name('purchasing.invoice-history');
 
-    Route::get('/inventory/overview', function () {
-        return view('modules.inventory.stock-overview');
-    })->middleware('permission:inventory.view-overview')->name('inventory.overview');
+    Route::get('/inventory/overview', [\App\Http\Controllers\Inventory\OverviewController::class, 'index'])
+        ->middleware('permission:inventory.view-overview')->name('inventory.overview');
 
     Route::get('/inventory/manual-stock-in', function () {
         return view('modules.inventory.manual-stock-in');
