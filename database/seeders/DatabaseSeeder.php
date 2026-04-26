@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             ProductFactorySeeder::class,
             BranchInventorySeeder::class,
+            SupplierSeeder::class,
         ]);
 
         // create permission for spatie (dot-separated resource.action format)
@@ -123,7 +124,7 @@ class DatabaseSeeder extends Seeder
             ['phone'=>'09362690603'],
             [
                 'name' => 'Admin',
-                'pin' => 1234,
+                'pin' =>  1234,
             ]
         );
 
