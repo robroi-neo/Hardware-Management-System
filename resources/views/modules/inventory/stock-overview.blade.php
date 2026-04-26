@@ -5,32 +5,10 @@
 
     <section class="rounded-xl border border-slate-200 bg-white p-6">
         <!-- Search Bar & Branch Filter -->
-        <div class="mb-6 flex flex-col gap-4">
+        <div class="mb-6 flex flex-col gap-4" x-data="inventorySearch('{{ route('pos.api.products.search') }}', '{{ route('inventory.overview') }}', '{{ $filterBranchId }}')">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex-1">
-                    <form method="GET" action="{{ route('inventory.overview') }}" class="flex gap-2">
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ $search }}"
-                            placeholder="Search by product name or unit..."
-                            class="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        />
-                        <button
-                            type="submit"
-                            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                        >
-                            Search
-                        </button>
-                        @if($search)
-                            <a
-                                href="{{ route('inventory.overview') }}"
-                                class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                            >
-                                Clear
-                            </a>
-                        @endif
-                    </form>
+                    <x-product-search-typeahead searchInputRef="inventorySearchInput" />
                 </div>
 
                 @if($isAdmin)
@@ -152,3 +130,159 @@
         </div>
     </section>
 </x-app-layout>
+
+<script>
+function inventorySearch(searchUrl, baseRoute, selectedBranch) {
+    return {
+        typeahead: {
+            q: '',
+            items: [],
+            open: false,
+            loading: false,
+            activeIndex: -1,
+            debounceHandle: null,
+            limit: 8,
+        },
+        searchUrl: searchUrl,
+        baseRoute: baseRoute,
+        selectedBranch: selectedBranch,
+
+        onTypeaheadInput() {
+            if (this.typeahead.debounceHandle) {
+                clearTimeout(this.typeahead.debounceHandle);
+            }
+
+            const query = this.typeahead.q.trim();
+            if (!query) {
+                this.typeahead.items = [];
+                this.typeahead.open = false;
+                this.typeahead.activeIndex = -1;
+                return;
+            }
+
+            this.typeahead.debounceHandle = setTimeout(() => {
+                this.fetchTypeahead(query);
+            }, 250);
+        },
+
+        async fetchTypeahead(query) {
+            this.typeahead.loading = true;
+            this.typeahead.open = true;
+
+            const params = new URLSearchParams({ q: query, limit: String(this.typeahead.limit) });
+
+            try {
+                const data = await this.getJson(`${this.searchUrl}?${params.toString()}`);
+                this.typeahead.items = Array.isArray(data) ? data : [];
+                this.typeahead.activeIndex = this.typeahead.items.length > 0 ? 0 : -1;
+            } catch (error) {
+                this.typeahead.items = [];
+                this.typeahead.activeIndex = -1;
+                console.error(error);
+            } finally {
+                this.typeahead.loading = false;
+            }
+        },
+
+        reopenTypeahead() {
+            if (this.typeahead.items.length > 0 || this.typeahead.loading) {
+                this.typeahead.open = true;
+            }
+        },
+
+        closeTypeahead() {
+            this.typeahead.open = false;
+            this.typeahead.activeIndex = -1;
+        },
+
+        moveTypeahead(step) {
+            if (!this.typeahead.open || this.typeahead.items.length === 0) {
+                return;
+            }
+
+            const count = this.typeahead.items.length;
+            const current = this.typeahead.activeIndex < 0 ? 0 : this.typeahead.activeIndex;
+            this.typeahead.activeIndex = (current + step + count) % count;
+        },
+
+        async onTypeaheadEnter() {
+            if (this.typeahead.open && this.typeahead.items.length > 0) {
+                const index = this.typeahead.activeIndex >= 0 ? this.typeahead.activeIndex : 0;
+                await this.selectTypeaheadItem(index);
+                return;
+            }
+
+            this.applySearch();
+        },
+
+        async selectTypeaheadItem(index) {
+            const product = this.typeahead.items[index];
+            if (!product) {
+                return;
+            }
+
+            this.typeahead.q = product.name;
+            this.typeahead.items = [];
+            this.closeTypeahead();
+
+            this.$nextTick(() => {
+                this.$refs.inventorySearchInput?.focus();
+            });
+        },
+
+        clearSearch() {
+            this.typeahead.q = '';
+            this.typeahead.items = [];
+            this.closeTypeahead();
+        },
+
+        applySearch() {
+            const query = this.typeahead.q.trim();
+            const params = new URLSearchParams();
+
+            if (query) {
+                params.set('search', query);
+            }
+
+            if (this.selectedBranch) {
+                params.set('branch_id', this.selectedBranch);
+            }
+
+            const url = params.toString() ? `${this.baseRoute}?${params.toString()}` : this.baseRoute;
+            window.location.href = url;
+        },
+
+        formatPrice(value) {
+            return Number(value ?? 0).toFixed(2);
+        },
+
+        formatQty(value) {
+            return String(Math.max(0, Math.floor(Number(value ?? 0))));
+        },
+
+        async getJson(url) {
+            const response = await fetch(url, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Request failed (${response.status})`);
+            }
+
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                throw new Error('Unexpected server response.');
+            }
+
+            return response.json();
+        },
+    };
+}
+</script>
+
+
