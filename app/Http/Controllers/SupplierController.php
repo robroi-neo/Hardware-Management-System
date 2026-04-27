@@ -59,14 +59,6 @@ class SupplierController extends Controller
     }
 
     /**
-     * Show the form for creating a new supplier
-     */
-    public function create()
-    {
-        return view('modules.suppliers.create');
-    }
-
-    /**
      * Store a newly created supplier in the database
      */
     public function store(Request $request)
@@ -92,38 +84,6 @@ class SupplierController extends Controller
     }
 
     /**
-     * Display the specified supplier with related data
-     */
-    public function show(Supplier $supplier)
-    {
-        $purchases = $supplier->purchases()->with('branch')->paginate(10);
-        $invoices = $supplier->invoices()->latest()->paginate(10);
-        $totalPurchases = $supplier->purchases()->count();
-        $totalAmount = DB::table('purchases')
-            ->join('purchase_details', 'purchases.id', '=', 'purchase_details.purchase_id')
-            ->where('purchases.supplier_id', $supplier->id)
-            ->sum('purchase_details.subtotal');
-
-        return view('modules.suppliers.show', [
-            'supplier' => $supplier,
-            'purchases' => $purchases,
-            'invoices' => $invoices,
-            'totalPurchases' => $totalPurchases,
-            'totalAmount' => $totalAmount,
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified supplier
-     */
-    public function edit(Supplier $supplier)
-    {
-        return view('modules.suppliers.edit', [
-            'supplier' => $supplier,
-        ]);
-    }
-
-    /**
      * Update the specified supplier in the database
      */
     public function update(Request $request, Supplier $supplier)
@@ -140,7 +100,7 @@ class SupplierController extends Controller
         try {
             $supplier->update($validated);
 
-            return redirect()->route('suppliers.show', $supplier)
+            return redirect()->route('suppliers.index')
                 ->with('success', 'Supplier updated successfully');
         } catch (\Exception $e) {
             return back()->withInput()
