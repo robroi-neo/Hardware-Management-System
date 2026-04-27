@@ -32,7 +32,8 @@
 
 @php
 $onCloseExpression = $onClose ?: $show . ' = false';
-$modalTitle = $title ?: (data_get($data, 'name') ?? data_get($data, 'title') ?? 'Details');
+$isClientData = is_string($data);
+$modalTitle = $title ?: 'Details';
 @endphp
 
 <div
@@ -44,7 +45,11 @@ $modalTitle = $title ?: (data_get($data, 'name') ?? data_get($data, 'title') ?? 
     <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
         <!-- Header -->
         <div class="mb-4 flex items-center justify-between gap-3">
-            <h3 class="text-lg font-semibold text-slate-900">{{ $modalTitle }}</h3>
+            @if ($isClientData)
+                <h3 class="text-lg font-semibold text-slate-900" x-text="{{ $data }}?.supplier_name || '{{ $modalTitle }}'"></h3>
+            @else
+                <h3 class="text-lg font-semibold text-slate-900">{{ $modalTitle }}</h3>
+            @endif
             <button
                 type="button"
                 class="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
@@ -60,22 +65,37 @@ $modalTitle = $title ?: (data_get($data, 'name') ?? data_get($data, 'title') ?? 
             @foreach ($fields as $fieldKey => $fieldLabel)
                 <div>
                     <label class="block text-sm font-medium text-slate-700">{{ $fieldLabel }}</label>
-                    <p class="mt-1 text-sm text-slate-600">
+                    @if ($isClientData)
                         @php
-                            $value = data_get($data, $fieldKey);
-                            // Format value based on type
-                            if (is_bool($value)) {
-                                $displayValue = $value ? 'Yes' : 'No';
-                            } elseif ($value instanceof \Carbon\Carbon) {
-                                $displayValue = $value->format('M d, Y');
-                            } elseif (is_null($value) || $value === '') {
-                                $displayValue = '—';
-                            } else {
-                                $displayValue = $value;
-                            }
+                            $pathSegments = json_encode(explode('.', $fieldKey));
                         @endphp
-                        {{ $displayValue }}
-                    </p>
+                        <p
+                            class="mt-1 text-sm text-slate-600"
+                            x-text="(() => {
+                                let value = {{ $data }};
+                                for (const part of {{ $pathSegments }}) {
+                                    value = value?.[part];
+                                }
+                                return (value === null || value === undefined || value === '') ? '—' : value;
+                            })()"
+                        ></p>
+                    @else
+                        <p class="mt-1 text-sm text-slate-600">
+                            @php
+                                $value = data_get($data, $fieldKey);
+                                if (is_bool($value)) {
+                                    $displayValue = $value ? 'Yes' : 'No';
+                                } elseif ($value instanceof \Carbon\Carbon) {
+                                    $displayValue = $value->format('M d, Y');
+                                } elseif (is_null($value) || $value === '') {
+                                    $displayValue = '—';
+                                } else {
+                                    $displayValue = $value;
+                                }
+                            @endphp
+                            {{ $displayValue }}
+                        </p>
+                    @endif
                 </div>
             @endforeach
         </div>

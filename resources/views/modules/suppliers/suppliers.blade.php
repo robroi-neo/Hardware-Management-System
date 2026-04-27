@@ -187,7 +187,7 @@
         <!-- Detail Modal (Read-Only View) -->
         <x-modals.detail-modal
             show="showDetailModal"
-            :data="(object) $detail"
+            data="detail"
             title="Supplier Details"
             :fields="[
                 'supplier_name' => 'Supplier Name',
