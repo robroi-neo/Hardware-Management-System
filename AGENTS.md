@@ -23,10 +23,11 @@ This is a **multi-module business management system** built with Laravel 13 (lat
 
 ```
 Branch (store locations)
-  └─ BranchInventory (per-branch stock levels)
-      ├─ Product (hardware catalog)
-      └─ Sales (point-of-sale transactions)
-           └─ SaleItem (individual line items)
+  ├─ BranchInventory (per-branch stock levels)
+  │   ├─ Product (hardware catalog)
+  │   └─ Sales (point-of-sale transactions)
+  │        └─ SaleItem (individual line items)
+  └─ PosTerminal (POS device assignment)
 
 Product (shared catalog)
   ├─ BranchInventory (qty per branch)
@@ -34,8 +35,7 @@ Product (shared catalog)
 
 User
   ├─ Sales (cashier who made transaction)
-  ├─ Roles (via Spatie\Permission)
-  └─ Branch (assigned branch, if multi-branch user)
+  └─ Roles (via Spatie\Permission)
 
 Invoice
   └─ Purchase (supplier orders)
@@ -43,21 +43,54 @@ Invoice
 
 ### POS System (Session-Based, Not DB-Persistent)
 
+**Terminal Selection**: Session keys `pos_terminal` (dict with `terminal_id`, `branch_id`, `terminal_name`) and `pos_terminal.branch_id` used for branch scoping.
+
 **Cart Storage**: Session key `pos_cart` (array of `{product_id, quantity}`)
 
 **Data Flow**:
-1. **Product Search/Browse** (`Pos\ProductController::{search,browse}`) → Search active products, attach `available_quantity` from `BranchInventory` (branch-scoped when `branch_id` is provided)
-2. **Cart Mutations** (`Pos\PosController`) → Add/update/remove items in session (no DB write until checkout)
-3. **Checkout Prepare** (`Pos\CheckoutController::prepare`) → Hydrate cart with unit price and totals (preview)
-4. **Checkout Finalize** (`Pos\CheckoutController::finalize`) → **Atomic transaction**:
+1. **Terminal Selection** → User selects POS terminal (from `PosTerminal` model); terminal determines `branch_id` for all subsequent operations
+2. **Product Search/Browse** (`Pos\ProductController::{search,browse}`) → Search active products, attach `available_quantity` from `BranchInventory` (branch-scoped to terminal's branch)
+3. **Cart Mutations** (`Pos\PosController`) → Add/update/remove items in session (no DB write until checkout)
+4. **Checkout Prepare** (`Pos\CheckoutController::prepare`) → Hydrate cart with unit price and totals (preview)
+5. **Checkout Finalize** (`Pos\CheckoutController::finalize`) → **Atomic transaction**:
+   - Resolve branch ID from terminal (via `resolveTerminalBranchId()`)
    - Lock branch inventory rows (`lockForUpdate()`)
    - Validate stock availability
-   - Create `Sale` record
-   - Create `SaleItem` records (one per product)
+   - Create `Sale` record with `payment_method` (defaults to 'cash')
+   - Create `SaleItem` records (one per product: `product_id`, `quantity`, `markup`, `subtotal`)
    - Decrement `BranchInventory.quantity`
    - Clear session cart
 
-**Key Detail**: Pricing uses `Product.capital` (cost) for sales price (no separate markup column on Product).
+**Key Detail**: Pricing uses `Product.capital` (cost) for sales price (no separate markup column on Product). `SaleItem` does not store `product_name`, `unit`, `unit_price`, or `cost`—these are calculated dynamically in checkout prepare/finalize.
+
+### Purchasing System (Session-Based Cart → Atomic Invoice/Purchase Creation)
+
+**Cart Storage**: Session key `purchasing_cart` (array of `{product_id, quantity, unit_price}`)
+
+**Product Standardization**: All product names are standardized to `UPPERCASE_WITH_UNDERSCORES` format during creation. Case-insensitive uniqueness validation prevents duplicates (e.g., "Hammer" vs "hammer" treated as same). See `PRODUCT_STANDARDIZATION.md` for detailed rules.
+
+**Hybrid Product Creation**: Users can create products on-the-fly during checkout via modal, providing:
+- **Product Name** (standardized automatically, case-insensitive uniqueness check)
+- **Unit** (e.g., 'pcs', 'box', 'meter', default 'pcs')
+- **Capital** (cost price, stored as `Product.capital`)
+
+**Data Flow**:
+1. **Supplier & Branch Selection** → User selects supplier (active only) and branch for the purchase
+2. **Product Search** (`Purchasing\ProductController::search`) → Search existing products by name/ID, return `{id, name, unit, capital}`
+3. **Inline Product Creation** (optional) → Click "New Product" modal to create new product with standardization & uniqueness check; added to cart immediately upon creation
+4. **Cart Mutations** (`Purchasing\PurchasingController`) → Add/update/remove items from `purchasing_cart` session (no DB write until checkout)
+5. **Checkout Prepare** (`Purchasing\CheckoutController::prepare`) → Hydrate cart with product details and calculate subtotals (preview)
+6. **Checkout Finalize** (`Purchasing\CheckoutController::finalize`) → **Atomic transaction**:
+   - Create `Purchase` record (supplier_id, branch_id, date)
+   - Create `PurchaseDetail` records (one per cart item: product_id, quantity, unit_price, subtotal)
+   - For each product: increment `BranchInventory.quantity` (create entry if missing)
+   - Create single `Invoice` record linked to Purchase (date_issued=now, date_due=now+30 days, configurable offset)
+   - Clear session cart
+
+**Key Details**:
+- **Invoice Due Date**: Defaults to net-30 (30 days from today), overridable via `date_due_offset` parameter in checkout finalize
+- **Inventory Increment**: Purchases increment `BranchInventory` for the selected branch (unlike POS which decrements)
+- **Product Pricing**: `PurchaseDetail.unit_price` can override `Product.capital` per line item (allows wholesale price negotiation per supplier)
 
 ### Permission-Based Access Control
 
@@ -228,12 +261,30 @@ Usage: `->middleware('permission:pos.access')` or `->middleware('role:admin')`
 
 - **Driver**: SQLite
 - **Location**: `database/database.sqlite`
-- **Migrations**: In `database/migrations/`, includes Laravel base migrations (`0001_*`) plus app domain migrations (`2026_03_28_*`)
+- **Migrations**: In `database/migrations/`, includes Laravel base migrations (`0001_*`) plus app domain migrations (`2026_03_28_*` and `2026_04_*`)
 - **Factories**: `UserFactory` and `ProductFactory` available for testing
+
+### POS Terminal Model
+
+The `PosTerminal` model (`app/Models/PosTerminal.php`, migration `2026_04_19_000001`) represents physical POS devices:
+- **Fields**: `terminal_id` (unique integer), `terminal_name`, `branch_id` (FK)
+- **Relationship**: `belongsTo(Branch::class)`
+- **Usage**: Seeded in `database/seeders/PosTerminalSeeder.php`; referenced during checkout via session (`pos_terminal` key)
 
 ---
 
 ## Critical Developer Workflows
+
+### POS Terminal Selection & Branch Scoping
+
+**Context**: Before any POS operation, a terminal must be selected. The terminal defines the branch context for the entire session.
+
+1. **Terminal Lookup** → User selects terminal (lists from `PosTerminal::where('branch_id', $visibleBranches)`)
+2. **Session Storage** → Terminal data stored in session under `pos_terminal` key with structure: `{ terminal_id, terminal_name, branch_id }`
+3. **Branch Resolution** → `CheckoutController::resolveTerminalBranchId()` extracts `branch_id` from session; throws 422 if missing/invalid
+4. **Inventory Scoping** → All cart operations and stock checks filter by the terminal's branch via `BranchInventory.where('branch_id', $branchId)`
+
+**Important**: If `pos_terminal` is not set in session, POS operations fail with "Terminal is not selected" error. Always ensure terminal is selected before rendering POS pages.
 
 ### Adding a New Module (e.g., "Reporting")
 
@@ -264,6 +315,30 @@ Usage: `->middleware('permission:pos.access')` or `->middleware('role:admin')`
    ```
 
 4. **Permissions**: Ensure permission exists in database (check `permissions` table).
+
+### Implementing Purchasing Workflows
+
+**Product Standardization**: All product names in purchasing follow `UPPERCASE_WITH_UNDERSCORES` format (e.g., `HAMMER_CLAW_500G`, `NAIL_GALVANIZED_1_5_INCH`). Standardization happens automatically during inline product creation. See `PRODUCT_STANDARDIZATION.md` for complete rules and implementation.
+
+**Inline Product Creation**: Users can create new products on-the-fly via modal during purchasing checkout:
+- System provides text input for product name (auto-standardizes to uppercase with underscores)
+- User selects unit from dropdown (pcs, box, meter, liter, kg, gram, or custom)
+- User enters cost price (capital)
+- Real-time preview shows standardized name and duplicate warning (case-insensitive check)
+- Upon save, product is created with `status='active'` and added to cart immediately
+
+**Implementation Files**:
+- `app/Http/Controllers/Purchasing/ProductController.php` — `standardizeName()`, `validateUniqueness()`, `store()`, `preview()`
+- `resources/views/modules/purchasing/new-invoice.blade.php` — Modal UI and Alpine.js logic
+
+**Case-Insensitive Uniqueness Check**:
+```php
+$query = Product::whereRaw('UPPER(name) = ?', [strtoupper($standardized)]);
+if ($excludeId) {
+    $query->where('id', '!=', $excludeId);
+}
+$exists = $query->exists();
+```
 
 ### Modifying POS Checkout Logic
 
@@ -320,14 +395,40 @@ Instead of duplicating sort/filter/pagination UI across views, use reusable Blad
 - Preserves other query parameters during filter submission
 - Auto-submits on selection
 
+### Before Creating a New Component
+
+**Always check if a generic/reusable component already exists** before building a new one:
+
+1. **Search existing components** in `resources/views/components/`:
+   - Check `components/table/` for table-related UI
+   - Check `components/filters/` for filter dropdowns
+   - Check `components/` root for generic patterns
+   - Use `grep` or IDE search: search for similar patterns in the codebase
+
+2. **Review component props** to see if it's already flexible enough:
+   - `<x-filters.dropdown-filter>` — Generic filter for ANY model/field (branches, suppliers, statuses, etc.)
+   - `<x-table.sortable-header>` — Generic sortable column header for ANY sortable field
+   - `<x-table.pagination>` — Generic pagination for any Paginator instance
+   - `<x-product-search-typeahead>` — Reusable product search with keyboard nav
+
+3. **Adapt existing component** if needed:
+   - Add new props instead of creating duplicate
+   - Example: `dropdown-filter` now handles ANY model via `valueField` and `displayField` props
+   - This is faster and ensures consistent behavior across modules
+
+4. **Only create new component if**:
+   - No existing component solves the problem
+   - The pattern appears in **2+ places** (DRY principle)
+   - The component is genuinely domain-specific and not reusable elsewhere
+
 ### When to Extract Components
 
 Extract a Blade component when the UI pattern appears **2+ times** across different views. Current extractions:
-- **Sortable headers** → Used in `pos.transactions`, `inventory.overview`
-- **Filter dropdowns** → Generic `dropdown-filter` component for branches, suppliers, statuses, etc.
-- **Pagination** → Used in all list views
+- **Sortable headers** → Used in `pos.transactions`, `inventory.overview` — `<x-table.sortable-header>`
+- **Filter dropdowns** → Generic `<x-filters.dropdown-filter>` for branches, suppliers, statuses, payment methods, etc.
+- **Pagination** → Used in all list views — `<x-table.pagination>`
 - **Edit modal** → Used for suppliers, purchases, and other forms
-- **Product search typeahead** → Used in POS and inventory
+- **Product search typeahead** → Used in purchasing, POS, and inventory — `<x-product-search-typeahead>`
 
 ### Extending Table Components
 
@@ -351,13 +452,15 @@ No need to modify controller or add new logic—columns are defined in the view.
 
 1. **Cart Persistence**: POS cart lives in session, NOT database. Transactions lost on session expiry.
 2. **Floating-Point Math**: All monetary/quantity fields cast to `float`. Avoid decimals in totals without rounding.
-3. **Branch Scoping**: `BranchInventory` is branch-specific. Must always filter by `branch_id` in stock queries.
+3. **Branch Scoping**: `BranchInventory` is branch-specific. Always filter by `branch_id` in stock queries. For POS, this is resolved via `CheckoutController::resolveTerminalBranchId()` from the session's `pos_terminal.branch_id`.
 4. **Permissions Depend on Seeding**: RBAC routes will 403 when DB is migrated without seeding; run seeder and verify `permissions` table.
-5. **Sale Item Schema Drift**: `Pos\CheckoutController::finalize()` writes `product_name`, `unit`, `unit_price`, and `cost`, but `sales_items` migration/model only include `sale_id`, `product_id`, `quantity`, `markup`, `subtotal`.
-6. **Vite Hot Reload**: Only works in development. Run `npm run dev` to enable CSS/JS changes without rebuilds.
-7. **Sortable Header Params**: When using `<x-table.sortable-header>`, always pass critical query params (e.g., `search`, `branch_id`) in the `:params` prop to preserve them across sort clicks. Otherwise, filters reset when user sorts.
-8. **Filter Dropdown Visibility**: `<x-filters.dropdown-filter>` checks `$items->count() >= $minCount` before rendering (default minCount=2). Control visibility with the `minCount` prop—use `minCount="1"` to always show, even with a single item.
-9. **Filter Field Mapping**: Use `valueField` and `displayField` props on `dropdown-filter` to map model attributes to option values/labels. For nested/non-standard fields, use `data_get()` helper in your controller or model accessor.
+5. **SaleItem Schema**: `SaleItem` migration only includes `sale_id`, `product_id`, `quantity`, `markup`, `subtotal`. Product details (`name`, `unit`, `unit_price`, `cost`) are NOT persisted in `SaleItem`; fetch from `Product` model on display.
+6. **Terminal Branch Resolution**: `CheckoutController::resolveTerminalBranchId()` requires `pos_terminal.branch_id` in session. If missing or invalid (< 1), returns 422 error. Always validate terminal selection before POS operations.
+7. **Vite Hot Reload**: Only works in development. Run `npm run dev` to enable CSS/JS changes without rebuilds.
+8. **Sortable Header Params**: When using `<x-table.sortable-header>`, always pass critical query params (e.g., `search`, `branch_id`) in the `:params` prop to preserve them across sort clicks. Otherwise, filters reset when user sorts.
+9. **Filter Dropdown Visibility**: `<x-filters.dropdown-filter>` checks `$items->count() >= $minCount` before rendering (default minCount=2). Control visibility with the `minCount` prop—use `minCount="1"` to always show, even with a single item.
+10. **Filter Field Mapping**: Use `valueField` and `displayField` props on `dropdown-filter` to map model attributes to option values/labels. For nested/non-standard fields, use `data_get()` helper in your controller or model accessor.
+11. **Payment Method Storage**: `Sale` model includes `payment_method` column (defaults to 'cash'). Currently only cash is supported, but field is extensible for future payment types.
 
 ---
 

@@ -39,7 +39,7 @@ $modalTitle = $title ?: 'Details';
 <div
     x-show="{{ $show }}"
     x-transition
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 !m-0 "
     @click.self="{{ $onCloseExpression }}"
 >
     <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">

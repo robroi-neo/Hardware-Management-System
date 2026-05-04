@@ -22,12 +22,23 @@ Route::middleware('auth')->group(function () {
 
 
     Route::get('/purchasing/new-invoice', function () {
-        return view('modules.purchasing.new-invoice');
+        // Get terminal from session
+        $posTerminal = session('pos_terminal');
+        if (!$posTerminal || !isset($posTerminal['branch_id'])) {
+            return redirect('/')->with('error', 'No terminal selected. Please select a terminal first.');
+        }
+
+        $suppliers = \App\Models\Supplier::where('status', 'active')->get();
+        $branches = \App\Models\Branch::all();
+        $branchId = $posTerminal['branch_id'];
+        $terminalName = $posTerminal['terminal_name'] ?? 'Unknown Terminal';
+        $selectedBranch = $branches->find($branchId);
+
+        return view('modules.purchasing.new-invoice', compact('suppliers', 'branches', 'branchId', 'terminalName', 'selectedBranch'));
     })->middleware('permission:purchases.create')->name('purchasing.new-invoice');
 
-    Route::get('/purchasing/invoice-history', function () {
-        return view('modules.purchasing.invoice-history');
-    })->middleware('permission:purchases.view-history')->name('purchasing.invoice-history');
+    Route::get('/purchasing/invoice-history', [\App\Http\Controllers\Purchasing\InvoiceHistoryController::class, 'index'])
+        ->middleware('permission:purchases.view-history')->name('purchasing.invoice-history');
 
     Route::get('/inventory/overview', [\App\Http\Controllers\Inventory\OverviewController::class, 'index'])
         ->middleware('permission:inventory.view-overview')->name('inventory.overview');
@@ -80,6 +91,22 @@ Route::middleware('auth')->group(function () {
         Route::get('products/search', [\App\Http\Controllers\Inventory\StockInController::class, 'searchProducts'])->name('inventory.api.products.search');
         Route::post('stock-in/store', [\App\Http\Controllers\Inventory\StockInController::class, 'store'])->name('inventory.api.stock-in.store');
         Route::post('stock-out/store', [\App\Http\Controllers\Inventory\StockOutController::class, 'store'])->name('inventory.api.stock-out.store');
+    });
+
+    // Purchasing API endpoints
+    Route::prefix('purchasing/api')->middleware('permission:purchases.create')->group(function () {
+        Route::get('products/search', [\App\Http\Controllers\Purchasing\ProductController::class, 'search'])->name('purchasing.api.products.search');
+        Route::get('products/preview', [\App\Http\Controllers\Purchasing\ProductController::class, 'preview'])->name('purchasing.api.products.preview');
+        Route::post('products/store', [\App\Http\Controllers\Purchasing\ProductController::class, 'store'])->name('purchasing.api.products.store');
+
+        Route::get('cart', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'getCart'])->name('purchasing.api.cart.get');
+        Route::post('cart/add', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'addItem'])->name('purchasing.api.cart.add');
+        Route::post('cart/update', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'updateItem'])->name('purchasing.api.cart.update');
+        Route::post('cart/remove', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'removeItem'])->name('purchasing.api.cart.remove');
+        Route::post('cart/clear', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'clearCart'])->name('purchasing.api.cart.clear');
+
+        Route::get('checkout/prepare', [\App\Http\Controllers\Purchasing\CheckoutController::class, 'prepare'])->name('purchasing.api.checkout.prepare');
+        Route::post('checkout/finalize', [\App\Http\Controllers\Purchasing\CheckoutController::class, 'finalize'])->name('purchasing.api.checkout.finalize');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
