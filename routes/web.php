@@ -33,8 +33,9 @@ Route::middleware('auth')->group(function () {
         $branchId = $posTerminal['branch_id'];
         $terminalName = $posTerminal['terminal_name'] ?? 'Unknown Terminal';
         $selectedBranch = $branches->find($branchId);
+        $selectedSupplierId = session('purchasing_supplier_id');
 
-        return view('modules.purchasing.new-invoice', compact('suppliers', 'branches', 'branchId', 'terminalName', 'selectedBranch'));
+        return view('modules.purchasing.new-invoice', compact('suppliers', 'branches', 'branchId', 'terminalName', 'selectedBranch', 'selectedSupplierId'));
     })->middleware('permission:purchases.create')->name('purchasing.new-invoice');
 
     Route::get('/purchasing/invoice-history', [\App\Http\Controllers\Purchasing\InvoiceHistoryController::class, 'index'])
@@ -104,6 +105,9 @@ Route::middleware('auth')->group(function () {
         Route::post('cart/update', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'updateItem'])->name('purchasing.api.cart.update');
         Route::post('cart/remove', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'removeItem'])->name('purchasing.api.cart.remove');
         Route::post('cart/clear', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'clearCart'])->name('purchasing.api.cart.clear');
+
+        Route::get('supplier', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'getSelectedSupplier'])->name('purchasing.api.supplier.get');
+        Route::post('supplier', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'setSelectedSupplier'])->name('purchasing.api.supplier.set');
 
         Route::get('checkout/prepare', [\App\Http\Controllers\Purchasing\CheckoutController::class, 'prepare'])->name('purchasing.api.checkout.prepare');
         Route::post('checkout/finalize', [\App\Http\Controllers\Purchasing\CheckoutController::class, 'finalize'])->name('purchasing.api.checkout.finalize');

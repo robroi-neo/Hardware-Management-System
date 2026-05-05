@@ -162,5 +162,37 @@ class PurchasingController extends Controller
             'message' => 'Cart cleared',
         ]);
     }
-}
 
+    /**
+     * Get selected supplier from session
+     */
+    public function getSelectedSupplier(Request $request)
+    {
+        return response()->json([
+            'success' => true,
+            'supplier_id' => $request->session()->get('purchasing_supplier_id'),
+        ]);
+    }
+
+    /**
+     * Set or clear selected supplier in session
+     * Expected payload: supplier_id (nullable)
+     */
+    public function setSelectedSupplier(Request $request)
+    {
+        $validated = $request->validate([
+            'supplier_id' => 'nullable|integer|exists:suppliers,id',
+        ]);
+
+        if (array_key_exists('supplier_id', $validated) && $validated['supplier_id']) {
+            $request->session()->put('purchasing_supplier_id', $validated['supplier_id']);
+        } else {
+            $request->session()->forget('purchasing_supplier_id');
+        }
+
+        return response()->json([
+            'success' => true,
+            'supplier_id' => $request->session()->get('purchasing_supplier_id'),
+        ]);
+    }
+}
