@@ -187,178 +187,182 @@
                 Clear Cart
             </button>
         </aside>
-    </div>
+        <!-- Product Creation Modal -->
+        <x-modal name="create-product" maxWidth="md" focusable>
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-slate-900">Create New Product</h3>
+                    <button @click="$dispatch('close-modal', 'create-product')" class="text-sm text-slate-500 hover:text-slate-700">Close</button>
+                </div>
 
-    <!-- Product Creation Modal -->
-    <x-modal name="create-product" maxWidth="md" focusable>
-        <div class="p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-slate-900">Create New Product</h3>
-                <button @click="$dispatch('close-modal', 'create-product')" class="text-sm text-slate-500 hover:text-slate-700">Close</button>
-            </div>
-
-            <div class="space-y-4">
-                <!-- Product Name -->
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Product Name *</label>
-                    <input
-                        type="text"
-                        x-model="newProduct.name"
-                        @input="previewStandardizedName"
-                        placeholder="e.g., Hammer Claw"
-                        class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                    <div x-show="standardizedNamePreview" class="mt-2 p-3 bg-blue-50 rounded text-sm">
-                        <div class="text-gray-600">Standardized as:</div>
-                        <div class="font-mono font-semibold text-blue-900" x-text="standardizedNamePreview"></div>
-                        <div x-show="productNameExists" class="mt-2 text-red-600 text-xs">
-                            ⚠️ A product with this name already exists
+                <div class="space-y-4">
+                    <!-- Product Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Product Name *</label>
+                        <input
+                            type="text"
+                            x-model="newProduct.name"
+                            @input="previewStandardizedName"
+                            placeholder="e.g., Hammer Claw"
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                        <div x-show="standardizedNamePreview" class="mt-2 p-3 bg-blue-50 rounded text-sm">
+                            <div class="text-gray-600">Standardized as:</div>
+                            <div class="font-mono font-semibold text-blue-900" x-text="standardizedNamePreview"></div>
+                            <div x-show="productNameExists" class="mt-2 text-red-600 text-xs">
+                                ⚠️ A product with this name already exists
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Unit -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Unit *</label>
+                        <select x-model="newProduct.unit" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">-- Select Unit --</option>
+                            <option value="pcs">pcs (pieces)</option>
+                            <option value="box">box</option>
+                            <option value="meter">meter</option>
+                            <option value="liter">liter</option>
+                            <option value="kg">kg (kilogram)</option>
+                            <option value="gram">gram</option>
+                        </select>
+                    </div>
+
+                    <!-- Capital (Cost Price) -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Capital (Cost Price) *</label>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 mr-2">₱</span>
+                            <input
+                                type="number"
+                                x-model.number="newProduct.capital"
+                                min="0.01"
+                                step="0.01"
+                                placeholder="0.00"
+                                class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                        </div>
+                    </div>
+
+                    <p x-show="productCreateError" class="mt-3 text-sm text-red-600" x-text="productCreateError"></p>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center justify-end gap-3 pt-4">
+                        <button
+                            @click="$dispatch('close-modal', 'create-product')"
+                            class="px-4 py-2 border rounded text-sm text-slate-700 hover:bg-slate-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            @click="saveNewProduct"
+                            :disabled="!newProduct.name || !newProduct.unit || !newProduct.capital || isCreatingProduct || productNameExists"
+                            class="px-4 py-2 rounded bg-indigo-900 text-white text-sm hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Create Product
+                            <span x-show="!isCreatingProduct">Create Product</span>
+                            <span x-show="isCreatingProduct">Creating...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </x-modal>
+
+        <!-- Checkout Modal -->
+        <x-modal name="checkout-confirm" maxWidth="md" focusable>
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-slate-900">Confirm Purchase</h3>
+                    <button @click="$dispatch('close-modal', 'checkout-confirm')" class="text-sm text-slate-500 hover:text-slate-700">Close</button>
                 </div>
 
-                <!-- Unit -->
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Unit *</label>
-                    <select x-model="newProduct.unit" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">-- Select Unit --</option>
-                        <option value="pcs">pcs (pieces)</option>
-                        <option value="box">box</option>
-                        <option value="meter">meter</option>
-                        <option value="liter">liter</option>
-                        <option value="kg">kg (kilogram)</option>
-                        <option value="gram">gram</option>
-                    </select>
-                </div>
-
-                <!-- Capital (Cost Price) -->
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Capital (Cost Price) *</label>
-                    <div class="flex items-center">
-                        <span class="text-gray-600 mr-2">₱</span>
-                        <input
-                            type="number"
-                            x-model.number="newProduct.capital"
-                            min="0.01"
-                            step="0.01"
-                            placeholder="0.00"
-                            class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        />
+                <div class="space-y-4 mb-6">
+                    <div class="flex justify-between">
+                        <span class="text-slate-600">Total Amount:</span>
+                        <span class="text-2xl font-semibold text-indigo-900">₱<span x-text="formatPrice(cartSubtotal)"></span></span>
+                    </div>
+                    <!-- This is not being filled? why-->
+                    <div class="flex justify-between text-sm text-slate-600">
+                        <span>Items:</span>
+                        <span x-text="cartItems.length"></span>
+                    </div>
+                    <div class="flex justify-between text-sm text-slate-600">
+                        <span>Invoice Due Date:</span>
+                        <span x-text="invoiceDueDate"></span>
                     </div>
                 </div>
 
-                <p x-show="productCreateError" class="mt-3 text-sm text-red-600" x-text="productCreateError"></p>
+                <div class="mb-4 p-3 bg-yellow-50 rounded text-sm text-yellow-700">
+                    This will create a Purchase order and Invoice. Inventory will be updated accordingly.
+                </div>
 
-                <!-- Action Buttons -->
-                <div class="flex items-center justify-end gap-3 pt-4">
+                <p x-show="checkoutError" class="mb-4 text-sm text-red-600" x-text="checkoutError"></p>
+
+                <div class="flex items-center justify-end gap-3">
                     <button
-                        @click="$dispatch('close-modal', 'create-product')"
+                        @click="$dispatch('close-modal', 'checkout-confirm')"
                         class="px-4 py-2 border rounded text-sm text-slate-700 hover:bg-slate-50"
                     >
                         Cancel
                     </button>
                     <button
-                        @click="saveNewProduct"
-                        :disabled="!newProduct.name || !newProduct.unit || !newProduct.capital || isCreatingProduct || productNameExists"
-                        class="px-4 py-2 rounded bg-indigo-900 text-white text-sm hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                        @click="completeCheckout"
+                        :disabled="isProcessing"
+                        class="px-4 py-2 rounded bg-indigo-900 text-white text-sm hover:bg-indigo-800 disabled:opacity-50"
                     >
-                        <span x-show="!isCreatingProduct">Create Product</span>
-                        <span x-show="isCreatingProduct">Creating...</span>
+                        Confirm & Pay
+                        <span x-show="!isProcessing">Complete Purchase</span>
+                        <span x-show="isProcessing">Processing...</span>
                     </button>
                 </div>
             </div>
-        </div>
-    </x-modal>
+        </x-modal>
 
-    <!-- Checkout Modal -->
-    <x-modal name="checkout-confirm" maxWidth="md" focusable>
-        <div class="p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-slate-900">Confirm Purchase</h3>
-                <button @click="$dispatch('close-modal', 'checkout-confirm')" class="text-sm text-slate-500 hover:text-slate-700">Close</button>
-            </div>
+        <!-- Success Modal -->
+        <x-modal name="checkout-success" maxWidth="md" focusable>
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-900">Purchase Successful!</h3>
+                </div>
 
-            <div class="space-y-4 mb-6">
-                <div class="flex justify-between">
-                    <span class="text-slate-600">Total Amount:</span>
-                    <span class="text-2xl font-semibold text-indigo-900">₱<span x-text="formatPrice(cartSubtotal)"></span></span>
+                <div class="space-y-3 mb-6 p-4 bg-slate-50 rounded text-sm">
+                    <div>
+                        <span class="text-slate-600">Purchase ID:</span>
+                        <span class="font-mono font-medium" x-text="successData.purchase_id"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-600">Invoice ID:</span>
+                        <span class="font-mono font-medium" x-text="successData.invoice_id"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-600">Total Amount:</span>
+                        <span class="font-medium">₱<span x-text="formatPrice(successData.total_amount)"></span></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-600">Items:</span>
+                        <span x-text="successData.items_count"></span>
+                    </div>
                 </div>
-                <div class="flex justify-between text-sm text-slate-600">
-                    <span>Items:</span>
-                    <span x-text="cartItems.length"></span>
-                </div>
-                <div class="flex justify-between text-sm text-slate-600">
-                    <span>Invoice Due Date:</span>
-                    <span x-text="invoiceDueDate"></span>
-                </div>
-            </div>
 
-            <div class="mb-4 p-3 bg-yellow-50 rounded text-sm text-yellow-700">
-                This will create a Purchase order and Invoice. Inventory will be updated accordingly.
-            </div>
-
-            <p x-show="checkoutError" class="mb-4 text-sm text-red-600" x-text="checkoutError"></p>
-
-            <div class="flex items-center justify-end gap-3">
-                <button
-                    @click="$dispatch('close-modal', 'checkout-confirm')"
-                    class="px-4 py-2 border rounded text-sm text-slate-700 hover:bg-slate-50"
-                >
-                    Cancel
-                </button>
-                <button
-                    @click="completeCheckout"
-                    :disabled="isProcessing"
-                    class="px-4 py-2 rounded bg-indigo-900 text-white text-sm hover:bg-indigo-800 disabled:opacity-50"
-                >
-                    <span x-show="!isProcessing">Complete Purchase</span>
-                    <span x-show="isProcessing">Processing...</span>
-                </button>
-            </div>
-        </div>
-    </x-modal>
-
-    <!-- Success Modal -->
-    <x-modal name="checkout-success" maxWidth="md" focusable>
-        <div class="p-6">
-            <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-slate-900">Purchase Successful!</h3>
-            </div>
-
-            <div class="space-y-3 mb-6 p-4 bg-slate-50 rounded text-sm">
-                <div>
-                    <span class="text-slate-600">Purchase ID:</span>
-                    <span class="font-mono font-medium" x-text="successData.purchase_id"></span>
-                </div>
-                <div>
-                    <span class="text-slate-600">Invoice ID:</span>
-                    <span class="font-mono font-medium" x-text="successData.invoice_id"></span>
-                </div>
-                <div>
-                    <span class="text-slate-600">Total Amount:</span>
-                    <span class="font-medium">₱<span x-text="formatPrice(successData.total_amount)"></span></span>
-                </div>
-                <div>
-                    <span class="text-slate-600">Items:</span>
-                    <span x-text="successData.items_count"></span>
+                <div class="flex items-center justify-end gap-3">
+                    <button
+                        @click="$dispatch('close-modal', 'checkout-success'); newInvoice()"
+                        class="px-4 py-2 rounded bg-indigo-900 text-white text-sm hover:bg-indigo-800"
+                    >
+                        Create Another Invoice
+                    </button>
                 </div>
             </div>
+        </x-modal>
 
-            <div class="flex items-center justify-end gap-3">
-                <button
-                    @click="$dispatch('close-modal', 'checkout-success'); newInvoice()"
-                    class="px-4 py-2 rounded bg-indigo-900 text-white text-sm hover:bg-indigo-800"
-                >
-                    Create Another Invoice
-                </button>
-            </div>
-        </div>
-    </x-modal>
+    </div>
+
 
     <script>
         function purchasingApp() {
@@ -573,7 +577,9 @@
                 },
 
                 proceedToCheckout() {
+                    // return if any required info is missing
                     if (!this.selectedSupplier || !this.selectedBranch || this.cartItems.length === 0) return;
+
 
                     const tomorrow = new Date();
                     tomorrow.setDate(tomorrow.getDate() + 30);

@@ -8,6 +8,7 @@ This is a **multi-module business management system** built with Laravel 13 (lat
 - **Point of Sale (POS)** system with session-based cart management
 - **Inventory Management** with branch-specific stock tracking
 - **Purchasing & Invoicing** for supplier orders
+- **Supplier Management** for vendor records
 - **Audit Logs** for user activity and system events
 - **Role-Based Access Control (RBAC)** using Spatie Permission package
 
@@ -39,11 +40,14 @@ User
 
 Invoice
   └─ Purchase (supplier orders)
+
+Supplier (vendors)
+  └─ Purchase (supplier orders)
 ```
 
 ### POS System (Session-Based, Not DB-Persistent)
 
-**Terminal Selection**: Session keys `pos_terminal` (dict with `terminal_id`, `branch_id`, `terminal_name`) and `pos_terminal.branch_id` used for branch scoping.
+**Terminal Selection**: Session key `pos_terminal` (dict with `id`, `terminal_id`, `terminal_name`, `branch_id`, `branch_name`); `pos_terminal.branch_id` used for branch scoping.
 
 **Cart Storage**: Session key `pos_cart` (array of `{product_id, quantity}`)
 
@@ -279,10 +283,12 @@ The `PosTerminal` model (`app/Models/PosTerminal.php`, migration `2026_04_19_000
 
 **Context**: Before any POS operation, a terminal must be selected. The terminal defines the branch context for the entire session.
 
-1. **Terminal Lookup** → User selects terminal (lists from `PosTerminal::where('branch_id', $visibleBranches)`)
-2. **Session Storage** → Terminal data stored in session under `pos_terminal` key with structure: `{ terminal_id, terminal_name, branch_id }`
-3. **Branch Resolution** → `CheckoutController::resolveTerminalBranchId()` extracts `branch_id` from session; throws 422 if missing/invalid
+1. **Terminal Lookup** → User selects terminal before login (`Auth\TerminalSelectionController::create()` loads `PosTerminal::with('branch:id,name')->orderBy('terminal_id')`)
+2. **Session Storage** → Terminal data stored in session under `pos_terminal` key with structure: `{ id, terminal_id, terminal_name, branch_id, branch_name }`
+3. **Branch Resolution** → `CheckoutController::resolveTerminalBranchId()` extracts `branch_id` from session; throws 422 if missing/invalid. `AuthenticatedSessionController::create()` redirects to `terminal.select` if `pos_terminal` is missing
 4. **Inventory Scoping** → All cart operations and stock checks filter by the terminal's branch via `BranchInventory.where('branch_id', $branchId)`
+
+**Note**: Terminal selection UI persists the chosen terminal id in `sessionStorage` under `pos_terminal_id` for preselect (`resources/views/auth/select-terminal.blade.php`). Inventory controllers read `pos_terminal_id` from the server session for branch defaults (`Inventory\OverviewController`, `StockInController`, `StockOutController`, `StockMovementController`).
 
 **Important**: If `pos_terminal` is not set in session, POS operations fail with "Terminal is not selected" error. Always ensure terminal is selected before rendering POS pages.
 
@@ -506,4 +512,3 @@ composer run dev
 **Generated**: April 2026  
 **Last Updated**: While analyzing codebase at commit scope  
 **Audience**: AI agents and collaborative developers
-
