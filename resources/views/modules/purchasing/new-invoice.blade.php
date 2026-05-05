@@ -3,7 +3,7 @@
         <h2 class="text-3xl font-semibold leading-tight text-slate-900">New Invoice</h2>
     </x-slot>
 
-    <div x-data="purchasingApp()" class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-0">
+    <div x-data="purchasingApp()" x-init="initCart()" class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-0">
         <!-- Main Content -->
         <section class="lg:col-span-2 space-y-6">
             <!-- Supplier & Branch Selection -->
@@ -26,7 +26,7 @@
                         <select
                             x-model="selectedSupplier"
                             class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            @change="resetCart"
+                            @change="handleSupplierChange"
                         >
                             <option value="">-- Select Supplier --</option>
                             @foreach($suppliers as $supplier)
@@ -95,7 +95,8 @@
                         <table class="w-full text-sm">
                             <thead class="text-left text-gray-600 bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-3">Product</th>
+                                    <th class="px-4 py-3">Product Id</th>
+                                    <th class="px-4 py-3">Name</th>
                                     <th class="px-4 py-3">Unit</th>
                                     <th class="px-4 py-3">Quantity</th>
                                     <th class="px-4 py-3">Unit Price</th>
@@ -106,8 +107,9 @@
                             <tbody class="divide-y">
                                 <template x-for="(item, idx) in cartItems" :key="item.product_id">
                                     <tr>
-                                        <td class="px-4 py-3 font-medium" x-text="getProductName(item.product_id)"></td>
-                                        <td class="px-4 py-3" x-text="getProductUnit(item.product_id)"></td>
+                                        <td class="px-4 py-3 font-medium" x-text="item.product_id"></td>
+                                        <td class="px-4 py-3 font-medium" x-text="item.product_name"></td>
+                                        <td class="px-4 py-3" x-text="item.product_unit"></td>
                                         <td class="px-4 py-3">
                                             <input
                                                 type="number"
@@ -367,7 +369,7 @@
     <script>
         function purchasingApp() {
             return {
-                selectedSupplier: '',
+                selectedSupplier: @json($selectedSupplierId ?? ''),
                 selectedBranch: '{{ $branchId }}',  // Auto-set from session
                 suppliers: @json($suppliers),  // Add this for contact details
                 typeahead: {
@@ -394,6 +396,70 @@
                 successData: {},
                 invoiceDueDate: '',
 
+                async initCart() {
+                    await this.refreshCartFromServer();
+                },
+
+                async refreshCartFromServer() {
+                    try {
+                        const response = await fetch(`{{ route('purchasing.api.checkout.prepare') }}`);
+                        const data = await response.json();
+
+                        if (!response.ok || !data.success) {
+                            if (data.message === 'Cart is empty') {
+                                this.cartItems = [];
+                                this.cartSubtotal = 0;
+                                return;
+                            }
+                            throw new Error(data.message || 'Failed to load cart');
+                        }
+
+                        this.cartItems = (data.data.items || []).map(item => ({
+                            product_id: item.product_id,
+                            product_name: item.product_name,
+                            product_unit: item.unit,
+                            quantity: item.quantity,
+                            unit_price: item.unit_price,
+                        }));
+                        this.cartSubtotal = data.data.total || 0;
+                    } catch (error) {
+                        console.error('Failed to refresh cart:', error);
+                    }
+                },
+
+                async postCart(url, payload) {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.message || 'Cart update failed');
+                    }
+
+                    return data;
+                },
+
+                async postSupplierSelection(supplierId) {
+                    const payload = supplierId ? { supplier_id: parseInt(supplierId) } : { supplier_id: null };
+                    await this.postCart(`{{ route('purchasing.api.supplier.set') }}`, payload);
+                },
+
+                async handleSupplierChange() {
+                    try {
+                        await this.postSupplierSelection(this.selectedSupplier);
+                    } catch (error) {
+                        console.error('Failed to update supplier:', error);
+                    }
+
+                    await this.resetCart(false);
+                },
 
                 async onTypeaheadInput() {
                     if (!this.selectedSupplier || !this.selectedBranch) {
@@ -519,49 +585,60 @@
                     }
                 },
 
-                addProductToCart(product) {
+                async addProductToCart(product) {
                     const exists = this.cartItems.find(item => item.product_id === product.id);
+                    const nextQuantity = exists ? (parseFloat(exists.quantity) + 1) : 1;
+                    const unitPrice = exists?.unit_price ?? product.capital;
 
-                    if (exists) {
-                        exists.quantity++;
-                    } else {
-                        this.cartItems.push({
+                    try {
+                        await this.postCart(`{{ route('purchasing.api.cart.add') }}`, {
                             product_id: product.id,
-                            quantity: 1,
-                            unit_price: product.capital,
+                            quantity: nextQuantity,
+                            unit_price: unitPrice,
                         });
-                    }
-
-                    this.updateCartTotal();
-                },
-
-                updateCartItem(productId, field, value) {
-                    const item = this.cartItems.find(i => i.product_id === productId);
-                    if (item) {
-                        item[field] = field === 'unit_price' ? parseFloat(value) : parseFloat(value);
-                        this.updateCartTotal();
+                        await this.refreshCartFromServer();
+                    } catch (error) {
+                        console.error('Failed to add item:', error);
                     }
                 },
 
-                removeCartItem(productId) {
-                    this.cartItems = this.cartItems.filter(item => item.product_id !== productId);
-                    this.updateCartTotal();
+                async updateCartItem(productId, field, value) {
+                    const parsedValue = parseFloat(value);
+                    if (Number.isNaN(parsedValue)) {
+                        return;
+                    }
+
+                    const payload = { product_id: productId };
+                    if (field === 'quantity') {
+                        payload.quantity = parsedValue;
+                    }
+                    if (field === 'unit_price') {
+                        payload.unit_price = parsedValue;
+                    }
+
+                    try {
+                        await this.postCart(`{{ route('purchasing.api.cart.update') }}`, payload);
+                        await this.refreshCartFromServer();
+                    } catch (error) {
+                        console.error('Failed to update item:', error);
+                    }
+                },
+
+                async removeCartItem(productId) {
+                    try {
+                        await this.postCart(`{{ route('purchasing.api.cart.remove') }}`, {
+                            product_id: productId,
+                        });
+                        await this.refreshCartFromServer();
+                    } catch (error) {
+                        console.error('Failed to remove item:', error);
+                    }
                 },
 
                 updateCartTotal() {
                     this.cartSubtotal = this.cartItems.reduce((sum, item) => {
                         return sum + (item.quantity * item.unit_price);
                     }, 0);
-                },
-
-                getProductName(productId) {
-                    const product = this.typeahead.items.find(p => p.id === productId);
-                    return product?.name || `Product #${productId}`;
-                },
-
-                getProductUnit(productId) {
-                    const product = this.typeahead.items.find(p => p.id === productId);
-                    return product?.unit || 'pcs';
                 },
 
                 getSupplierContact(field) {
@@ -640,7 +717,19 @@
                     }
                 },
 
-                resetCart() {
+                async resetCart(clearSupplier = true) {
+                    try {
+                        await this.postCart(`{{ route('purchasing.api.cart.clear') }}`, {});
+                        if (clearSupplier) {
+                            await this.postSupplierSelection(null);
+                        }
+                    } catch (error) {
+                        console.error('Failed to clear cart:', error);
+                    }
+
+                    if (clearSupplier) {
+                        this.selectedSupplier = '';
+                    }
                     this.cartItems = [];
                     this.cartSubtotal = 0;
                     this.typeahead.q = '';
@@ -649,7 +738,14 @@
                     this.typeahead.activeIndex = -1;
                 },
 
-                newInvoice() {
+                async newInvoice() {
+                    try {
+                        await this.postCart(`{{ route('purchasing.api.cart.clear') }}`, {});
+                        await this.postSupplierSelection(null);
+                    } catch (error) {
+                        console.error('Failed to clear cart:', error);
+                    }
+
                     this.selectedSupplier = '';
                     this.selectedBranch = '';
                     this.cartItems = [];
