@@ -3,8 +3,8 @@
         <h2 class="text-3xl font-semibold leading-tight text-slate-900">POS</h2>
     </x-slot>
 
-    <div x-data="posApp()" class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-0" x-init="setPosMain($el); initPos()">
-        <section class="lg:col-span-2 bg-white rounded shadow-sm p-4 h-full min-h-0 flex flex-col">
+    <x-two-column-grid x-data="posApp()" x-init="setPosMain($el); initPos()">
+        <section class="lg:col-span-2 rounded shadow-sm p-4 h-full min-h-0 flex flex-col">
             <div class="flex items-center justify-between mb-4">
                 <x-product-search-typeahead />
                 <button @click="openBrowseModal" class="ml-4 inline-flex items-center gap-2 bg-white border rounded px-3 py-2 text-sm">
@@ -290,7 +290,7 @@
                 </div>
             </div>
         </x-modal>
-    </div>
+    </x-two-column-grid>
 </x-app-layout>
 
 <script>

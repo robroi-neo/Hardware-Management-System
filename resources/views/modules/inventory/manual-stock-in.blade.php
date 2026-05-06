@@ -28,46 +28,7 @@
                 <label class="block text-sm font-medium text-slate-700">Search & Add Products</label>
                 <div class="mt-2 flex gap-2">
                     <div class="relative flex-1">
-                        <input
-                            type="text"
-                            x-model="search.q"
-                            @input="onSearchInput()"
-                            @keydown.enter.prevent="addProductFromSearch()"
-                            @keydown.escape="closeSearchDropdown()"
-                            @focus="reopenSearchDropdown()"
-                            placeholder="Search by product ID, name, or unit..."
-                            class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        />
-
-                        <!-- Search Results Dropdown -->
-                        <div
-                            x-show="search.open"
-                            x-cloak
-                            class="absolute left-0 right-0 z-50 mt-1 rounded-lg border border-slate-200 bg-white shadow-lg"
-                        >
-                            <div class="max-h-64 overflow-y-auto">
-                                <template x-if="search.loading">
-                                    <div class="px-4 py-3 text-sm text-slate-500">Searching...</div>
-                                </template>
-
-                                <template x-if="!search.loading && search.results.length === 0">
-                                    <div class="px-4 py-3 text-sm text-slate-500">No products found.</div>
-                                </template>
-
-                                <template x-for="product in search.results" :key="product.id">
-                                    <button
-                                        type="button"
-                                        @click="selectProduct(product); search.q = ''; closeSearchDropdown()"
-                                        class="w-full px-4 py-3 text-left text-sm hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
-                                    >
-                                        <div class="font-medium text-slate-900">#<span x-text="product.id"></span> - <span x-text="product.name"></span></div>
-                                        <div class="text-xs text-slate-600">
-                                            <span x-text="product.unit"></span> | Cost: ₱<span x-text="formatPrice(product.capital)"></span>
-                                        </div>
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
+                        <x-product-search-typeahead />
                     </div>
                 </div>
             </div>
@@ -223,41 +184,77 @@
                     reference_id: null,
                     notes: '',
                 },
-                search: {
+                typeahead: {
                     q: '',
                     open: false,
                     loading: false,
-                    results: [],
+                    items: [],
+                    activeIndex: -1,
+                    debounceTimer: null,
                 },
                 submitting: false,
                 message: '',
                 messageType: 'success',
 
-                onSearchInput() {
-                    if (!this.search.q.trim()) {
-                        this.search.results = [];
-                        this.search.open = false;
+                onTypeaheadInput() {
+                    clearTimeout(this.typeahead.debounceTimer);
+
+                    if (!this.typeahead.q.trim()) {
+                        this.typeahead.items = [];
+                        this.typeahead.open = false;
                         return;
                     }
 
-                    this.search.loading = true;
-                    this.search.open = true;
+                    this.typeahead.loading = true;
+                    this.typeahead.open = true;
 
-                    fetch(`{{ route('inventory.api.products.search') }}?q=${encodeURIComponent(this.search.q)}&limit=10`)
-                        .then(r => r.json())
-                        .then(data => {
-                            this.search.results = data;
-                            this.search.loading = false;
-                        });
+                    this.typeahead.debounceTimer = setTimeout(async () => {
+                        try {
+                            const response = await fetch(`{{ route('inventory.api.products.search') }}?q=${encodeURIComponent(this.typeahead.q)}&limit=10`);
+                            const data = await response.json();
+                            this.typeahead.items = data;
+                            this.typeahead.activeIndex = -1;
+                        } finally {
+                            this.typeahead.loading = false;
+                        }
+                    }, 250);
                 },
 
-                closeSearchDropdown() {
-                    this.search.open = false;
+                moveTypeahead(direction) {
+                    const nextIndex = this.typeahead.activeIndex + direction;
+                    if (nextIndex >= -1 && nextIndex < this.typeahead.items.length) {
+                        this.typeahead.activeIndex = nextIndex;
+                    }
                 },
 
-                reopenSearchDropdown() {
-                    if (this.search.q.trim()) {
-                        this.search.open = true;
+                onTypeaheadEnter() {
+                    if (this.typeahead.items.length === 0) {
+                        return;
+                    }
+
+                    const index = this.typeahead.activeIndex >= 0 ? this.typeahead.activeIndex : 0;
+                    this.selectTypeaheadItem(index);
+                },
+
+                selectTypeaheadItem(index) {
+                    if (index < 0 || index >= this.typeahead.items.length) {
+                        return;
+                    }
+
+                    this.selectProduct(this.typeahead.items[index]);
+                    this.typeahead.q = '';
+                    this.typeahead.items = [];
+                    this.typeahead.open = false;
+                    this.typeahead.activeIndex = -1;
+                },
+
+                closeTypeahead() {
+                    this.typeahead.open = false;
+                },
+
+                reopenTypeahead() {
+                    if (this.typeahead.q.trim()) {
+                        this.typeahead.open = true;
                     }
                 },
 

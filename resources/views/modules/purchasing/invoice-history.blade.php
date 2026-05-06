@@ -25,10 +25,6 @@
                 displayField="supplier_name"
             />
             @endif
-
-            <button type="submit" class="px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800">
-                Search
-            </button>
         </form>
 
         <!-- Invoices Table -->

@@ -3,9 +3,9 @@
         <h2 class="text-3xl font-semibold leading-tight text-slate-900">New Invoice</h2>
     </x-slot>
 
-    <div x-data="purchasingApp()" x-init="initCart()" class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-0">
-        <!-- Main Content -->
-        <section class="lg:col-span-2 space-y-6">
+    <x-two-column-grid x-data="purchasingApp()" x-init="initCart()">
+        <!-- Left Column: Main Content -->
+        <div class="space-y-6 lg:col-span-2">
             <!-- Supplier & Branch Selection -->
             <div class="bg-white rounded shadow-sm p-6">
                 <h3 class="text-lg font-semibold mb-4">Supplier & Branch</h3>
@@ -95,8 +95,7 @@
                         <table class="w-full text-sm">
                             <thead class="text-left text-gray-600 bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-3">Product Id</th>
-                                    <th class="px-4 py-3">Name</th>
+                                    <th class="px-4 py-3">Product</th>
                                     <th class="px-4 py-3">Unit</th>
                                     <th class="px-4 py-3">Quantity</th>
                                     <th class="px-4 py-3">Unit Price</th>
@@ -107,16 +106,17 @@
                             <tbody class="divide-y">
                                 <template x-for="(item, idx) in cartItems" :key="item.product_id">
                                     <tr>
-                                        <td class="px-4 py-3 font-medium" x-text="item.product_id"></td>
-                                        <td class="px-4 py-3 font-medium" x-text="item.product_name"></td>
+                                        <td class="px-4 py-3 font-medium">
+                                            #<span x-text="item.product_id"></span> - <span x-text="item.product_name"></span>
+                                        </td>
                                         <td class="px-4 py-3" x-text="item.product_unit"></td>
                                         <td class="px-4 py-3">
                                             <input
                                                 type="number"
                                                 min="0.01"
                                                 step="0.01"
-                                                :value="item.quantity"
-                                                @change="updateCartItem(item.product_id, 'quantity', $event.target.value)"
+                                                x-model.number="item.quantity"
+                                                @input.debounce.300ms="updateCartItem(item.product_id, 'quantity', item.quantity)"
                                                 class="w-20 border-gray-300 rounded px-2 py-1 text-sm"
                                             />
                                         </td>
@@ -125,8 +125,8 @@
                                                 type="number"
                                                 min="0"
                                                 step="0.01"
-                                                :value="item.unit_price"
-                                                @change="updateCartItem(item.product_id, 'unit_price', $event.target.value)"
+                                                x-model.number="item.unit_price"
+                                                @input.debounce.300ms="updateCartItem(item.product_id, 'unit_price', item.unit_price)"
                                                 class="w-24 border-gray-300 rounded px-2 py-1 text-sm"
                                             />
                                         </td>
@@ -146,9 +146,9 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- Summary Sidebar -->
+        <!-- Right Column: Summary Sidebar -->
         <aside class="bg-white rounded shadow-sm p-6 h-fit">
             <h3 class="text-lg font-semibold mb-4">Summary</h3>
 
@@ -189,6 +189,7 @@
                 Clear Cart
             </button>
         </aside>
+
         <!-- Product Creation Modal -->
         <x-modal name="create-product" maxWidth="md" focusable>
             <div class="p-6">
@@ -363,8 +364,7 @@
             </div>
         </x-modal>
 
-    </div>
-
+    </x-two-column-grid>
 
     <script>
         function purchasingApp() {
@@ -501,6 +501,15 @@
                     }
                 },
 
+                onTypeaheadEnter() {
+                    if (this.typeahead.items.length === 0) {
+                        return;
+                    }
+
+                    const index = this.typeahead.activeIndex >= 0 ? this.typeahead.activeIndex : 0;
+                    this.selectTypeaheadItem(index);
+                },
+
                 selectTypeaheadItem(index) {
                     if (index >= 0 && index < this.typeahead.items.length) {
                         this.addProductToCart(this.typeahead.items[index]);
@@ -553,37 +562,37 @@
                             headers: {
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            },
-                            body: JSON.stringify({
-                                name: this.newProduct.name,
-                                unit: this.newProduct.unit,
-                                capital: this.newProduct.capital,
-                            }),
-                        });
+                        },
+                        body: JSON.stringify({
+                            name: this.newProduct.name,
+                            unit: this.newProduct.unit,
+                            capital: this.newProduct.capital,
+                        }),
+                    });
 
-                        const result = await response.json();
+                    const result = await response.json();
 
-                        if (result.success) {
-                            // Add to cart immediately
-                            this.addProductToCart(result.data);
+                    if (result.success) {
+                        // Add to cart immediately
+                        this.addProductToCart(result.data);
 
-                            // Reset form
-                            this.newProduct = { name: '', unit: '', capital: '' };
-                            this.standardizedNamePreview = '';
-                            this.productNameExists = false;
+                        // Reset form
+                        this.newProduct = { name: '', unit: '', capital: '' };
+                        this.standardizedNamePreview = '';
+                        this.productNameExists = false;
 
-                            // Close modal
-                            this.$dispatch('close-modal', 'create-product');
-                        } else {
-                            this.productCreateError = result.errors?.name?.[0] || result.message;
-                        }
-                    } catch (error) {
-                        this.productCreateError = 'Failed to create product. Please try again.';
-                        console.error(error);
-                    } finally {
-                        this.isCreatingProduct = false;
+                        // Close modal
+                        this.$dispatch('close-modal', 'create-product');
+                    } else {
+                        this.productCreateError = result.errors?.name?.[0] || result.message;
                     }
-                },
+                } catch (error) {
+                    this.productCreateError = 'Failed to create product. Please try again.';
+                    console.error(error);
+                } finally {
+                    this.isCreatingProduct = false;
+                }
+            },
 
                 async addProductToCart(product) {
                     const exists = this.cartItems.find(item => item.product_id === product.id);
@@ -719,7 +728,9 @@
 
                 async resetCart(clearSupplier = true) {
                     try {
-                        await this.postCart(`{{ route('purchasing.api.cart.clear') }}`, {});
+                        await this.postCart(`{{ route('purchasing.api.cart.clear') }}`, {
+                            clear_supplier: clearSupplier,
+                        });
                         if (clearSupplier) {
                             await this.postSupplierSelection(null);
                         }
@@ -740,7 +751,9 @@
 
                 async newInvoice() {
                     try {
-                        await this.postCart(`{{ route('purchasing.api.cart.clear') }}`, {});
+                        await this.postCart(`{{ route('purchasing.api.cart.clear') }}`, {
+                            clear_supplier: true,
+                        });
                         await this.postSupplierSelection(null);
                     } catch (error) {
                         console.error('Failed to clear cart:', error);

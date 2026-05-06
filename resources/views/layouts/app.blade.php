@@ -48,7 +48,7 @@
                 collapse so the main content can expand when collapsed.
             --}}
             <div
-                :class="sidebarOpen ? 'lg:w-72' : 'lg:w-0'"
+                :class="sidebarOpen ? 'lg:w-64' : 'lg:w-0'"
                 class="relative lg:flex-shrink-0 lg:overflow-hidden lg:transition-[width] lg:duration-200"
             >
                 <x-sidebar.container />
@@ -56,7 +56,7 @@
 
             <!-- Main content -->
             <div class="flex-1 lg:h-screen lg:overflow-y-auto">
-                <div :class="sidebarOpen ? 'mx-auto' : 'max-w-none'" class="w-full px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+                <div :class="sidebarOpen ? 'mx-auto' : 'max-w-none'" class="w-full py-6 sm:px-6 lg:py-8">
                     @isset($header)
                         <header class="mb-5 border-b border-slate-200 pb-4">
                             <div class="flex items-center justify-between gap-6">

@@ -7,7 +7,7 @@
     <button
         type="button"
         @click="open = !open"
-        class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-indigo-100 transition hover:bg-white/10"
+        class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-black/10"
     >
         @isset($icon)
             {{ $icon }}
@@ -31,7 +31,7 @@
         x-show="open"
         x-transition.origin-top
         x-cloak
-        class="space-y-1 border-l border-indigo-400/40 pl-6"
+        class="space-y-1 border-l border-slate-300 pl-6"
     >
         {{ $slot }}
     </div>

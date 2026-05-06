@@ -3,19 +3,19 @@
 --}}
 <aside
     :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
-    class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-y-auto bg-[#050938] px-4 py-6 text-slate-100 transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0"
+    class="fixed left-0 top-2 bottom-2 z-50 flex w-64 flex-col overflow-y-auto bg-white rounded-xl px-4 py-6 text-slate-100 transition-transform duration-200 ease-out lg:sticky lg:top-2 lg:h-[calc(100vh-1rem)] lg:translate-x-0"
 >
     <div class="mb-8 flex items-center gap-3 px-2">
         <x-application-logo />
         <div>
-            <p class="text-sm font-semibold leading-4">RNM Hardware</p>
-            <p class="text-xs text-indigo-200">Management System</p>
+            <p class="text-sm font-semibold leading-4 text-slate-900">RNM Hardware</p>
+            <p class="text-xs text-slate-500">Management System</p>
         </div>
 
         <button
             type="button"
             @click="mobileOpen = false"
-            class="ms-auto rounded-md p-2 text-indigo-900 hover:bg-white/10 lg:hidden"
+            class="ms-auto rounded-md p-2 text-slate-900 hover:bg-black/10 lg:hidden"
             aria-label="Close sidebar"
         >
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -24,6 +24,11 @@
         </button>
     </div>
 
+    <div class="border-white/10">
+        <p class="px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            General
+        </p>
+    </div>
     <nav class="space-y-1">
         <x-sidebar.link
             href="{{ route('dashboard') }}"
@@ -138,6 +143,12 @@
             </x-sidebar.item>
         </x-sidebar.dropdown>
         @endcanany
+        <!-- Admin Section Divider -->
+        <div class="mt-6 border-white/10 pt-4">
+            <p class="px-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Admin
+            </p>
+        </div>
 
         @canany(['audit.user-activity.view', 'audit.system-logs.view'])
         <x-sidebar.dropdown
@@ -203,7 +214,7 @@
             @csrf
             <button
                 type="submit"
-                class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-indigo-100 transition hover:bg-white/10"
+                class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-black/10"
             >
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
