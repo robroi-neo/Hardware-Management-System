@@ -3,7 +3,7 @@
         <h2 class="text-3xl font-semibold leading-tight text-slate-900">Stock Overview</h2>
     </x-slot>
 
-    <section class="rounded-xl border border-slate-200 bg-white p-6">
+    <x-card>
         <!-- Search Bar & Branch Filter -->
         <div class="mb-6 flex flex-col gap-4" x-data="inventorySearch('{{ route('pos.api.products.search') }}', '{{ route('inventory.overview') }}', '{{ $filterBranchId }}')">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -128,7 +128,7 @@
                 </a>
             @endcan
         </div>
-    </section>
+    </x-card>
 </x-app-layout>
 
 <script>

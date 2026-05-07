@@ -5,10 +5,9 @@
 
     <x-two-column-grid x-data="purchasingApp()" x-init="initCart()">
         <!-- Left Column: Main Content -->
-        <div class="space-y-6 lg:col-span-2">
+        <div class="lg:col-span-2 flex h-full flex-col gap-6">
             <!-- Supplier & Branch Selection -->
-            <div class="bg-white rounded shadow-sm p-6">
-                <h3 class="text-lg font-semibold mb-4">Supplier & Branch</h3>
+            <x-card title="Supplier & Branch">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Terminal & Branch Info (Read-only) -->
@@ -57,10 +56,10 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </x-card>
 
             <!-- Product Search & Cart -->
-            <div class="bg-white rounded shadow-sm p-6">
+            <x-card title="Add Products" fullHeight>
                 <h3 class="text-lg font-semibold mb-4">Add Products</h3>
 
                 <!-- Product Search Section -->
@@ -90,8 +89,8 @@
                 </div>
 
                 <!-- Cart Table -->
-                <div class="border border-gray-200 rounded overflow-hidden">
-                    <div class="overflow-x-auto">
+                <div class="border border-gray-200 rounded overflow-hidden flex flex-col min-h-0 flex-1">
+                    <div class="overflow-auto flex-1 min-h-0">
                         <table class="w-full text-sm">
                             <thead class="text-left text-gray-600 bg-gray-50">
                                 <tr>
@@ -145,13 +144,11 @@
                         </table>
                     </div>
                 </div>
-            </div>
+            </x-card>
         </div>
 
         <!-- Right Column: Summary Sidebar -->
-        <aside class="bg-white rounded shadow-sm p-6 h-fit">
-            <h3 class="text-lg font-semibold mb-4">Summary</h3>
-
+        <x-card title="Summary" fullHeight>
             <div class="space-y-3 mb-6">
                 <div class="flex justify-between">
                     <span class="text-gray-600">Subtotal:</span>
@@ -188,7 +185,7 @@
             >
                 Clear Cart
             </button>
-        </aside>
+        </x-card>
 
         <!-- Product Creation Modal -->
         <x-modal name="create-product" maxWidth="md" focusable>

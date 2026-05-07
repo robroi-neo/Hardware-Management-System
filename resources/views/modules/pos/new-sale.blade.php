@@ -4,7 +4,7 @@
     </x-slot>
 
     <x-two-column-grid x-data="posApp()" x-init="setPosMain($el); initPos()">
-        <section class="lg:col-span-2 rounded shadow-sm p-4 h-full min-h-0 flex flex-col">
+        <x-card title="New Sale" fullHeight class="lg:col-span-2">
             <div class="flex items-center justify-between mb-4">
                 <x-product-search-typeahead />
                 <button @click="openBrowseModal" class="ml-4 inline-flex items-center gap-2 bg-white border rounded px-3 py-2 text-sm">
@@ -65,10 +65,9 @@
                 </table>
                 </div>
             </div>
-        </section>
+        </x-card>
 
-        <aside class="bg-white rounded shadow-sm p-6 h-full min-h-0 flex flex-col">
-            <h3 class="text-2xl font-semibold mb-4 text-center">Summary</h3>
+        <x-card title="Summary" fullHeight>
 
             <div class="border-t border-b py-2 mb-4">
                 <div class="grid grid-cols-4 gap-2 text-sm text-gray-500 font-medium px-1">
@@ -102,7 +101,7 @@
                 <button @click="openCheckoutModal" class="w-full bg-black text-white py-3 rounded mb-3 disabled:opacity-50" :disabled="order.length === 0 || checkout.processing">Checkout</button>
                 <button @click="clearOrder" class="w-full border border-gray-300 py-3 rounded text-gray-600">Cancel Transaction</button>
             </div>
-        </aside>
+        </x-card>
 
         <x-modal name="checkout-cash" maxWidth="md" focusable>
             <div class="p-6">

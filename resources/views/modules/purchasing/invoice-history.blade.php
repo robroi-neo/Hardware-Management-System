@@ -3,7 +3,7 @@
         <h2 class="text-3xl font-semibold leading-tight text-slate-900">Invoice History</h2>
     </x-slot>
 
-    <div class="bg-white rounded shadow-sm p-6">
+    <x-card title="Invoice History" fullHeight>
         <!-- Search & Filters -->
         <form method="GET" class="mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
             <input
@@ -132,5 +132,5 @@
                 <x-table.pagination :paginator="$invoices" />
             </div>
         @endif
-    </div>
+    </x-card>
 </x-app-layout>

@@ -3,7 +3,7 @@
         <h2 class="text-3xl font-semibold leading-tight text-slate-900">Stock Movements</h2>
     </x-slot>
 
-    <section class="rounded-xl border border-slate-200 bg-white p-6">
+    <x-card>
         <!-- Filters Section -->
         <div class="mb-6">
             <h3 class="mb-4 text-lg font-semibold text-slate-900">Filters</h3>
@@ -158,5 +158,5 @@
 
         <!-- Pagination -->
         <x-table.pagination :paginator="$movements" />
-    </section>
+    </x-card>
 </x-app-layout>

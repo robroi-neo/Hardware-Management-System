@@ -8,7 +8,7 @@
         class="space-y-6"
     >
         <!-- Header with Search and Create Button -->
-        <div class="rounded-xl border border-slate-200 bg-white p-6">
+        <x-card>
             <div class="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <h3 class="text-xl font-semibold text-slate-900">Suppliers List</h3>
                 @can('suppliers.create')
@@ -168,7 +168,7 @@
                 @endif
             </div>
 
-        </div>
+        </x-card>
 
         <!-- Success/Error Messages -->
         @if (session('success'))

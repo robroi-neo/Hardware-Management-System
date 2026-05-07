@@ -3,11 +3,7 @@
         <h2 class="text-3xl font-semibold leading-tight text-slate-900">POS Transactions</h2>
     </x-slot>
 
-    <section class="rounded-xl border border-slate-200 bg-white p-6">
-        <div class="mb-6">
-            <h3 class="mt-2 text-xl font-semibold text-slate-900">Transaction History</h3>
-        </div>
-
+    <x-card title="Transaction History" fullHeight>
         <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
                 <thead class="bg-slate-100 text-left text-slate-700">
@@ -66,5 +62,5 @@
 
         <!-- Pagination -->
         <x-table.pagination :paginator="$transactions" />
-    </section>
+    </x-card>
 </x-app-layout>

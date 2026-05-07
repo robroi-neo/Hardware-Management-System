@@ -3,7 +3,8 @@
         <h2 class="text-3xl font-semibold leading-tight text-slate-900">Manual Stock Out</h2>
     </x-slot>
 
-    <section class="rounded-xl border border-slate-200 bg-white p-6">
+    <x-card>
+
         <div x-data="stockOutApp()" class="space-y-6">
             <!-- Branch Selection -->
             <div>
@@ -210,7 +211,7 @@
                 </div>
             </template>
         </div>
-    </section>
+    </x-card>
 
     @push('scripts')
     <script>

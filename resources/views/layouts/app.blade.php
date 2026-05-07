@@ -56,7 +56,7 @@
 
             <!-- Main content -->
             <div class="flex-1 lg:h-screen lg:overflow-y-auto">
-                <div :class="sidebarOpen ? 'mx-auto' : 'max-w-none'" class="w-full py-6 sm:px-6 lg:py-8">
+                <div :class="sidebarOpen ? 'mx-auto' : 'max-w-none'" class="flex h-full min-h-0 w-full flex-col py-6 sm:px-6 lg:py-8">
                     @isset($header)
                         <header class="mb-5 border-b border-slate-200 pb-4">
                             <div class="flex items-center justify-between gap-6">
@@ -104,7 +104,7 @@
                         </header>
                     @endisset
 
-                    <main>
+                    <main class="flex-1 min-h-0">
                         {{ $slot }}
                     </main>
                 </div>
