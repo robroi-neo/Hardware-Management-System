@@ -102,9 +102,11 @@ class DatabaseSeeder extends Seeder
             'reports.view',
             'audit.user-activity.view',
             'audit.system-logs.view',
+
             'users.create',
             'users.edit',
             'users.view-list',
+
             'suppliers.create',
             'suppliers.edit',
             'suppliers.view',

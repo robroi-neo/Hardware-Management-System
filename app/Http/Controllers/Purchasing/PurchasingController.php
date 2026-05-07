@@ -155,7 +155,15 @@ class PurchasingController extends Controller
      */
     public function clearCart(Request $request)
     {
+        $validated = $request->validate([
+            'clear_supplier' => 'nullable|boolean',
+        ]);
+
         $request->session()->forget('purchasing_cart');
+
+        if ($validated['clear_supplier'] ?? true) {
+            $request->session()->forget('purchasing_supplier_id');
+        }
 
         return response()->json([
             'success' => true,

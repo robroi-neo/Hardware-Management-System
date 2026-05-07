@@ -77,7 +77,7 @@ class OverviewController extends Controller
             $query->orderBy('branch_inventory.created_at', $sortDir);
         }
 
-        $inventories = $query->paginate(15);
+        $inventories = $query->paginate(10);
 
         // Get all branches for dropdown (only used if admin)
         $allBranches = $isAdmin ? Branch::all() : collect();

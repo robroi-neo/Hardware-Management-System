@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -70,8 +71,22 @@ Route::middleware('auth')->group(function () {
     })->middleware('permission:audit.system-logs.view')->name('audit-logs.archives');
 
     // Supplier routes
-    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)
+    Route::resource('suppliers', \App\Http\Controllers\Supplier\SupplierController::class)
         ->middleware('permission:suppliers.view');
+
+    // User routes
+    Route::get('/users', function () {
+        return view('modules.users.users');
+    })->middleware('permission:users.view-list')->name('users.index');
+
+
+    // Create User
+    Route::get('/users/create', function () {
+        return view('modules.users.new-user');
+    })->middleware('permission:users.create')->name('users.create');
+    // Create user routes API
+    Route::post('/users/create',[UserController::class,'store'])
+        ->name('users.store');
 
     // POS API endpoints
     Route::prefix('pos/api')->group(function () {

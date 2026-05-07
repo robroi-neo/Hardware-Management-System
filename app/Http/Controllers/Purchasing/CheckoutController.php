@@ -167,6 +167,7 @@ class CheckoutController extends Controller
 
                 // Clear cart
                 $request->session()->forget('purchasing_cart');
+                $request->session()->forget('purchasing_supplier_id');
 
                 return response()->json([
                     'success' => true,

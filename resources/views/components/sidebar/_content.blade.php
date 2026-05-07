@@ -197,16 +197,31 @@
         </x-sidebar.item>
         @endcan
 
-        <x-sidebar.link
-            href="{{ route('profile.edit') }}"
-            :active="request()->routeIs('profile.*')"
-            @click="mobileOpen = false"
+        @canany(['users.create', 'users.view-list', 'users.edit'])
+        <x-sidebar.dropdown
+            label="Users"
+            :open="request()->routeIs('users.*')"
         >
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a7.5 7.5 0 0115 0" />
-            </svg>
-            <span>Users</span>
-        </x-sidebar.link>
+            <x-slot:icon>
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a7.5 7.5 0 0115 0" />
+                </svg>
+            </x-slot:icon>
+
+            <x-sidebar.item
+                href="{{ route('users.create') }}"
+                :active="request()->routeIs('users.create')"
+            >
+                Add New User
+            </x-sidebar.item>
+            <x-sidebar.item
+                href="{{ route('users.index') }}"
+                :active="request()->routeIs('users.index')"
+            >
+                Manage Users
+            </x-sidebar.item>
+        </x-sidebar.dropdown>
+        @endcanany
     </nav>
 
     <div class="mt-auto">

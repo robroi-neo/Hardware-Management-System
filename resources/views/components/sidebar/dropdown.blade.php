@@ -7,7 +7,7 @@
     <button
         type="button"
         @click="open = !open"
-        class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-black/10"
+        class="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm text-slate-700 transition hover:bg-black/10"
     >
         @isset($icon)
             {{ $icon }}
