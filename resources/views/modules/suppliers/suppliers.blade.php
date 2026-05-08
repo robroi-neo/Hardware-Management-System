@@ -5,7 +5,7 @@
 
     <div
         x-data="supplierManager()"
-        class="space-y-6"
+        class=""
     >
         <!-- Header with Search and Create Button -->
         <x-card>
@@ -208,124 +208,125 @@
         />
 
         <!-- Create/Edit Modal -->
-        <div
-            x-show="showModal"
-            x-transition
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-            @click.self="closeModal()"
+        <x-modals.modal
+            show="showModal"
+            close="closeModal()"
         >
-            <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-                <h3 class="mb-4 text-lg font-semibold text-slate-900" x-text="isEditMode ? 'Edit Supplier' : 'Create New Supplier'"></h3>
+            <x-slot:header>
+                <h3
+                    class="text-lg font-semibold"
+                    x-text="isEditMode ? 'Edit Supplier' : 'Create Supplier'"
+                ></h3>
+            </x-slot:header>
+            <form
+                :action="isEditMode ? `/suppliers/${editingId}` : '{{ route('suppliers.store') }}'"
+                method="POST"
+                @submit.prevent="submitForm"
+            >
+                @csrf
+                <template x-if="isEditMode">
+                    <input type="hidden" name="_method" value="PUT" />
+                </template>
 
-                <form
-                    :action="isEditMode ? `/suppliers/${editingId}` : '{{ route('suppliers.store') }}'"
-                    method="POST"
-                    @submit.prevent="submitForm"
-                >
-                    @csrf
-                    <template x-if="isEditMode">
-                        <input type="hidden" name="_method" value="PUT" />
+                <!-- Supplier Name -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700">Supplier Name <span class="text-red-500">*</span></label>
+                    <input
+                        type="text"
+                        name="supplier_name"
+                        x-model="form.supplier_name"
+                        required
+                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        placeholder="Enter supplier name"
+                    />
+                    <template x-if="errors.supplier_name">
+                        <p class="mt-1 text-sm text-red-600" x-text="errors.supplier_name[0]"></p>
                     </template>
+                </div>
 
-                    <!-- Supplier Name -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-slate-700">Supplier Name <span class="text-red-500">*</span></label>
-                        <input
-                            type="text"
-                            name="supplier_name"
-                            x-model="form.supplier_name"
-                            required
-                            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                            placeholder="Enter supplier name"
-                        />
-                        <template x-if="errors.supplier_name">
-                            <p class="mt-1 text-sm text-red-600" x-text="errors.supplier_name[0]"></p>
-                        </template>
-                    </div>
+                <!-- Contact Person -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700">Contact Person</label>
+                    <input
+                        type="text"
+                        name="contact_person"
+                        x-model="form.contact_person"
+                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        placeholder="Enter contact person name"
+                    />
+                </div>
 
-                    <!-- Contact Person -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-slate-700">Contact Person</label>
-                        <input
-                            type="text"
-                            name="contact_person"
-                            x-model="form.contact_person"
-                            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                            placeholder="Enter contact person name"
-                        />
-                    </div>
+                <!-- Company Address -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700">Company Address</label>
+                    <textarea
+                        name="company_address"
+                        x-model="form.company_address"
+                        rows="3"
+                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        placeholder="Enter company address"
+                    ></textarea>
+                </div>
 
-                    <!-- Company Address -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-slate-700">Company Address</label>
-                        <textarea
-                            name="company_address"
-                            x-model="form.company_address"
-                            rows="3"
-                            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                            placeholder="Enter company address"
-                        ></textarea>
-                    </div>
+                <!-- Contact Number -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700">Contact Number</label>
+                    <input
+                        type="tel"
+                        name="contact_number"
+                        x-model="form.contact_number"
+                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        placeholder="Enter contact number"
+                    />
+                </div>
 
-                    <!-- Contact Number -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-slate-700">Contact Number</label>
-                        <input
-                            type="tel"
-                            name="contact_number"
-                            x-model="form.contact_number"
-                            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                            placeholder="Enter contact number"
-                        />
-                    </div>
+                <!-- Contact Email -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700">Contact Email</label>
+                    <input
+                        type="email"
+                        name="contact_email"
+                        x-model="form.contact_email"
+                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        placeholder="Enter email address"
+                    />
+                    <template x-if="errors.contact_email">
+                        <p class="mt-1 text-sm text-red-600" x-text="errors.contact_email[0]"></p>
+                    </template>
+                </div>
 
-                    <!-- Contact Email -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-slate-700">Contact Email</label>
-                        <input
-                            type="email"
-                            name="contact_email"
-                            x-model="form.contact_email"
-                            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                            placeholder="Enter email address"
-                        />
-                        <template x-if="errors.contact_email">
-                            <p class="mt-1 text-sm text-red-600" x-text="errors.contact_email[0]"></p>
-                        </template>
-                    </div>
+                <!-- Status -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-slate-700">Status <span class="text-red-500">*</span></label>
+                    <select
+                        name="status"
+                        x-model="form.status"
+                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                    >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
 
-                    <!-- Status -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-slate-700">Status <span class="text-red-500">*</span></label>
-                        <select
-                            name="status"
-                            x-model="form.status"
-                            class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                        >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
+                <div class="flex gap-3">
+                    <button
+                        type="button"
+                        @click="closeModal()"
+                        class="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        class="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                    >
+                        <span x-text="isEditMode ? 'Update' : 'Create'"></span>
+                    </button>
+                </div>
+            </form>
+            <!-- Modal Actions -->
 
-                    <!-- Modal Actions -->
-                    <div class="flex gap-3">
-                        <button
-                            type="button"
-                            @click="closeModal()"
-                            class="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            class="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-                        >
-                            <span x-text="isEditMode ? 'Update' : 'Create'"></span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        </x-modals.modal>
 
         <!-- Delete Confirmation Modal -->
         <div
@@ -450,10 +451,56 @@
                     this.openEditModal(this.detail);
                 },
 
-                submitForm(e) {
-                    // Form submission will be handled by Laravel
-                    // Validation errors will trigger a page refresh with error messages
-                },
+                async submitForm() {
+
+                    console.log('submitted')
+                    this.errors = {};
+
+                    const url = this.isEditMode
+                        ? `/suppliers/${this.editingId}`
+                        : `/suppliers`;
+
+                    const method = this.isEditMode
+                        ? 'PUT'
+                        : 'POST';
+
+                    try {
+
+                        const response = await fetch(url, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document
+                                    .querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                            },
+                            body: JSON.stringify(this.form),
+                        });
+
+                        const data = await response.json();
+
+                        // Validation failed
+                        if (!response.ok) {
+
+                            if (response.status === 422) {
+                                this.errors = data.errors;
+                                return;
+                            }
+
+                            throw new Error('Something went wrong');
+                        }
+
+                        // Success
+                        this.closeModal();
+
+                        // Optional:
+                        window.location.reload();
+
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
             };
         }
     </script>
