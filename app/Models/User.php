@@ -15,7 +15,14 @@ class User extends Authenticatable
     /**
      * Mass assignable attributes
      */
-    protected $fillable = ['name', 'phone', 'role', 'pin'];
+    protected $fillable = [
+        'name',
+        'phone',
+        'pin',
+        'address',
+        'branch_id',
+        'created_by'
+    ];
 
     /**
      * Hidden attributes
@@ -31,5 +38,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'pin' => 'hashed',
         ];
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 }

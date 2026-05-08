@@ -11,13 +11,18 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    public function index()
+    {
+        $users = User::with('roles')->get();
+
+        return view('modules.users.users', compact('users'));
+    }
     public function create()
     {
-        $users = User::all();
         $branches = Branch::all();
         $roles = Role::all();
 
-        return view('modules.users.new-user', compact('roles','branches', 'users'));
+        return view('modules.users.new-user', compact('roles','branches'));
     }
     public function store(Request $request)
     {
@@ -28,9 +33,8 @@ class UserController extends Controller
             'role' => 'required',
             'pin' => 'required|string|min:4|max:10|confirmed',
             'pin_confirmation' => 'required',
+            'branch_id' => 'required',
         ]);
-
-
         // attach branch from choices to user
         // attach the user that created the user.
         try {
@@ -39,6 +43,8 @@ class UserController extends Controller
 
             $role = $validated['role'];
             unset($validated['role']);
+
+            $validated['created_by'] = auth()->id();
 
             $user = User::create($validated);
 
