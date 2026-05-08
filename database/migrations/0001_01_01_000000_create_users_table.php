@@ -15,14 +15,24 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('phone')->unique();
-            $table->Integer('pin');
-            # $table->unsignedBigInteger('branch_id')->nullable();
-            # $table->foreign('branch_id')->references('id')->on('branches')->onDelete('set null');
+            $table->string('address')->nullable();
+            $table->string('pin');
+            $table->enum('status', ['active', 'inactive'])->default('active');
+
+            $table->foreignId('created_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
+            $table->foreignId('branch_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
             $table->timestamps();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
+            $table->string('pin')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });

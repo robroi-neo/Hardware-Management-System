@@ -74,16 +74,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('suppliers', \App\Http\Controllers\Supplier\SupplierController::class)
         ->middleware('permission:suppliers.view');
 
-    // User routes
-    Route::get('/users', function () {
-        return view('modules.users.users');
-    })->middleware('permission:users.view-list')->name('users.index');
+    // User routes this shit is the tables.
+    Route::get('/users', [UserController::class, 'index'])
+        ->middleware('permission:users.view-list')
+        ->name('users.index');
 
-
-    // Create User
-    Route::get('/users/create', function () {
-        return view('modules.users.new-user');
-    })->middleware('permission:users.create')->name('users.create');
+    // Create User this shit is the create user.
+    Route::get('/users/create', [UserController::class, 'create'])
+        ->middleware('permission:users.create')
+        ->name('users.create');
     // Create user routes API
     Route::post('/users/create',[UserController::class,'store'])
         ->name('users.store');
