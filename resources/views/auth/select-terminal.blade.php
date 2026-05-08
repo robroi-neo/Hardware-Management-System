@@ -20,7 +20,7 @@
             <x-input-error :messages="$errors->get('terminal_id')" class="mt-2" />
         </div>
 
-        <x-primary-button class="w-full justify-center">
+        <x-primary-button class="w-full justify-center bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500">
             Continue to Login
         </x-primary-button>
     </form>

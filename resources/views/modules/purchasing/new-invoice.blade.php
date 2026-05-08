@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-3xl font-semibold leading-tight text-slate-900">New Invoice</h2>
+        <h2 class="text-3xl font-medium leading-tight text-slate-900">New Invoice</h2>
     </x-slot>
 
     <x-two-column-grid x-data="purchasingApp()" x-init="initCart()">

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-3xl font-semibold leading-tight text-slate-900">Stock Movements</h2>
+        <h2 class="text-3xl font-medium leading-tight text-slate-900">Stock Movements</h2>
     </x-slot>
 
     <x-card>

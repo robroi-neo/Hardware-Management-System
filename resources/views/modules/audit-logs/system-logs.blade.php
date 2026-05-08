@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-3xl font-semibold leading-tight text-slate-900">Audit Logs</h2>
+        <h2 class="text-3xl font-medium leading-tight text-slate-900">Audit Logs</h2>
     </x-slot>
 
     <section class="rounded-xl border border-slate-200 bg-white p-6">

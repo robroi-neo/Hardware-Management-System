@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-3xl font-semibold leading-tight text-slate-900">Manual Stock In</h2>
+        <h2 class="text-3xl font-medium leading-tight text-slate-900">Manual Stock In</h2>
     </x-slot>
 
     <x-card>

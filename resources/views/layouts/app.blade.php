@@ -15,7 +15,7 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans tracking-tight antialiased bg-slate-100 text-slate-900">
+    <body class="font-sans tracking-tight antialiased bg-indigo-50 text-slate-900">
         {{--
             Alpine state for the layout:
             - `mobileOpen` (bool): controls the mobile overlay/sidebar (x-show/x-cloak). Used on small screens.

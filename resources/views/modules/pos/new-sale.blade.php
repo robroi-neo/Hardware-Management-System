@@ -1,31 +1,31 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-3xl font-semibold leading-tight text-slate-900">POS</h2>
+        <h2 class="text-3xl font-medium leading-tight text-slate-900">POS</h2>
     </x-slot>
 
     <x-two-column-grid x-data="posApp()" x-init="setPosMain($el); initPos()">
         <x-card title="New Sale" fullHeight class="lg:col-span-2">
             <div class="flex items-center justify-between mb-4">
                 <x-product-search-typeahead />
-                <button @click="openBrowseModal" class="ml-4 inline-flex items-center gap-2 bg-white border rounded px-3 py-2 text-sm">
-                    <span class="bg-indigo-900 text-white rounded w-5 h-5 flex items-center justify-center">+</span>
+                <button @click="openBrowseModal" class="ml-4 inline-flex text-indigo-600 text-medium items-center gap-2 bg-white border rounded px-3 py-2 text-sm">
+                    <span class="bg-indigo-600 text-white rounded w-5 h-5 flex items-center justify-center">+</span>
                     Browse Products
                 </button>
             </div>
 
             <div class="border border-gray-200 rounded flex-1 min-h-0 flex flex-col overflow-hidden">
-                <div class="px-4 py-3 bg-gray-100 border-b border-gray-200 font-medium">Current Order</div>
+                <div class="px-4 py-3 bg-white-100 border-b border-white-200 font-medium">Current Order</div>
                 <div class="flex-1 min-h-0 overflow-y-auto">
                 <table class="min-w-full text-sm">
-                    <thead class="text-left text-gray-600 bg-gray-50 sticky top-0 z-10">
+                    <thead class="text-left text-gray-600 bg-indigo-100 sticky top-0 z-10">
                         <tr>
-                            <th class="px-4 py-3">Product ID</th>
-                            <th class="px-4 py-3">Product Name</th>
-                            <th class="px-4 py-3">Unit</th>
-                            <th class="px-4 py-3">Price</th>
-                            <th class="px-4 py-3">Quantity</th>
-                            <th class="px-4 py-3">Subtotal</th>
-                            <th class="px-4 py-3"></th>
+                            <th class="px-4 py-3 font-normal">Product ID</th>
+                            <th class="px-4 py-3 font-normal">Product Name</th>
+                            <th class="px-4 py-3 font-normal">Unit</th>
+                            <th class="px-4 py-3 font-normal">Price</th>
+                            <th class="px-4 py-3 font-normal">Quantity</th>
+                            <th class="px-4 py-3 font-normal">Subtotal</th>
+                            <th class="px-4 py-3 font-normal"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">
