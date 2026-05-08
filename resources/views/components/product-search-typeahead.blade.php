@@ -15,7 +15,7 @@
             @keydown.escape.prevent="() => closeTypeahead()"
             @focus="reopenTypeahead()"
             placeholder="Scan or Search Product ID, name, or unit..."
-            class="placeholder-gray-400 bg-gray-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            class="placeholder-gray-400 bg-white-100 border border-slate-600 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
         />
         <button
             type="button"

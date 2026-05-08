@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-3xl font-semibold leading-tight text-slate-900">POS Transactions</h2>
+        <h2 class="text-3xl font-medium leading-tight text-slate-900">POS Transactions</h2>
     </x-slot>
 
     <x-card title="Transaction History" fullHeight>
@@ -37,7 +37,7 @@
                             column="payment_method"
                             route="pos.transactions"
                         />
-                        <th class="px-4 py-3 font-semibold">Processed By</th>
+                        <th class="px-4 py-3 font-normal">Processed By</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y border-t border-slate-200">
