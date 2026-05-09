@@ -8,29 +8,51 @@
             <table class="min-w-full text-sm">
                 <thead class="bg-slate-100 text-left text-slate-700">
                     <tr>
-
-                        <th class="px-4 py-3 font-semibold">ID</th>
-                        <th class="px-4 py-3 font-semibold">Name</th>
-                        <th class="px-4 py-3 font-semibold">Phone</th>
+                        <x-table.sortable-header
+                            label="Name"
+                            :sortBy="$sortBy"
+                            :sortDir="$sortDir"
+                            column="name"
+                            route="users.index"
+                            :params="['search' => request('search')]"
+                        />
+                        <x-table.sortable-header
+                            label="Phone"
+                            :sortBy="$sortBy"
+                            :sortDir="$sortDir"
+                            column="phone"
+                            route="users.index"
+                            :params="['search' => request('search')]"
+                        />
                         <th class="px-4 py-3 font-semibold">Role</th>
-                        <th class="px-4 py-3 font-semibold">Status</th>
-                        <th class="px-4 py-3 font-semibold">Branch</th>
-                        <th class="px-4 py-3 font-semibold">Created at</th>
-                        <th class="px-4 py-3 font-semibold">Updated at</th>
-
+                        <x-table.sortable-header
+                            label="Status"
+                            :sortBy="$sortBy"
+                            :sortDir="$sortDir"
+                            column="status"
+                            route="users.index"
+                            :params="['search' => request('search')]"
+                        />
+                        <x-table.sortable-header
+                            label="Branch"
+                            :sortBy="$sortBy"
+                            :sortDir="$sortDir"
+                            column="branch"
+                            route="users.index"
+                            :params="['search' => request('search')]"
+                        />
                     </tr>
                 </thead>
                 <tbody class="divide-y border-t border-slate-200">
                     @forelse($users as $user)
                         <tr class="hover:bg-slate-50">
-                            <td class="px-4 py-3 text-slate-900">#{{ $user->id }}</td>
                             <td class="px-4 py-3 text-slate-900">{{ $user->name }}</td>
                             <td class="px-4 py-3 text-slate-600">{{ $user->phone }}</td>
                             <td class="px-4 py-3 text-slate-600">
                                 {{ $user->getRoleNames()->join(', ') }}
                             </td>
-                            <td class="px-4 py-3 text-slate-900">{{ $user->created_at }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $user->updated_at }}</td>
+                            <td class="px-4 py-3 text-slate-900">{{ $user->status }}</td>
+                            <td class="px-4 py-3 text-slate-600">{{ $user->branch?->name }}</td>
                         </tr>
                     @empty
                         <x-table.empty-state :colspan="4" message="No users found." />
