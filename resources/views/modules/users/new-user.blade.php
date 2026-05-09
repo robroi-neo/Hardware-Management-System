@@ -114,7 +114,7 @@
                                 {{ __('Cancel') }}
                             </a>
 
-                            <x-primary-button class="px-4 py-2 text-sm shadow-sm">
+                            <x-primary-button class="px-4 py-2">
                                 {{ __('Create user') }}
                             </x-primary-button>
                         </div>
