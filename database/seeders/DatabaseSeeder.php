@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -26,6 +27,7 @@ class DatabaseSeeder extends Seeder
             ProductFactorySeeder::class,
             BranchInventorySeeder::class,
             SupplierSeeder::class,
+            CashierUserSeeder::class,
         ]);
 
         // create permission for spatie (dot-separated resource.action format)
@@ -121,33 +123,42 @@ class DatabaseSeeder extends Seeder
         ]);
 
 
-        // Default admin user and assign user role
+        // Default admin user
         $admin = User::firstOrCreate(
-            ['phone'=>'09362690603'],
+            ['phone' => '09362690603'],
             [
                 'name' => 'Admin',
-                'pin' =>  1234,
+                'pin' => Hash::make('1234'),
+                'status' => 'active',
             ]
         );
 
         // Default cashier user
         $cashier = User::firstOrCreate(
-            ['phone'=>'09287476832'],
+            ['phone' => '09287476832'],
             [
-                'name'=> 'Cashier',
-                'pin' => '1234'
+                'name' => 'Cashier',
+                'pin' => Hash::make('1234'),
+                'status' => 'active',
             ]
         );
+
         // Default manager user
         $manager = User::firstOrCreate(
-            ['phone'=>'09108712969'],
+            ['phone' => '09108712969'],
             [
-                'name'=> 'Manager',
-                'pin' => '1234'
+                'name' => 'Manager',
+                'pin' => Hash::make('1234'),
+                'status' => 'active',
             ]
         );
-        $admin->assignRole('admin');
-        $cashier->assignRole('cashier');
-        $manager->assignRole('manager');
+
+        $admin->syncRoles(['admin']);
+        $cashier->syncRoles(['cashier']);
+        $manager->syncRoles(['manager']);
+
+        User::factory(50)->create()->each(function ($user) {
+            $user->assignRole('cashier');
+        });
     }
 }
