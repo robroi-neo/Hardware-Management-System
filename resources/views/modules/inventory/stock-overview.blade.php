@@ -25,17 +25,17 @@
 
         <!-- Stats Summary -->
         <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div class="rounded border border-slate-200 bg-slate-50 p-4">
                 <p class="text-sm text-slate-600">Total Products</p>
                 <p class="mt-1 text-2xl font-semibold text-slate-900">{{ $inventories->total() }}</p>
             </div>
-            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div class="rounded border border-slate-200 bg-slate-50 p-4">
                 <p class="text-sm text-slate-600">Total Value</p>
                 <p class="mt-1 text-2xl font-semibold text-slate-900">
                     ₱{{ number_format($inventories->sum(fn($inv) => $inv->quantity * $inv->product->capital), 2) }}
                 </p>
             </div>
-            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div class="rounded border border-slate-200 bg-slate-50 p-4">
                 <p class="text-sm text-slate-600">Low Stock Items</p>
                 <p class="mt-1 text-2xl font-semibold text-amber-600">
                     {{ $inventories->filter(fn($inv) => $inv->quantity < 5)->count() }}
@@ -47,8 +47,8 @@
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="border-b border-slate-200 bg-slate-50">
-                        <th class="px-4 py-3 text-left font-semibold text-slate-700">ID</th>
+                    <tr class="border-b border-slate-200 bg-indigo-50">
+                        <th class="px-4 py-3 text-left font-normal text-slate-700">ID</th>
                         <x-table.sortable-header
                             label="Product Name"
                             :sortBy="$sortBy"
@@ -57,7 +57,7 @@
                             route="inventory.overview"
                             :params="['search' => $search]"
                         />
-                        <th class="px-4 py-3 text-left font-semibold text-slate-700">Unit</th>
+                        <th class="px-4 py-3 text-left font-normal text-slate-700">Unit</th>
                         <x-table.sortable-header
                             label="Quantity"
                             :sortBy="$sortBy"
@@ -67,10 +67,10 @@
                             :params="['search' => $search]"
                             align="right"
                         />
-                        <th class="px-4 py-3 text-right font-semibold text-slate-700">Unit Cost</th>
-                        <th class="px-4 py-3 text-right font-semibold text-slate-700">Total Value</th>
-                        <th class="px-4 py-3 text-left font-semibold text-slate-700">Branch</th>
-                        <th class="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
+                        <th class="px-4 py-3 text-right font-normal text-slate-700">Unit Cost</th>
+                        <th class="px-4 py-3 text-right font-normal text-slate-700">Total Value</th>
+                        <th class="px-4 py-3 text-left font-normal text-slate-700">Branch</th>
+                        <th class="px-4 py-3 text-left font-normal text-slate-700">Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -115,15 +115,15 @@
         <!-- Action Buttons -->
         <div class="mt-6 flex flex-wrap gap-3">
             @can('inventory.update')
-                <a href="{{ route('inventory.manual-stock-in') }}" class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
+                <a href="{{ route('inventory.manual-stock-in') }}" class="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
                     + Stock In
                 </a>
-                <a href="{{ route('inventory.stock-out') }}" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+                <a href="{{ route('inventory.stock-out') }}" class="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
                     - Stock Out
                 </a>
             @endcan
             @can('inventory.view-movements')
-                <a href="{{ route('inventory.stock-movements') }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <a href="{{ route('inventory.stock-movements') }}" class="rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                     View Movements
                 </a>
             @endcan

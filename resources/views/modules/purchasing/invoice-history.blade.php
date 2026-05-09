@@ -11,7 +11,7 @@
                 name="search"
                 value="{{ $search }}"
                 placeholder="Search by invoice ID, purchase ID, or supplier..."
-                class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                class="flex-1 border-gray-200 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
 
             @if($suppliers->count() >= 2)
@@ -31,7 +31,7 @@
         <div class="border border-gray-200 rounded overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="text-left text-gray-600 bg-gray-50">
+                    <thead class="text-left text-gray-600 bg-indigo-50">
                         <tr>
                             <x-table.sortable-header
                                 label="Invoice ID"

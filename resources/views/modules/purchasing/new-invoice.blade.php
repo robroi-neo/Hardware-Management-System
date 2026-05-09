@@ -13,7 +13,7 @@
                     <!-- Terminal & Branch Info (Read-only) -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-2">Terminal & Branch</label>
-                        <div class="w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 bg-slate-50 text-slate-700">
+                        <div class="w-full border border-gray-200 rounded shadow-sm px-3 py-2 bg-slate-50 text-slate-700">
                             <div class="font-medium text-sm">{{ $terminalName }}</div>
                             <div class="text-xs text-slate-600">{{ $selectedBranch->name ?? 'Unknown Branch' }}</div>
                         </div>
@@ -24,7 +24,7 @@
                         <label class="block text-sm font-medium text-slate-700 mb-2">Supplier *</label>
                         <select
                             x-model="selectedSupplier"
-                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            class="w-full border-gray-300 rounded shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             @change="handleSupplierChange"
                         >
                             <option value="">-- Select Supplier --</option>
@@ -34,7 +34,7 @@
                         </select>
                     </div>
                     <!-- Supplier Contact Details -->
-                    <div x-show="selectedSupplier" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md md:col-span-2">
+                    <div x-show="selectedSupplier" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded md:col-span-2">
                         <div class="text-sm font-semibold text-blue-900 mb-3">Supplier Contact Information</div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
@@ -60,7 +60,6 @@
 
             <!-- Product Search & Cart -->
             <x-card title="Add Products" fullHeight>
-                <h3 class="text-lg font-semibold mb-4">Add Products</h3>
 
                 <!-- Product Search Section -->
                 <div class="mb-6 pb-6 border-b">
@@ -71,7 +70,7 @@
                         </div>
                         <button
                             @click="openProductModal()"
-                            class="px-4 py-2 bg-indigo-900 text-white text-sm rounded hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
+                            class="px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
                             :disabled="!selectedSupplier || !selectedBranch"
                             title="Create a new product"
                         >
@@ -81,7 +80,7 @@
 
                     <!-- No Results Message -->
                     <div x-show="typeahead.q.length > 0 && typeahead.items.length === 0 && !typeahead.loading"
-                         class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md text-sm text-amber-800">
+                         class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-amber-800">
                         No products found for "<span class="font-semibold" x-text="typeahead.q"></span>"
                     </div>
 
@@ -92,14 +91,14 @@
                 <div class="border border-gray-200 rounded overflow-hidden flex flex-col min-h-0 flex-1">
                     <div class="overflow-auto flex-1 min-h-0">
                         <table class="w-full text-sm">
-                            <thead class="text-left text-gray-600 bg-gray-50">
+                            <thead class="text-left text-gray-600 bg-indigo-50">
                                 <tr>
-                                    <th class="px-4 py-3">Product</th>
-                                    <th class="px-4 py-3">Unit</th>
-                                    <th class="px-4 py-3">Quantity</th>
-                                    <th class="px-4 py-3">Unit Price</th>
-                                    <th class="px-4 py-3">Subtotal</th>
-                                    <th class="px-4 py-3"></th>
+                                    <th class="px-4 py-3 font-normal">Product</th>
+                                    <th class="px-4 py-3 font-normal">Unit</th>
+                                    <th class="px-4 py-3 font-normal">Quantity</th>
+                                    <th class="px-4 py-3 font-normal">Unit Price</th>
+                                    <th class="px-4 py-3 font-normal">Subtotal</th>
+                                    <th class="px-4 py-3 font-normal"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y">
@@ -173,7 +172,7 @@
             <button
                 @click="proceedToCheckout"
                 :disabled="!selectedSupplier || !selectedBranch || cartItems.length === 0 || isProcessing"
-                class="w-full bg-indigo-900 text-white py-3 rounded hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                class="w-full bg-indigo-600 text-white py-3 rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
                 <span x-show="!isProcessing">Proceed to Checkout</span>
                 <span x-show="isProcessing">Processing...</span>
@@ -204,7 +203,7 @@
                             x-model="newProduct.name"
                             @input="previewStandardizedName"
                             placeholder="e.g., Hammer Claw"
-                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            class="w-full border-gray-300 rounded shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         />
                         <div x-show="standardizedNamePreview" class="mt-2 p-3 bg-blue-50 rounded text-sm">
                             <div class="text-gray-600">Standardized as:</div>
@@ -218,7 +217,7 @@
                     <!-- Unit -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-2">Unit *</label>
-                        <select x-model="newProduct.unit" class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <select x-model="newProduct.unit" class="w-full border-gray-300 rounded shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="">-- Select Unit --</option>
                             <option value="pcs">pcs (pieces)</option>
                             <option value="box">box</option>
@@ -240,7 +239,7 @@
                                 min="0.01"
                                 step="0.01"
                                 placeholder="0.00"
-                                class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="flex-1 border-gray-300 rounded shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             />
                         </div>
                     </div>
@@ -323,7 +322,7 @@
         <x-modal name="checkout-success" maxWidth="md" focusable>
             <div class="p-6">
                 <div class="text-center mb-6">
-                    <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded mb-4">
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>

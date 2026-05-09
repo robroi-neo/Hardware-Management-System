@@ -10,7 +10,7 @@
                 <label class="block text-sm font-medium text-slate-700">Select Branch</label>
                 <select
                     x-model="form.branch_id"
-                    class="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 >
                     <option value="">-- Select a Branch --</option>
                     @if($isAdmin)
@@ -34,20 +34,20 @@
             </div>
 
             <!-- Items Table -->
-            <div class="border border-slate-200 rounded-lg overflow-hidden">
+            <div class="border border-slate-200 rounded overflow-hidden">
                 <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 font-medium text-sm text-slate-700">
                     Stock-In Items
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-slate-50 border-b border-slate-200">
+                        <thead class="bg-indigo-50 border-b border-slate-200">
                             <tr>
-                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Product ID</th>
-                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Product Name</th>
-                                <th class="px-4 py-3 text-left font-semibold text-slate-700">Unit</th>
-                                <th class="px-4 py-3 text-right font-semibold text-slate-700">Unit Cost</th>
-                                <th class="px-4 py-3 text-right font-semibold text-slate-700">Quantity</th>
-                                <th class="px-4 py-3 text-right font-semibold text-slate-700">Subtotal</th>
+                                <th class="px-4 py-3 text-left font-normal text-slate-700">Product ID</th>
+                                <th class="px-4 py-3 text-left font-normal text-slate-700">Product Name</th>
+                                <th class="px-4 py-3 text-left font-normal text-slate-700">Unit</th>
+                                <th class="px-4 py-3 text-right font-normal text-slate-700">Unit Cost</th>
+                                <th class="px-4 py-3 text-right font-normal text-slate-700">Quantity</th>
+                                <th class="px-4 py-3 text-right font-normal text-slate-700">Subtotal</th>
                                 <th class="px-4 py-3 text-center"></th>
                             </tr>
                         </thead>
@@ -100,11 +100,11 @@
                     <div class="flex justify-end gap-8">
                         <div>
                             <p class="text-sm text-slate-600">Total Items:</p>
-                            <p class="text-2xl font-bold text-slate-900"><span x-text="getTotalQuantity()"></span></p>
+                            <p class="text-2xl font-semibold text-slate-900"><span x-text="getTotalQuantity()"></span></p>
                         </div>
                         <div>
                             <p class="text-sm text-slate-600">Total Cost:</p>
-                            <p class="text-2xl font-bold text-slate-900">₱<span x-text="formatPrice(getTotalCost())"></span></p>
+                            <p class="text-2xl font-semibold text-slate-900">₱<span x-text="formatPrice(getTotalCost())"></span></p>
                         </div>
                     </div>
                 </div>
@@ -116,7 +116,7 @@
                     <label class="block text-sm font-medium text-slate-700">Reference Type</label>
                     <select
                         x-model="form.reference_type"
-                        class="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     >
                         <option value="">-- Select --</option>
                         <option value="purchase">Purchase/Invoice</option>
@@ -129,7 +129,7 @@
                         type="number"
                         x-model="form.reference_id"
                         placeholder="Invoice/Document ID"
-                        class="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     />
                 </div>
             </div>
@@ -140,7 +140,7 @@
                     x-model="form.notes"
                     placeholder="Add any additional notes about this stock-in..."
                     rows="3"
-                    class="mt-2 block w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 ></textarea>
             </div>
 
@@ -149,7 +149,7 @@
                 <button
                     type="button"
                     @click="resetForm()"
-                    class="rounded-lg border border-slate-300 px-6 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                    class="rounded border border-slate-300 px-6 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                     Clear
                 </button>
@@ -157,7 +157,7 @@
                     type="button"
                     @click="submitForm()"
                     :disabled="!canSubmit()"
-                    class="rounded-lg bg-green-600 px-6 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="rounded bg-green-600 px-6 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <span x-show="!submitting">Complete Stock-In</span>
                     <span x-show="submitting">Processing...</span>
@@ -166,7 +166,7 @@
 
             <!-- Success/Error Messages -->
             <template x-if="message">
-                <div :class="messageType === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'" class="rounded-lg border p-4">
+                <div :class="messageType === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'" class="rounded border p-4">
                     <p class="text-sm font-medium" x-text="message"></p>
                 </div>
             </template>

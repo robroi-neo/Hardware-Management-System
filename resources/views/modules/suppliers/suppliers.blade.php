@@ -15,7 +15,7 @@
                 <button
                     type="button"
                     @click="openCreateModal()"
-                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                    class="inline-flex items-center gap-2 rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
                 >
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -32,11 +32,11 @@
                     name="search"
                     value="{{ $search }}"
                     placeholder="Search by name, contact, phone, or email..."
-                    class="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                    class="flex-1 rounded border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                 />
                 <select
                     name="status"
-                    class="rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                    class="rounded border border-slate-300 pl-4 pr-10 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                 >
                     <option value="">All Status</option>
                     <option value="active" {{ $status === 'active' ? 'selected' : '' }}>Active</option>
@@ -44,7 +44,7 @@
                 </select>
                 <button
                     type="submit"
-                    class="rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-300"
+                    class="rounded bg-slate-200 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-300"
                 >
                     Filter
                 </button>
@@ -172,13 +172,13 @@
 
         <!-- Success/Error Messages -->
         @if (session('success'))
-        <div class="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+        <div class="rounded border border-green-200 bg-green-50 p-4 text-sm text-green-800">
             {{ session('success') }}
         </div>
         @endif
 
         @if (session('error'))
-        <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        <div class="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-800">
             {{ session('error') }}
         </div>
         @endif
@@ -236,7 +236,7 @@
                         name="supplier_name"
                         x-model="form.supplier_name"
                         required
-                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                         placeholder="Enter supplier name"
                     />
                     <template x-if="errors.supplier_name">
@@ -251,7 +251,7 @@
                         type="text"
                         name="contact_person"
                         x-model="form.contact_person"
-                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                         placeholder="Enter contact person name"
                     />
                 </div>
@@ -263,7 +263,7 @@
                         name="company_address"
                         x-model="form.company_address"
                         rows="3"
-                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                         placeholder="Enter company address"
                     ></textarea>
                 </div>
@@ -275,7 +275,7 @@
                         type="tel"
                         name="contact_number"
                         x-model="form.contact_number"
-                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                         placeholder="Enter contact number"
                     />
                 </div>
@@ -287,7 +287,7 @@
                         type="email"
                         name="contact_email"
                         x-model="form.contact_email"
-                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                         placeholder="Enter email address"
                     />
                     <template x-if="errors.contact_email">
@@ -301,7 +301,7 @@
                     <select
                         name="status"
                         x-model="form.status"
-                        class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                     >
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
@@ -312,13 +312,13 @@
                     <button
                         type="button"
                         @click="closeModal()"
-                        class="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                        class="flex-1 rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
-                        class="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                        class="flex-1 rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
                     >
                         <span x-text="isEditMode ? 'Update' : 'Create'"></span>
                     </button>
@@ -335,7 +335,7 @@
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
             @click.self="closeDeleteModal()"
         >
-            <div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
+            <div class="w-full max-w-sm rounded bg-white p-6 shadow-lg">
                 <h3 class="mb-2 text-lg font-semibold text-slate-900">Delete Supplier</h3>
                 <p class="mb-6 text-sm text-slate-600">
                     Are you sure you want to delete <strong x-text="deleteSupplierName"></strong>? This action cannot be undone.
@@ -351,13 +351,13 @@
                     <button
                         type="button"
                         @click="closeDeleteModal()"
-                        class="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                        class="flex-1 rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
-                        class="flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                        class="flex-1 rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
                     >
                         Delete
                     </button>

@@ -6,7 +6,7 @@
     <x-card title="Transaction History" fullHeight>
         <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
-                <thead class="bg-slate-100 text-left text-slate-700">
+                <thead class="bg-indigo-50 border-gray-200 text-left text-slate-700">
                     <tr>
                         <x-table.sortable-header
                             label="ID"
@@ -47,7 +47,7 @@
                             <td class="px-4 py-3 text-slate-600">{{ $transaction->date->format('Y-m-d H:i:s') }}</td>
                             <td class="px-4 py-3 text-slate-900 font-medium">₱{{ number_format($transaction->total_amount, 2) }}</td>
                             <td class="px-4 py-3">
-                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                <span class="inline-flex items-center rounded bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                                     {{ ucfirst($transaction->payment_method) }}
                                 </span>
                             </td>
