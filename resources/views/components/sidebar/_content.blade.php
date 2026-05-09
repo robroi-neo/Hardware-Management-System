@@ -151,7 +151,7 @@
                 href="{{ route('inventory.stock-out') }}"
                 :active="request()->routeIs('inventory.stock-out')"
             >
-                Stock Out
+                Manual Stock Out
             </x-sidebar.item>
             <x-sidebar.item
                 href="{{ route('inventory.stock-movements') }}"

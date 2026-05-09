@@ -2,7 +2,7 @@
     'searchInputRef' => 'topSearchInput',
 ])
 
-<div class="w-full max-w-md relative" @click.outside="() => closeTypeahead()">
+<div class="w-full relative" @click.outside="() => closeTypeahead()">
     <label class="relative block">
         <span class="sr-only">Search</span>
         <input
@@ -19,7 +19,7 @@
         />
         <button
             type="button"
-            @click="() => typeahead.q = ''"
+            @click="typeahead.q = ''; closeTypeahead(); typeahead.items = []; $refs.topSearchInput.focus()"
             x-show="typeahead.q.trim().length > 0"
             class="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
             aria-label="Clear search"
