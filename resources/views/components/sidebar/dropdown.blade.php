@@ -21,7 +21,7 @@
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
+            stroke-width="3"
         >
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
         </svg>
@@ -31,7 +31,7 @@
         x-show="open"
         x-transition.origin-top
         x-cloak
-        class="space-y-1 border-l border-slate-300 pl-6"
+        class="space-y-1 border-l border-slate-300 ml-4 pl-3"
     >
         {{ $slot }}
     </div>

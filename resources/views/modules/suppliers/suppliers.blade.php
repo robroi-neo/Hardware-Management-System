@@ -10,7 +10,7 @@
         <!-- Header with Search and Create Button -->
         <x-card>
             <div class="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <h3 class="text-xl font-semibold text-slate-900">Suppliers List</h3>
+                <h3 class="text-lg font-semibold text-slate-900">Suppliers List</h3>
                 @can('suppliers.create')
                 <button
                     type="button"
@@ -54,7 +54,7 @@
             <div class="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
                 @if ($suppliers->count() > 0)
                     <table class="w-full">
-                        <thead class="border-b border-slate-200 bg-slate-50">
+                        <thead class="border-b border-slate-200 bg-indigo-50">
                         <tr>
                             <x-table.sortable-header
                                 label="Supplier Name"

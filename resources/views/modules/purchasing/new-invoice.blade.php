@@ -62,7 +62,7 @@
             <x-card title="Add Products" fullHeight>
 
                 <!-- Product Search Section -->
-                <div class="mb-6 pb-6 border-b">
+                <div class="mb-4">
                     <label class="block text-sm font-medium text-slate-700 mb-2">Search or Create Products</label>
                     <div class="flex gap-3" :class="{ 'opacity-50 pointer-events-none': !selectedSupplier || !selectedBranch }">
                         <div class="flex-1">
@@ -148,42 +148,55 @@
 
         <!-- Right Column: Summary Sidebar -->
         <x-card title="Summary" fullHeight>
-            <div class="space-y-3 mb-6">
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Subtotal:</span>
-                    <span class="font-medium">₱<span x-text="formatPrice(cartSubtotal)"></span></span>
-                </div>
-                <div class="border-t pt-3 flex justify-between text-lg">
-                    <span class="font-semibold">Total:</span>
-                    <span class="font-semibold text-indigo-900">₱<span x-text="formatPrice(cartSubtotal)"></span></span>
-                </div>
-            </div>
-
-            <div class="mb-6 p-4 bg-blue-50 rounded text-sm text-blue-700">
-                <div class="font-medium mb-2">Invoice Details:</div>
-                <div>Due in 30 days from today</div>
-                <div x-show="selectedSupplier && selectedBranch">
-                    <div class="text-xs text-gray-600 mt-2">
-                        Ready to checkout with <span x-text="cartItems.length"></span> item(s)
+            <!-- Adding mt-auto pushes this entire block to the absolute bottom of the card -->
+            <div class="mt-auto w-full">
+                
+                <!-- Totals Section -->
+                <div class="space-y-3 mb-6">
+                    <div class="flex justify-between">
+                        <span class="text-slate-600">Subtotal:</span>
+                        <span class="font-medium">₱<span x-text="formatPrice(cartSubtotal)"></span></span>
+                    </div>
+                    <div class="border-t pt-3 flex justify-between text-lg">
+                        <span class="font-semibold">Total:</span>
+                        <span class="font-semibold text-indigo-900">₱<span x-text="formatPrice(cartSubtotal)"></span></span>
                     </div>
                 </div>
+
+                <!-- Invoice Details -->
+                <div class="mb-6 p-4 bg-indigo-50/50 border border-indigo-100 rounded text-sm text-indigo-800">
+                    <div class="font-medium mb-1">Invoice Details:</div>
+                    <div class="text-indigo-600">Due in 30 days from today</div>
+                    <div x-show="selectedSupplier && selectedBranch">
+                        <div class="text-xs font-medium text-indigo-500 mt-3 pt-3 border-t border-indigo-100/50">
+                            Ready to checkout with <span x-text="cartItems.length"></span> item(s)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <button
+                    @click="proceedToCheckout"
+                    :disabled="!selectedSupplier || !selectedBranch || cartItems.length === 0 || isProcessing"
+                    class="w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors duration-200"
+                >
+                    <span x-show="!isProcessing">Proceed to Checkout</span>
+                    <span x-show="isProcessing" x-cloak>
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                    </span>
+                </button>
+
+                <button
+                    @click="resetCart"
+                    class="w-full mt-3 border border-slate-300 text-slate-700 py-2.5 rounded-md hover:bg-slate-50 transition-colors duration-200"
+                >
+                    Clear Cart
+                </button>
             </div>
-
-            <button
-                @click="proceedToCheckout"
-                :disabled="!selectedSupplier || !selectedBranch || cartItems.length === 0 || isProcessing"
-                class="w-full bg-indigo-600 text-white py-3 rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-            >
-                <span x-show="!isProcessing">Proceed to Checkout</span>
-                <span x-show="isProcessing">Processing...</span>
-            </button>
-
-            <button
-                @click="resetCart"
-                class="w-full mt-3 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50"
-            >
-                Clear Cart
-            </button>
         </x-card>
 
         <!-- Product Creation Modal -->
@@ -257,7 +270,7 @@
                         <button
                             @click="saveNewProduct"
                             :disabled="!newProduct.name || !newProduct.unit || !newProduct.capital || isCreatingProduct || productNameExists"
-                            class="px-4 py-2 rounded bg-indigo-900 text-white text-sm hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="px-4 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Create Product
                             <span x-show="!isCreatingProduct">Create Product</span>
@@ -308,7 +321,7 @@
                     <button
                         @click="completeCheckout"
                         :disabled="isProcessing"
-                        class="px-4 py-2 rounded bg-indigo-900 text-white text-sm hover:bg-indigo-800 disabled:opacity-50"
+                        class="px-4 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700 disabled:opacity-50"
                     >
                         Confirm & Pay
                         <span x-show="!isProcessing">Complete Purchase</span>
@@ -352,7 +365,7 @@
                 <div class="flex items-center justify-end gap-3">
                     <button
                         @click="$dispatch('close-modal', 'checkout-success'); newInvoice()"
-                        class="px-4 py-2 rounded bg-indigo-900 text-white text-sm hover:bg-indigo-800"
+                        class="px-4 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
                     >
                         Create Another Invoice
                     </button>
