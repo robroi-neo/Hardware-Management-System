@@ -83,7 +83,7 @@ A comprehensive Laravel-based business management system for hardware retail ope
 ```bash
 # Clone repository
 git clone <repository-url>
-cd rnm-hardware-management
+cd hardware-management-system
 
 # Install dependencies
 composer install
