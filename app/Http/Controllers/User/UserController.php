@@ -17,17 +17,14 @@ class UserController extends Controller
         $sortDir = $request->query('sort_dir', 'asc');
 
         // apply sorting before get.
-        $users = User::query()
-            ->with(['roles', 'branch'])
-            ->leftJoin('branches', 'users.branch_id', '=', 'branches.id')
-            ->select('users.*')
-            ->when($sortBy === 'branch', function ($q) use ($sortDir) {
-                return $q->orderBy('branches.name', $sortDir);
-            })
-            ->when($sortBy !== 'branch', function ($q) use ($sortBy, $sortDir) {
-                return $q->orderBy("users.$sortBy", $sortDir);
-            })
-            ->get();
+        $users = User::with('branch')
+            ->orderBy(
+                Branch::select('name')
+                    ->whereColumn('branches.id', 'users.branch_id'),
+                $sortDir
+            )
+            ->paginate(10)
+            ->withQueryString();
 
         return view('modules.users.users', compact('users', 'sortBy', 'sortDir'));
     }
