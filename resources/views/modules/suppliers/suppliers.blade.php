@@ -51,7 +51,7 @@
             </form>
 
             <!-- Suppliers Table -->
-            <div class="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <div class="mt-6 overflow-hidden rounded border border-slate-200 bg-white">
                 @if ($suppliers->count() > 0)
                     <table class="w-full">
                         <thead class="border-b border-slate-200 bg-indigo-50">
@@ -88,7 +88,7 @@
                                 route="suppliers.index"
                                 :params="['search' => $search, 'status' => $status]"
                             />
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-700">
+                            <th class="px-6 py-3 text-left text-base font-normal text-slate-700">
                                 Actions
                             </th>
                         </tr>
@@ -113,11 +113,11 @@
                                 </td>
                                 <td class="px-6 py-4 text-sm">
                                     @if ($supplier->status === 'active')
-                                        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                                        <span class="inline-flex items-center rounded bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
                                             Active
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800">
+                                        <span class="inline-flex items-center rounded bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800">
                                             Inactive
                                         </span>
                                     @endif
@@ -128,24 +128,48 @@
                                             type="button"
                                             @click="openEditModal({{ $supplier->toJson() }})"
                                             @can('suppliers.edit')
-                                                class="text-indigo-600 hover:text-indigo-700"
+                                                class="text-indigo-600 hover:text-indigo-700 transition-colors"
                                             @else
                                                 disabled
-                                            class="cursor-not-allowed text-slate-400"
+                                                class="cursor-not-allowed text-slate-400"
                                             @endcan
                                         >
-                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                            <svg width="18" height="18" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <g clip-path="url(#clip0_586_3461)">
+                                                    <!-- Changed fill and stroke to currentColor -->
+                                                    <path d="M13.3923 16.0714L8.03516 17.0357L8.92801 11.6071L19.1602 1.41066C19.3262 1.24329 19.5237 1.11044 19.7413 1.01978C19.9589 0.929122 20.1923 0.882446 20.428 0.882446C20.6637 0.882446 20.8972 0.929122 21.1148 1.01978C21.3324 1.11044 21.5299 1.24329 21.6959 1.41066L23.5887 3.30351C23.7561 3.46952 23.8889 3.66702 23.9796 3.88463C24.0703 4.10223 24.1169 4.33564 24.1169 4.57137C24.1169 4.80711 24.0703 5.04051 23.9796 5.25812C23.8889 5.47572 23.7561 5.67322 23.5887 5.83923L13.3923 16.0714Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M21.4283 16.9643V22.3214C21.4283 22.795 21.2402 23.2492 20.9053 23.5841C20.5704 23.919 20.1162 24.1071 19.6426 24.1071H2.67829C2.20469 24.1071 1.75049 23.919 1.4156 23.5841C1.08072 23.2492 0.892578 22.795 0.892578 22.3214V5.35713C0.892578 4.88352 1.08072 4.42932 1.4156 4.09443C1.75049 3.75955 2.20469 3.57141 2.67829 3.57141H8.03544" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </g>
+                                                <defs>
+                                                    <clipPath id="clip0_586_3461">
+                                                        <rect width="25" height="25" fill="white"/>
+                                                    </clipPath>
+                                                </defs>
                                             </svg>
                                         </button>
+                                        
                                         @can('suppliers.delete')
                                             <button
                                                 type="button"
                                                 @click="openDeleteModal({{ $supplier->id }}, '{{ addslashes($supplier->supplier_name) }}')"
-                                                class="text-red-600 hover:text-red-700"
+                                                class="text-red-600 hover:text-red-700 transition-colors"
                                             >
-                                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L19.5 3.504c0-.596-.504-1.08-1.125-1.08H5.625c-.621 0-1.125.484-1.125 1.08l.954 12.294m15.759-1.591A24.026 24.026 0 0012 3.75c-8.716 0-16.313 5.338-19.659 12.9" />
+                                                <svg width="20" height="20" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <g clip-path="url(#clip0_586_3460)">
+                                                        <!-- Changed fill and stroke to currentColor -->
+                                                        <path d="M1.78613 6.25H23.2147" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M4.46484 6.25H20.5363V22.3214C20.5363 22.795 20.3481 23.2492 20.0132 23.5841C19.6784 23.919 19.2242 24.1071 18.7506 24.1071H6.25056C5.77696 24.1071 5.32275 23.919 4.98787 23.5841C4.65298 23.2492 4.46484 22.795 4.46484 22.3214V6.25Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M8.03613 6.24997V5.35711C8.03613 4.17311 8.50648 3.0376 9.34369 2.20038C10.1809 1.36317 11.3164 0.892822 12.5004 0.892822C13.6844 0.892822 14.8199 1.36317 15.6571 2.20038C16.4944 3.0376 16.9647 4.17311 16.9647 5.35711V6.24997" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        
+                                                        <!-- Left these two white so the details show up inside the red trash can -->
+                                                        <path d="M9.82227 9.82141V19.6428" stroke="#F9FAFB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M15.1787 9.82141V19.6428" stroke="#F9FAFB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </g>
+                                                    <defs>
+                                                        <clipPath id="clip0_586_3460">
+                                                            <rect width="25" height="25" fill="white"/>
+                                                        </clipPath>
+                                                    </defs>
                                                 </svg>
                                             </button>
                                         @endcan

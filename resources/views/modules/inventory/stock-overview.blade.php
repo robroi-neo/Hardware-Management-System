@@ -44,69 +44,71 @@
         </div>
 
         <!-- Table -->
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b border-slate-200 bg-indigo-50">
-                        <th class="px-4 py-3 text-left font-normal text-slate-700">ID</th>
-                        <x-table.sortable-header
-                            label="Product Name"
-                            :sortBy="$sortBy"
-                            :sortDir="$sortDir"
-                            column="name"
-                            route="inventory.overview"
-                            :params="['search' => $search]"
-                        />
-                        <th class="px-4 py-3 text-left font-normal text-slate-700">Unit</th>
-                        <x-table.sortable-header
-                            label="Quantity"
-                            :sortBy="$sortBy"
-                            :sortDir="$sortDir"
-                            column="quantity"
-                            route="inventory.overview"
-                            :params="['search' => $search]"
-                            align="right"
-                        />
-                        <th class="px-4 py-3 text-right font-normal text-slate-700">Unit Cost</th>
-                        <th class="px-4 py-3 text-right font-normal text-slate-700">Total Value</th>
-                        <th class="px-4 py-3 text-left font-normal text-slate-700">Branch</th>
-                        <th class="px-4 py-3 text-left font-normal text-slate-700">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($inventories as $inventory)
-                        <tr class="border-b border-slate-100 hover:bg-slate-50">
-                            <td class="px-4 py-3 font-medium text-slate-900">{{ $inventory->product_id }}</td>
-                            <td class="px-4 py-3 text-slate-700">{{ $inventory->product->name }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $inventory->product->unit }}</td>
-                            <td class="px-4 py-3 text-right text-slate-700 font-semibold">{{ number_format($inventory->quantity, 2) }}</td>
-                            <td class="px-4 py-3 text-right text-slate-600">₱{{ number_format($inventory->product->capital, 2) }}</td>
-                            <td class="px-4 py-3 text-right text-slate-700 font-semibold">₱{{ number_format($inventory->quantity * $inventory->product->capital, 2) }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $inventory->branch->name }}</td>
-                            <td class="px-4 py-3">
-                                @if($inventory->quantity < 5)
-                                    <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
-                                        Low Stock
-                                    </span>
-                                @elseif($inventory->quantity < 10)
-                                    <span class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
-                                        Warning
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                                        In Stock
-                                    </span>
-                                @endif
-                            </td>
+        <div class="border border-gray-200 rounded overflow-hidden"> 
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 bg-indigo-50">
+                            <th class="px-4 py-3 text-left font-normal text-slate-700">ID</th>
+                            <x-table.sortable-header
+                                label="Product Name"
+                                :sortBy="$sortBy"
+                                :sortDir="$sortDir"
+                                column="name"
+                                route="inventory.overview"
+                                :params="['search' => $search]"
+                            />
+                            <th class="px-4 py-3 text-left font-normal text-slate-700">Unit</th>
+                            <x-table.sortable-header
+                                label="Quantity"
+                                :sortBy="$sortBy"
+                                :sortDir="$sortDir"
+                                column="quantity"
+                                route="inventory.overview"
+                                :params="['search' => $search]"
+                                align="right"
+                            />
+                            <th class="px-4 py-3 text-right font-normal text-slate-700">Unit Cost</th>
+                            <th class="px-4 py-3 text-right font-normal text-slate-700">Total Value</th>
+                            <th class="px-4 py-3 text-left font-normal text-slate-700">Branch</th>
+                            <th class="px-4 py-3 text-left font-normal text-slate-700">Status</th>
                         </tr>
-                    @empty
-                        <x-table.empty-state
-                            :colspan="8"
-                            :message="$search ? 'No inventory records found. Try adjusting your search filters.' : 'No inventory records found.'"
-                        />
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse($inventories as $inventory)
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="px-4 py-3 font-medium text-slate-900">{{ $inventory->product_id }}</td>
+                                <td class="px-4 py-3 text-slate-700">{{ $inventory->product->name }}</td>
+                                <td class="px-4 py-3 text-slate-600">{{ $inventory->product->unit }}</td>
+                                <td class="px-4 py-3 text-right text-slate-700 font-semibold">{{ number_format($inventory->quantity, 2) }}</td>
+                                <td class="px-4 py-3 text-right text-slate-600">₱{{ number_format($inventory->product->capital, 2) }}</td>
+                                <td class="px-4 py-3 text-right text-slate-700 font-semibold">₱{{ number_format($inventory->quantity * $inventory->product->capital, 2) }}</td>
+                                <td class="px-4 py-3 text-slate-600">{{ $inventory->branch->name }}</td>
+                                <td class="px-4 py-3">
+                                    @if($inventory->quantity < 5)
+                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                                            Low Stock
+                                        </span>
+                                    @elseif($inventory->quantity < 10)
+                                        <span class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
+                                            Warning
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                                            In Stock
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <x-table.empty-state
+                                :colspan="8"
+                                :message="$search ? 'No inventory records found. Try adjusting your search filters.' : 'No inventory records found.'"
+                            />
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Pagination -->

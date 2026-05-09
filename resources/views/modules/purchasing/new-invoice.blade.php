@@ -24,7 +24,7 @@
                         <label class="block text-sm font-medium text-slate-700 mb-2">Supplier *</label>
                         <select
                             x-model="selectedSupplier"
-                            class="w-full border-gray-300 rounded shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            class="w-full border-gray-200 rounded shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             @change="handleSupplierChange"
                         >
                             <option value="">-- Select Supplier --</option>
@@ -148,27 +148,52 @@
 
         <!-- Right Column: Summary Sidebar -->
         <x-card title="Summary" fullHeight>
-            <!-- Adding mt-auto pushes this entire block to the absolute bottom of the card -->
-            <div class="mt-auto w-full">
+            
+            <!-- 1. List Headers (Pinned to top) -->
+            <div class="border-t border-b border-slate-200 py-2 mb-4 flex-shrink-0">
+                <div class="grid grid-cols-4 gap-2 text-xs text-slate-500 font-medium px-1">
+                    <div>NAME</div>
+                    <div>QTY</div>
+                    <div>PRICE</div>
+                    <div>TOTAL</div>
+                </div>
+            </div>
+
+            <!-- 2. Scrollable Items List (Takes up all middle space) -->
+            <div class="space-y-3 overflow-y-auto flex-1 min-h-0 mb-6 pr-1 scrollbar-hide">
+                <template x-for="item in cartItems" :key="item.product_id">
+                    <div class="grid grid-cols-4 gap-2 items-center text-sm px-1">
+                        <div class="text-slate-700 truncate" :title="item.product_name" x-text="item.product_name"></div>
+                        <div class="text-slate-700" x-text="formatQty(item.quantity)"></div>
+                        <div class="text-slate-700">₱<span x-text="formatPrice(item.unit_price)"></span></div>
+                        <!-- Purchasing API doesn't pass subtotal per item, so we calculate it instantly here -->
+                        <div class="font-medium text-slate-900">₱<span x-text="formatPrice(item.quantity * item.unit_price)"></span></div>
+                    </div>
+                </template>
+                
+                <!-- Empty State -->
+                <template x-if="cartItems.length === 0">
+                    <div class="text-slate-400 text-sm py-4 text-center">No items added yet</div>
+                </template>
+            </div>
+
+            <!-- 3. Pinned Bottom Section -->
+            <div class="mt-auto w-full flex-shrink-0 border-t border-slate-200 pt-4">
                 
                 <!-- Totals Section -->
-                <div class="space-y-3 mb-6">
-                    <div class="flex justify-between">
-                        <span class="text-slate-600">Subtotal:</span>
-                        <span class="font-medium">₱<span x-text="formatPrice(cartSubtotal)"></span></span>
-                    </div>
-                    <div class="border-t pt-3 flex justify-between text-lg">
+                <div class="space-y-2 mb-4">
+                    <div class="pt-2 flex justify-between text-lg">
                         <span class="font-semibold">Total:</span>
-                        <span class="font-semibold text-indigo-900">₱<span x-text="formatPrice(cartSubtotal)"></span></span>
+                        <span class="font-semibold text-indigo-700">₱<span x-text="formatPrice(cartSubtotal)"></span></span>
                     </div>
                 </div>
 
                 <!-- Invoice Details -->
-                <div class="mb-6 p-4 bg-indigo-50/50 border border-indigo-100 rounded text-sm text-indigo-800">
+                <div class="mb-5 p-3 bg-indigo-50/50 border border-indigo-100 rounded text-sm text-indigo-800">
                     <div class="font-medium mb-1">Invoice Details:</div>
-                    <div class="text-indigo-600">Due in 30 days from today</div>
+                    <div class="text-indigo-600 text-xs">Due in 30 days from today</div>
                     <div x-show="selectedSupplier && selectedBranch">
-                        <div class="text-xs font-medium text-indigo-500 mt-3 pt-3 border-t border-indigo-100/50">
+                        <div class="text-xs font-medium text-indigo-500 mt-2 pt-2 border-t border-indigo-100/50">
                             Ready to checkout with <span x-text="cartItems.length"></span> item(s)
                         </div>
                     </div>
@@ -178,7 +203,7 @@
                 <button
                     @click="proceedToCheckout"
                     :disabled="!selectedSupplier || !selectedBranch || cartItems.length === 0 || isProcessing"
-                    class="w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors duration-200"
+                    class="w-full flex items-center justify-center bg-indigo-600 text-white py-2.5 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors duration-200"
                 >
                     <span x-show="!isProcessing">Proceed to Checkout</span>
                     <span x-show="isProcessing" x-cloak>
@@ -192,7 +217,7 @@
 
                 <button
                     @click="resetCart"
-                    class="w-full mt-3 border border-slate-300 text-slate-700 py-2.5 rounded-md hover:bg-slate-50 transition-colors duration-200"
+                    class="w-full mt-2 border border-slate-300 text-slate-700 py-2 rounded-md hover:bg-slate-50 transition-colors duration-200 text-sm"
                 >
                     Clear Cart
                 </button>

@@ -75,7 +75,7 @@
             <div class="flex flex-col h-full min-h-0">
                 
                 <div class="border-t border-b py-2 mb-4 flex-shrink-0">
-                    <div class="grid grid-cols-4 gap-2 text-sm text-gray-500 font-medium px-1">
+                    <div class="grid grid-cols-4 gap-2 text-xs text-gray-500 font-medium px-1">
                         <div>NAME</div>
                         <div>QTY</div>
                         <div>PRICE</div>
@@ -89,18 +89,18 @@
                             <div class="text-gray-700 truncate" x-text="item.product_name"></div>
                             <div class="text-gray-700" x-text="formatQty(item.quantity)"></div>
                             <div class="text-gray-700">P<span x-text="formatPrice(item.unit_price)"></span></div>
-                            <div>P<span x-text="formatPrice(item.subtotal)"></span></div>
+                            <div class="font-medium text-slate-900">P<span x-text="formatPrice(item.subtotal)"></span></div>
                         </div>
                     </template>
                     <template x-if="order.length === 0">
-                        <div class="text-gray-400 text-sm">No items in order</div>
+                        <div class="text-gray-400 text-sm py-4 text-center">No items added yet</div>
                     </template>
                 </div>
 
                 <div class="border-t pt-4 flex-shrink-0">
                     <div class="flex items-center justify-between mb-6">
-                        <div class="text-sm text-gray-600">Total</div>
-                        <div class="text-lg font-semibold">P<span x-text="formatPrice(total)"></span></div>
+                        <div class="text-lg font-semibold">Total:</div>
+                        <div class="text-lg font-semibold text-indigo-700">P<span x-text="formatPrice(total)"></span></div>
                     </div>
 
                     <button @click="openCheckoutModal" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded mb-3 disabled:opacity-50" :disabled="order.length === 0 || checkout.processing">Checkout</button>
@@ -131,7 +131,7 @@
 
                 <div class="mt-6 flex items-center justify-end gap-3">
                     <button @click="$dispatch('close-modal', 'checkout-cash')" class="px-4 py-2 border rounded text-sm text-slate-700">Cancel</button>
-                    <button @click="confirmCheckout" :disabled="checkout.processing || order.length === 0" class="px-4 py-2 rounded bg-black text-white text-sm disabled:opacity-50">
+                    <button @click="confirmCheckout" :disabled="checkout.processing || order.length === 0" class="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-sm disabled:opacity-50">
                         <span x-show="!checkout.processing">Confirm Cash Payment</span>
                         <span x-show="checkout.processing">Processing...</span>
                     </button>
@@ -186,7 +186,7 @@
 
                 <div class="mt-5 flex items-center justify-end gap-3">
                     <button @click="printReceipt" :disabled="!receipt" class="px-4 py-2 border rounded text-sm text-slate-700 disabled:opacity-50">Print</button>
-                    <button @click="$dispatch('close-modal', 'receipt-preview')" class="px-4 py-2 rounded bg-black text-white text-sm">Done</button>
+                    <button @click="$dispatch('close-modal', 'receipt-preview')" class="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-sm">Done</button>
                 </div>
             </div>
         </x-modal>
