@@ -3,103 +3,109 @@
         <h2 class="text-3xl font-medium leading-tight text-slate-900">POS</h2>
     </x-slot>
 
-    <x-two-column-grid x-data="posApp()" x-init="setPosMain($el); initPos()">
-        <x-card title="New Sale" fullHeight class="lg:col-span-2">
-            <div class="flex items-center justify-between mb-4">
-                <x-product-search-typeahead />
-                <button @click="openBrowseModal" class="ml-4 inline-flex text-indigo-600 text-medium items-center gap-2 bg-white border rounded px-3 py-2 text-sm">
-                    <span class="bg-indigo-600 text-white rounded w-5 h-5 flex items-center justify-center">+</span>
-                    Browse Products
-                </button>
-            </div>
+    <x-two-column-grid x-data="posApp()" x-init="initPos()" class="h-full min-h-0">
+        <x-card title="New Sale" class="lg:col-span-2 flex flex-col h-full min-h-0">
+            <div class="flex flex-col h-full min-h-0">
+                
+                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                    <x-product-search-typeahead />
+                    <button @click="openBrowseModal" class="ml-4 inline-flex text-indigo-600 text-medium items-center gap-2 bg-white border rounded px-3 py-2 text-sm">
+                        <span class="bg-indigo-600 text-white rounded w-5 h-5 flex items-center justify-center">+</span>
+                        Browse Products
+                    </button>
+                </div>
 
-            <div class="border border-gray-200 rounded flex-1 min-h-0 flex flex-col overflow-hidden">
-                <div class="px-4 py-3 bg-white-100 border-b border-white-200 font-medium">Current Order</div>
-                <div class="flex-1 min-h-0 overflow-y-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="text-left text-gray-600 bg-indigo-100 sticky top-0 z-10">
-                        <tr>
-                            <th class="px-4 py-3 font-normal">Product ID</th>
-                            <th class="px-4 py-3 font-normal">Product Name</th>
-                            <th class="px-4 py-3 font-normal">Unit</th>
-                            <th class="px-4 py-3 font-normal">Price</th>
-                            <th class="px-4 py-3 font-normal">Quantity</th>
-                            <th class="px-4 py-3 font-normal">Subtotal</th>
-                            <th class="px-4 py-3 font-normal"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y">
-                        <template x-for="item in order" :key="item.product_id">
-                            <tr>
-                                <td class="px-4 py-3" x-text="item.product_id"></td>
-                                <td class="px-4 py-3" x-text="item.product_name"></td>
-                                <td class="px-4 py-3" x-text="item.unit"></td>
-                                <td class="px-4 py-3">P<span x-text="formatPrice(item.unit_price)"></span></td>
-                                <td class="px-4 py-3">
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        step="1"
-                                        :value="item.quantity"
-                                        :max="Math.max(1, getOrderMaxQty(item))"
-                                        @input="onOrderQtyInput(item, $event.target)"
-                                        @change="updateOrderQuantity(item.product_id, $event.target.value)"
-                                        class="w-20 border rounded px-2 py-1 text-sm"
-                                    />
-                                    <div class="text-xs text-red-600 mt-1" x-show="Number(item.quantity) >= getOrderMaxQty(item)">
-                                        Max: <span x-text="formatQty(getOrderMaxQty(item))"></span>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3">P<span x-text="formatPrice(item.subtotal)"></span></td>
-                                <td class="px-4 py-3 text-right">
-                                    <button @click="removeOrderItem(item.product_id)" class="text-xs text-red-500">Remove</button>
-                                </td>
-                            </tr>
-                        </template>
-                        <tr x-show="order.length === 0">
-                            <td colspan="7" class="px-4 py-10 text-center text-gray-400">
-                                No products in order. Use "Browse Products" to add items.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="border border-gray-200 rounded flex-1 flex flex-col min-h-0 overflow-hidden">
+                    <div class="px-4 py-3 bg-slate-50 border-b border-gray-200 font-medium flex-shrink-0">Current Order</div>
+                    
+                    <div class="flex-1 overflow-y-auto min-h-0 scrollbar-hide">
+                        <table class="min-w-full text-sm">
+                            <thead class="text-left text-gray-600 bg-indigo-100 sticky top-0 z-10">
+                                <tr>
+                                    <th class="px-4 py-3 font-normal">Product ID</th>
+                                    <th class="px-4 py-3 font-normal">Product Name</th>
+                                    <th class="px-4 py-3 font-normal">Unit</th>
+                                    <th class="px-4 py-3 font-normal">Price</th>
+                                    <th class="px-4 py-3 font-normal">Quantity</th>
+                                    <th class="px-4 py-3 font-normal">Subtotal</th>
+                                    <th class="px-4 py-3 font-normal"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <template x-for="item in order" :key="item.product_id">
+                                    <tr>
+                                        <td class="px-4 py-3" x-text="item.product_id"></td>
+                                        <td class="px-4 py-3" x-text="item.product_name"></td>
+                                        <td class="px-4 py-3" x-text="item.unit"></td>
+                                        <td class="px-4 py-3">P<span x-text="formatPrice(item.unit_price)"></span></td>
+                                        <td class="px-4 py-3">
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                step="1"
+                                                :value="item.quantity"
+                                                :max="Math.max(1, getOrderMaxQty(item))"
+                                                @input="onOrderQtyInput(item, $event.target)"
+                                                @change="updateOrderQuantity(item.product_id, $event.target.value)"
+                                                class="w-20 border rounded px-2 py-1 text-sm"
+                                            />
+                                            <div class="text-xs text-red-600 mt-1" x-show="Number(item.quantity) >= getOrderMaxQty(item)">
+                                                Max: <span x-text="formatQty(getOrderMaxQty(item))"></span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">P<span x-text="formatPrice(item.subtotal)"></span></td>
+                                        <td class="px-4 py-3 text-right">
+                                            <button @click="removeOrderItem(item.product_id)" class="text-xs text-red-500">Remove</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="order.length === 0">
+                                    <td colspan="7" class="px-4 py-10 text-center text-gray-400">
+                                        No products in order. Use "Browse Products" to add items.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </x-card>
 
-        <x-card title="Summary" fullHeight>
-
-            <div class="border-t border-b py-2 mb-4">
-                <div class="grid grid-cols-4 gap-2 text-sm text-gray-500 font-medium px-1">
-                    <div>NAME</div>
-                    <div>QTY</div>
-                    <div>PRICE</div>
-                    <div>TOTAL</div>
-                </div>
-            </div>
-
-            <div class="space-y-2 overflow-y-auto flex-1 min-h-0 mb-6 pr-1">
-                <template x-for="item in order" :key="item.product_id">
-                    <div class="grid grid-cols-4 gap-2 items-center text-sm px-1">
-                        <div class="text-gray-700" x-text="item.product_name"></div>
-                        <div class="text-gray-700" x-text="formatQty(item.quantity)"></div>
-                        <div class="text-gray-700">P<span x-text="formatPrice(item.unit_price)"></span></div>
-                        <div>P<span x-text="formatPrice(item.subtotal)"></span></div>
+        <x-card title="Summary" class="flex flex-col h-full min-h-0">
+            <div class="flex flex-col h-full min-h-0">
+                
+                <div class="border-t border-b py-2 mb-4 flex-shrink-0">
+                    <div class="grid grid-cols-4 gap-2 text-sm text-gray-500 font-medium px-1">
+                        <div>NAME</div>
+                        <div>QTY</div>
+                        <div>PRICE</div>
+                        <div>TOTAL</div>
                     </div>
-                </template>
-                <template x-if="order.length === 0">
-                    <div class="text-gray-400 text-sm">No items in order</div>
-                </template>
-            </div>
-
-            <div class="border-t pt-4">
-                <div class="flex items-center justify-between mb-6">
-                    <div class="text-sm text-gray-600">Total</div>
-                    <div class="text-lg font-semibold">P<span x-text="formatPrice(total)"></span></div>
                 </div>
 
-                <button @click="openCheckoutModal" class="w-full bg-black text-white py-3 rounded mb-3 disabled:opacity-50" :disabled="order.length === 0 || checkout.processing">Checkout</button>
-                <button @click="clearOrder" class="w-full border border-gray-300 py-3 rounded text-gray-600">Cancel Transaction</button>
+                <div class="space-y-2 overflow-y-auto flex-1 min-h-0 mb-6 pr-1 scrollbar-hide">
+                    <template x-for="item in order" :key="item.product_id">
+                        <div class="grid grid-cols-4 gap-2 items-center text-sm px-1">
+                            <div class="text-gray-700 truncate" x-text="item.product_name"></div>
+                            <div class="text-gray-700" x-text="formatQty(item.quantity)"></div>
+                            <div class="text-gray-700">P<span x-text="formatPrice(item.unit_price)"></span></div>
+                            <div>P<span x-text="formatPrice(item.subtotal)"></span></div>
+                        </div>
+                    </template>
+                    <template x-if="order.length === 0">
+                        <div class="text-gray-400 text-sm">No items in order</div>
+                    </template>
+                </div>
+
+                <div class="border-t pt-4 flex-shrink-0">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="text-sm text-gray-600">Total</div>
+                        <div class="text-lg font-semibold">P<span x-text="formatPrice(total)"></span></div>
+                    </div>
+
+                    <button @click="openCheckoutModal" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded mb-3 disabled:opacity-50" :disabled="order.length === 0 || checkout.processing">Checkout</button>
+                    <button @click="clearOrder" class="w-full border border-gray-300 py-3 rounded text-gray-600 hover:bg-slate-50 transition">Cancel Transaction</button>
+                </div>
             </div>
         </x-card>
 
@@ -202,7 +208,7 @@
                     <p x-show="requestError" class="mt-2 text-sm text-red-600" x-text="requestError"></p>
                 </div>
 
-                <div class="border rounded-lg overflow-hidden">
+                <div class="border rounded overflow-hidden">
                     <div class="max-h-96 overflow-auto">
                         <table class="min-w-full text-sm">
                             <thead class="bg-slate-100 text-slate-700 text-left">

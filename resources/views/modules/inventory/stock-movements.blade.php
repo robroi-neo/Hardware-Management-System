@@ -18,7 +18,7 @@
                             name="search"
                             value="{{ $search }}"
                             placeholder="Product name or ID..."
-                            class="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            class="mt-1 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         />
                     </div>
 
@@ -27,7 +27,7 @@
                         <label class="block text-sm font-medium text-slate-700">Movement Type</label>
                         <select
                             name="type"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            class="mt-1 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         >
                             <option value="">All Types</option>
                             <option value="in" {{ $filterType === 'in' ? 'selected' : '' }}>Stock In</option>
@@ -43,7 +43,7 @@
                             type="date"
                             name="date_from"
                             value="{{ $dateFrom }}"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            class="mt-1 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         />
                     </div>
 
@@ -54,7 +54,7 @@
                             type="date"
                             name="date_to"
                             value="{{ $dateTo }}"
-                            class="mt-1 block w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            class="mt-1 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         />
                     </div>
                 </div>
@@ -78,7 +78,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="border-b border-slate-200 bg-slate-50">
+                    <tr class="border-b border-slate-200 bg-indigo-50">
                         <x-table.sortable-header
                             label="Date & Time"
                             :sortBy="$sortBy"
@@ -95,7 +95,7 @@
                             route="inventory.stock-movements"
                             :params="['search' => $search, 'type' => $filterType, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
                         />
-                        <th class="px-4 py-3 text-left font-semibold text-slate-700">Unit</th>
+                        <th class="px-4 py-3 text-left font-normal text-slate-700">Unit</th>
                         <x-table.sortable-header
                             label="Type"
                             :sortBy="$sortBy"
@@ -113,8 +113,8 @@
                             :params="['search' => $search, 'type' => $filterType, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
                             align="right"
                         />
-                        <th class="px-4 py-3 text-left font-semibold text-slate-700">Branch</th>
-                        <th class="px-4 py-3 text-left font-semibold text-slate-700">User</th>
+                        <th class="px-4 py-3 text-left font-normal text-slate-700">Branch</th>
+                        <th class="px-4 py-3 text-left font-normal text-slate-700">User</th>
                     </tr>
                 </thead>
                 <tbody>
