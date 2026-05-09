@@ -55,10 +55,13 @@
                             <td class="px-4 py-3 text-slate-600">{{ $user->branch?->name }}</td>
                         </tr>
                     @empty
-                        <x-table.empty-state :colspan="4" message="No users found." />
+                        <x-table.empty-state :colspan="5" message="No users found." />
                     @endforelse
                 </tbody>
             </table>
+            <div class="mt-4 px-4 pb-4">
+                {{ $users->links() }}
+            </div>
         </div>
     </x-card>
 </x-app-layout>
