@@ -15,6 +15,7 @@ class UserController extends Controller
     {
         $sortBy = $request->query('sort_by', 'name');
         $sortDir = $request->query('sort_dir', 'asc');
+        $branches = Branch::all();
 
         // apply sorting before get.
         $users = User::with('branch')
@@ -26,7 +27,7 @@ class UserController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('modules.users.users', compact('users', 'sortBy', 'sortDir'));
+        return view('modules.users.users', compact('users', 'sortBy', 'sortDir', 'branches'));
     }
     public function create()
     {
@@ -34,6 +35,48 @@ class UserController extends Controller
         $roles = Role::all();
 
         return view('modules.users.new-user', compact('roles','branches'));
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'name'      => 'required|string|max:255',
+            'phone'     => 'nullable|string|max:20',
+            'role'      => 'required|string|exists:roles,name',
+            'branch_id' => 'nullable|exists:branches,id',
+            'status'    => 'required|in:active,inactive',
+        ]);
+
+        try {
+            $user->update([
+                'name'      => $validated['name'],
+                'phone'     => $validated['phone'],
+                'branch_id' => $validated['branch_id'],
+                'status'    => $validated['status'],
+            ]);
+
+            $user->syncRoles([$validated['role']]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'User updated successfully',
+                    'user'    => $user->fresh()->load('roles', 'branch'),
+                ], 200);
+            }
+
+            return redirect()->route('users.index')
+                ->with('success', 'User updated successfully');
+
+        } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Failed to update user: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->withInput()
+                ->with('error', 'Failed to update user: ' . $e->getMessage());
+        }
     }
     public function store(Request $request)
     {

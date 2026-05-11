@@ -79,6 +79,9 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:users.view-list')
         ->name('users.index');
 
+    Route::put('/users/{user}', [UserController::class, 'update'])
+        ->name('users.update');
+
     // Create User this shit is the create user.
     Route::get('/users/create', [UserController::class, 'create'])
         ->middleware('permission:users.create')
