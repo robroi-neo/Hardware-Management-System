@@ -29,7 +29,9 @@
             General
         </p>
     </div>
+
     <nav class="space-y-1">
+        @can('dashboard.view')
         <x-sidebar.link
             href="{{ route('dashboard') }}"
             :active="request()->routeIs('dashboard')"
@@ -51,6 +53,7 @@
 
             <span class="text-base">Dashboard</span>
         </x-sidebar.link>
+        @endcan
 
         @can('pos.access')
         <x-sidebar.dropdown
@@ -66,19 +69,23 @@
                 </svg>
 
             </x-slot:icon>
-
+            @can('sales.create')
             <x-sidebar.item
                 href="{{ route('pos') }}"
                 :active="request()->routeIs('pos')"
             >
                 New Sale
             </x-sidebar.item>
+            @endcan
+            @can('sales.view-history')
             <x-sidebar.item
                 href="{{ route('pos.transactions') }}"
                 :active="request()->routeIs('pos.transactions')"
             >
                 Transactions
             </x-sidebar.item>
+            @endcan
+
         </x-sidebar.dropdown>
         @endcan
 
@@ -167,14 +174,29 @@
             </x-sidebar.item>
         </x-sidebar.dropdown>
         @endcanany
-        
+
+        @can('suppliers.view')
         <div class="mt-6 border-white/10 pb-2 pt-4">
             <p class="px-3 text-sm font-semibold uppercase tracking-wide text-slate-300">
                 Admin
             </p>
         </div>
+        <x-sidebar.item
+            href="{{ route('suppliers.index') }}"
+            :active="request()->routeIs('suppliers.*')"
+            class="flex items-center gap-3 text-base"
+        >
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.1429 10.7142V7.8571C17.1429 7.47822 16.9923 7.11486 16.7244 6.84695C16.4565 6.57904 16.0932 6.42853 15.7143 6.42853H2.14286C1.76398 6.42853 1.40061 6.57904 1.1327 6.84695C0.864796 7.11486 0.714286 7.47822 0.714286 7.8571V17.8571C0.714286 18.236 0.864796 18.5993 1.1327 18.8673C1.40061 19.1352 1.76398 19.2857 2.14286 19.2857H15.7143C16.0932 19.2857 16.4565 19.1352 16.7244 18.8673C16.9923 18.5993 17.1429 18.236 17.1429 17.8571V14.2857H14.1685V10.7142H17.1429Z" fill="#F9FAFB" stroke="#F9FAFB" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4.44448 3.88886L13.6556 1.13732C13.7466 1.11167 13.8419 1.10473 13.9357 1.11692C14.0294 1.12911 14.1198 1.16018 14.2012 1.20824C14.2826 1.2563 14.3535 1.32037 14.4095 1.39657C14.4655 1.47277 14.5055 1.55953 14.527 1.6516L14.927 3.2516" stroke="#F9FAFB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M18.5714 10.7142H15C14.6055 10.7142 14.2857 11.034 14.2857 11.4285V13.5714C14.2857 13.9659 14.6055 14.2857 15 14.2857H18.5714C18.9659 14.2857 19.2857 13.9659 19.2857 13.5714V11.4285C19.2857 11.034 18.9659 10.7142 18.5714 10.7142Z" stroke="#F9FAFB" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
 
+            <span>Supplier Records</span>
+        </x-sidebar.item>
+        @endcan
         @canany(['audit.user-activity.view', 'audit.system-logs.view'])
+
         <x-sidebar.dropdown
             label="Audit Logs"
             :open="request()->routeIs('audit-logs.*')"
@@ -200,6 +222,7 @@
             >
                 User Activity
             </x-sidebar.item>
+            <!--
             <x-sidebar.item
                 href="{{ route('audit-logs.system-logs') }}"
                 :active="request()->routeIs('audit-logs.system-logs')"
@@ -212,24 +235,11 @@
             >
                 Archives
             </x-sidebar.item>
+                -->
         </x-sidebar.dropdown>
         @endcanany
 
-        @can('suppliers.view')
-        <x-sidebar.item
-            href="{{ route('suppliers.index') }}"
-            :active="request()->routeIs('suppliers.*')"
-            class="flex items-center gap-3 text-base"
-        >
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17.1429 10.7142V7.8571C17.1429 7.47822 16.9923 7.11486 16.7244 6.84695C16.4565 6.57904 16.0932 6.42853 15.7143 6.42853H2.14286C1.76398 6.42853 1.40061 6.57904 1.1327 6.84695C0.864796 7.11486 0.714286 7.47822 0.714286 7.8571V17.8571C0.714286 18.236 0.864796 18.5993 1.1327 18.8673C1.40061 19.1352 1.76398 19.2857 2.14286 19.2857H15.7143C16.0932 19.2857 16.4565 19.1352 16.7244 18.8673C16.9923 18.5993 17.1429 18.236 17.1429 17.8571V14.2857H14.1685V10.7142H17.1429Z" fill="#F9FAFB" stroke="#F9FAFB" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M4.44448 3.88886L13.6556 1.13732C13.7466 1.11167 13.8419 1.10473 13.9357 1.11692C14.0294 1.12911 14.1198 1.16018 14.2012 1.20824C14.2826 1.2563 14.3535 1.32037 14.4095 1.39657C14.4655 1.47277 14.5055 1.55953 14.527 1.6516L14.927 3.2516" stroke="#F9FAFB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M18.5714 10.7142H15C14.6055 10.7142 14.2857 11.034 14.2857 11.4285V13.5714C14.2857 13.9659 14.6055 14.2857 15 14.2857H18.5714C18.9659 14.2857 19.2857 13.9659 19.2857 13.5714V11.4285C19.2857 11.034 18.9659 10.7142 18.5714 10.7142Z" stroke="#F9FAFB" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
 
-            <span>Supplier Records</span>
-        </x-sidebar.item>
-        @endcan
 
         @canany(['users.create', 'users.view-list', 'users.edit'])
         <x-sidebar.dropdown

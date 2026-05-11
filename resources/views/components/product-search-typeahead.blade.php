@@ -1,12 +1,21 @@
 @props([
     'searchInputRef' => 'topSearchInput',
+    'placeholder' => 'Scan or Search Product ID, name, or unit...',
+    'idField' => 'id',
+    'primaryField' => 'name',
+    'secondaryField' => 'unit',
+    'showMeta' => true,
+    'showPrice' => true,
+    'priceField' => 'capital',
+    'showStock' => true,
+    'stockField' => 'available_quantity',
 ])
 
 <div class="w-full relative" @click.outside="() => closeTypeahead()">
     <label class="relative block">
         <span class="sr-only">Search</span>
         <input
-            x-ref="topSearchInput"
+            x-ref="{{ $searchInputRef }}"
             x-model="typeahead.q"
             @input="onTypeaheadInput()"
             @keydown.enter.prevent="onTypeaheadEnter()"
@@ -14,12 +23,12 @@
             @keydown.arrow-up.prevent="moveTypeahead(-1)"
             @keydown.escape.prevent="() => closeTypeahead()"
             @focus="reopenTypeahead()"
-            placeholder="Scan or Search Product ID, name, or unit..."
+            placeholder="{{ $placeholder }}"
             class="placeholder-gray-400 bg-white-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
         />
         <button
             type="button"
-            @click="typeahead.q = ''; closeTypeahead(); typeahead.items = []; $refs.topSearchInput.focus()"
+            @click="typeahead.q = ''; closeTypeahead(); typeahead.items = []; $refs['{{ $searchInputRef }}']?.focus()"
             x-show="typeahead.q.trim().length > 0"
             class="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
             aria-label="Clear search"
@@ -44,7 +53,7 @@
                 <div class="px-3 py-2 text-slate-500">No matches found.</div>
             </template>
 
-            <template x-for="(product, index) in typeahead.items" :key="product.id">
+            <template x-for="(item, index) in typeahead.items" :key="item['{{ $idField }}'] ?? item.id">
                 <button
                     type="button"
                     @mousedown.prevent="selectTypeaheadItem(index)"
@@ -52,15 +61,23 @@
                     :class="index === typeahead.activeIndex ? 'bg-slate-100' : 'hover:bg-slate-50'"
                 >
                     <div class="font-medium text-slate-900">
-                        #<span x-text="product.id"></span> - <span x-text="product.name"></span>
+                        #<span x-text="item['{{ $idField }}']"></span> - <span x-text="item['{{ $primaryField }}']"></span>
                     </div>
-                    <div class="text-xs text-slate-600">
-                        <span x-text="product.unit"></span>
-                        | P<span x-text="formatPrice(product.capital)"></span>
-                        <span x-show="product.available_quantity !== undefined">
-                            | Stock: <span x-text="formatQty(product.available_quantity)"></span>
-                        </span>
-                    </div>
+                    @if($showMeta)
+                        <div class="text-xs text-slate-600">
+                            <span x-show="item['{{ $secondaryField }}']" x-text="item['{{ $secondaryField }}']"></span>
+                            @if($showPrice)
+                                <span x-show="item['{{ $priceField }}'] !== undefined">
+                                    | P<span x-text="formatPrice(item['{{ $priceField }}'])"></span>
+                                </span>
+                            @endif
+                            @if($showStock)
+                                <span x-show="item['{{ $stockField }}'] !== undefined">
+                                    | Stock: <span x-text="formatQty(item['{{ $stockField }}'])"></span>
+                                </span>
+                            @endif
+                        </div>
+                    @endif
                 </button>
             </template>
         </div>

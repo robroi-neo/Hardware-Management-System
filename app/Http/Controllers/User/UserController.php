@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
@@ -15,18 +16,57 @@ class UserController extends Controller
     {
         $sortBy = $request->query('sort_by', 'name');
         $sortDir = $request->query('sort_dir', 'asc');
+        $search = $request->query('search');
+        $filterStatus = $request->query('status');
+        $branches = Branch::all();
+        $statuses = collect([
+            ['value' => 'active', 'label' => 'Active'],
+            ['value' => 'inactive', 'label' => 'Inactive'],
+        ]);
 
-        // apply sorting before get.
-        $users = User::with('branch')
-            ->orderBy(
+        $allowedSorts = ['name', 'phone', 'status', 'branch'];
+        if (!in_array($sortBy, $allowedSorts, true)) {
+            $sortBy = 'name';
+        }
+        $sortDir = $sortDir === 'desc' ? 'desc' : 'asc';
+
+        $usersQuery = User::with(['branch', 'roles']);
+
+        if ($search) {
+            $usersQuery->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('id', $search);
+            });
+        }
+
+        if (in_array($filterStatus, ['active', 'inactive'], true)) {
+            $usersQuery->where('status', $filterStatus);
+        }
+
+        if ($sortBy === 'branch') {
+            $usersQuery->orderBy(
                 Branch::select('name')
                     ->whereColumn('branches.id', 'users.branch_id'),
                 $sortDir
-            )
+            );
+        } else {
+            $usersQuery->orderBy($sortBy, $sortDir);
+        }
+
+        $users = $usersQuery
             ->paginate(10)
             ->withQueryString();
 
-        return view('modules.users.users', compact('users', 'sortBy', 'sortDir'));
+        return view('modules.users.users', compact(
+            'users',
+            'sortBy',
+            'sortDir',
+            'branches',
+            'search',
+            'filterStatus',
+            'statuses'
+        ));
     }
     public function create()
     {
@@ -34,6 +74,62 @@ class UserController extends Controller
         $roles = Role::all();
 
         return view('modules.users.new-user', compact('roles','branches'));
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $before = $user->only(['name', 'phone', 'branch_id', 'status']);
+        $beforeRole = $user->roles->first()?->name;
+        $validated = $request->validate([
+            'name'      => 'required|string|max:255',
+            'phone'     => 'nullable|string|max:20',
+            'role'      => 'required|string|exists:roles,name',
+            'branch_id' => 'nullable|exists:branches,id',
+            'status'    => 'required|in:active,inactive',
+        ]);
+
+        try {
+            $user->update([
+                'name'      => $validated['name'],
+                'phone'     => $validated['phone'],
+                'branch_id' => $validated['branch_id'],
+                'status'    => $validated['status'],
+            ]);
+
+            $user->syncRoles([$validated['role']]);
+
+            $after = $user->fresh()->only(['name', 'phone', 'branch_id', 'status']);
+            $afterRole = $user->roles->first()?->name;
+
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'entity_type' => 'user',
+                'entity_id' => $user->id,
+                'action' => 'updated',
+                'old_values' => array_merge($before, ['role' => $beforeRole]),
+                'new_values' => array_merge($after, ['role' => $afterRole]),
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'User updated successfully',
+                    'user'    => $user->fresh()->load('roles', 'branch'),
+                ], 200);
+            }
+
+            return redirect()->route('users.index')
+                ->with('success', 'User updated successfully');
+
+        } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Failed to update user: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->withInput()
+                ->with('error', 'Failed to update user: ' . $e->getMessage());
+        }
     }
     public function store(Request $request)
     {
@@ -62,10 +158,148 @@ class UserController extends Controller
             // assign Spatie role (correct place for role)
             $user->assignRole($role);
 
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'entity_type' => 'user',
+                'entity_id' => $user->id,
+                'action' => 'created',
+                'new_values' => [
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'branch_id' => $user->branch_id,
+                    'status' => $user->status,
+                    'role' => $role,
+                ],
+            ]);
+
             return back()->with('success', 'User created successfully');
         } catch (\Exception $e) {
             return back()->withInput()
                 ->with('error', 'Failed to create user: ' . $e->getMessage());
         }
+    }
+    public function deactivate(Request $request, User $user)
+    {
+        try {
+            $beforeStatus = $user->status;
+             $user->update([
+                 'status' => 'inactive',
+             ]);
+
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'entity_type' => 'user',
+                'entity_id' => $user->id,
+                'action' => 'deactivated',
+                'old_values' => ['status' => $beforeStatus],
+                'new_values' => ['status' => 'inactive'],
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'User deactivated successfully',
+                    'user' => $user->fresh(),
+                ], 200);
+            }
+
+            return redirect()
+                ->route('users.index')
+                ->with('success', 'User deactivated successfully');
+
+        } catch (\Exception $e) {
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Failed to deactivate user: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with(
+                'error',
+                'Failed to deactivate user: ' . $e->getMessage()
+            );
+        }
+    }
+    public function activate(Request $request, User $user)
+    {
+        try {
+            $beforeStatus = $user->status;
+             $user->update([
+                 'status' => 'active',
+             ]);
+
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'entity_type' => 'user',
+                'entity_id' => $user->id,
+                'action' => 'activated',
+                'old_values' => ['status' => $beforeStatus],
+                'new_values' => ['status' => 'active'],
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'User activated successfully',
+                    'user' => $user->fresh(),
+                ], 200);
+            }
+
+            return redirect()
+                ->route('users.index')
+                ->with('success', 'User activated successfully');
+
+        } catch (\Exception $e) {
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Failed to activate user: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with(
+                'error',
+                'Failed to activate user: ' . $e->getMessage()
+            );
+        }
+    }
+    public function search(Request $request)
+    {
+        $query = trim((string) $request->query('q', ''));
+        $limit = (int) $request->query('limit', 8);
+        $status = $request->query('status');
+
+        if ($query === '') {
+            return response()->json([]);
+        }
+
+        $limit = max(1, min($limit, 20));
+
+        $usersQuery = User::query()->with('roles')
+            ->where(function ($builder) use ($query) {
+                $builder->where('name', 'like', "%{$query}%")
+                    ->orWhere('phone', 'like', "%{$query}%")
+                    ->orWhere('id', $query);
+            });
+
+        if (in_array($status, ['active', 'inactive'], true)) {
+            $usersQuery->where('status', $status);
+        }
+
+        $users = $usersQuery
+            ->orderBy('name')
+            ->limit($limit)
+            ->get();
+
+        $payload = $users->map(function (User $user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'status' => $user->status,
+                'role' => $user->roles->first()?->name,
+            ];
+        });
+
+        return response()->json($payload);
     }
 }

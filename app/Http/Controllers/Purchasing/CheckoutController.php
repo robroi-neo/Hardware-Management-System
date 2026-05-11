@@ -9,6 +9,7 @@ use App\Models\PurchaseDetail;
 use App\Models\Invoice;
 use App\Models\BranchInventory;
 use App\Models\Branch;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -163,6 +164,20 @@ class CheckoutController extends Controller
                     'date_issued' => $today,
                     'total_amount' => $totalAmount,
                     'date_due' => $dateDue,
+                ]);
+
+                AuditLog::create([
+                    'user_id' => $request->user()->id,
+                    'entity_type' => 'purchase',
+                    'entity_id' => $purchase->id,
+                    'action' => 'created',
+                    'new_values' => [
+                        'supplier_id' => $validated['supplier_id'],
+                        'branch_id' => $validated['branch_id'],
+                        'total_amount' => (float) $totalAmount,
+                        'items_count' => count($cart),
+                        'invoice_id' => $invoice->id,
+                    ],
                 ]);
 
                 // Clear cart

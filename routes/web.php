@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Pos\CheckoutController;
+use App\Http\Controllers\Pos\PosController;
+use App\Http\Controllers\Pos\ProductController;
+use App\Http\Controllers\Pos\TransactionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
@@ -18,7 +22,7 @@ Route::middleware('auth')->group(function () {
         return view('modules.pos.new-sale');
     })->middleware('permission:pos.access')->name('pos');
 
-    Route::get('/pos/transactions', [\App\Http\Controllers\Pos\TransactionController::class, 'index'])
+    Route::get('/pos/transactions', [TransactionController::class, 'index'])
         ->middleware('permission:sales.view-history')->name('pos.transactions');
 
 
@@ -58,9 +62,9 @@ Route::middleware('auth')->group(function () {
         return view('modules.inventory.archives');
     })->middleware('permission:inventory.archive')->name('inventory.archives');
 
-    Route::get('/audit-logs/user-activity', function () {
-        return view('modules.audit-logs.user-activity');
-    })->middleware('permission:audit.user-activity.view')->name('audit-logs.user-activity');
+    Route::get('/audit-logs/user-activity', [\App\Http\Controllers\Audit\UserActivityController::class, 'index'])
+        ->middleware('permission:audit.user-activity.view')
+        ->name('audit-logs.user-activity');
 
     Route::get('/audit-logs/system-logs', function () {
         return view('modules.audit-logs.system-logs');
@@ -74,10 +78,25 @@ Route::middleware('auth')->group(function () {
     Route::resource('suppliers', \App\Http\Controllers\Supplier\SupplierController::class)
         ->middleware('permission:suppliers.view');
 
+    Route::patch('/suppliers/{supplier}/deactivate', [\App\Http\Controllers\Supplier\SupplierController::class, 'deactivate'])
+        ->middleware('permission:suppliers.delete')
+        ->name('suppliers.deactivate');
+
+    Route::patch('/suppliers/{supplier}/activate', [\App\Http\Controllers\Supplier\SupplierController::class, 'activate'])
+        ->middleware('permission:suppliers.delete')
+        ->name('suppliers.activate');
+
+    Route::get('/suppliers/api/search', [\App\Http\Controllers\Supplier\SupplierController::class, 'search'])
+        ->middleware('permission:suppliers.view')
+        ->name('suppliers.api.search');
+
     // User routes this shit is the tables.
     Route::get('/users', [UserController::class, 'index'])
         ->middleware('permission:users.view-list')
         ->name('users.index');
+
+    Route::put('/users/{user}', [UserController::class, 'update'])
+        ->name('users.update');
 
     // Create User this shit is the create user.
     Route::get('/users/create', [UserController::class, 'create'])
@@ -87,19 +106,35 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/create',[UserController::class,'store'])
         ->name('users.store');
 
+    Route::patch('/users/{user}/deactivate', [UserController::class, 'deactivate'])
+        ->middleware('permission:users.delete')
+        ->name('users.deactivate');
+
+    Route::patch('/users/{user}/activate', [UserController::class, 'activate'])
+        ->middleware('permission:users.delete')
+        ->name('users.activate');
+
+    Route::get('/users/api/search', [UserController::class, 'search'])
+        ->middleware('permission:users.view-list')
+        ->name('users.api.search');
+
     // POS API endpoints
     Route::prefix('pos/api')->group(function () {
-        Route::get('products/search', [\App\Http\Controllers\Pos\ProductController::class, 'search'])->name('pos.api.products.search');
-        Route::get('products/browse', [\App\Http\Controllers\Pos\ProductController::class, 'browse'])->name('pos.api.products.browse');
+        Route::get('products/search', [ProductController::class, 'search'])->name('pos.api.products.search');
+        Route::get('products/browse', [ProductController::class, 'browse'])->name('pos.api.products.browse');
 
-        Route::get('cart', [\App\Http\Controllers\Pos\PosController::class, 'getCart'])->name('pos.api.cart.get');
-        Route::post('cart/add', [\App\Http\Controllers\Pos\PosController::class, 'addItem'])->name('pos.api.cart.add');
-        Route::post('cart/update', [\App\Http\Controllers\Pos\PosController::class, 'updateItem'])->name('pos.api.cart.update');
-        Route::post('cart/remove', [\App\Http\Controllers\Pos\PosController::class, 'removeItem'])->name('pos.api.cart.remove');
+        Route::get('cart', [PosController::class, 'getCart'])->name('pos.api.cart.get');
+        Route::post('cart/add', [PosController::class, 'addItem'])->name('pos.api.cart.add');
+        Route::post('cart/update', [PosController::class, 'updateItem'])->name('pos.api.cart.update');
+        Route::post('cart/remove', [PosController::class, 'removeItem'])->name('pos.api.cart.remove');
+        Route::post('cart/markup', [PosController::class, 'markup'])->name('pos.api.cart.markup');
 
-        Route::get('checkout/prepare', [\App\Http\Controllers\Pos\CheckoutController::class, 'prepare'])->name('pos.api.checkout.prepare');
-        Route::post('checkout/finalize', [\App\Http\Controllers\Pos\CheckoutController::class, 'finalize'])->name('pos.api.checkout.finalize');
+        Route::get('checkout/prepare', [CheckoutController::class, 'prepare'])->name('pos.api.checkout.prepare');
+        Route::post('checkout/finalize', [CheckoutController::class, 'finalize'])->name('pos.api.checkout.finalize');
     });
+
+// Moved out — resolves to /pos/transactions/{sale}
+    Route::get('pos/transactions/{sale}', [TransactionController::class, 'show'])->name('pos.transactions.show');
 
     // Inventory API endpoints
     Route::prefix('inventory/api')->group(function () {

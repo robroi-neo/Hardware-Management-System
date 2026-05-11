@@ -17,14 +17,18 @@ class SupplierController extends Controller
         $sortDir = $request->query('sort_dir', 'desc');
         $search = $request->query('search', '');
         $status = $request->query('status', '');
+        $statuses = collect([
+            ['value' => 'active', 'label' => 'Active'],
+            ['value' => 'inactive', 'label' => 'Inactive'],
+        ]);
 
         // Whitelist allowed columns for sorting
         $allowedColumns = ['id', 'supplier_name', 'contact_person', 'contact_number', 'status', 'created_at'];
-        if (!in_array($sortBy, $allowedColumns)) {
+        if (!in_array($sortBy, $allowedColumns, true)) {
             $sortBy = 'created_at';
         }
 
-        if (!in_array($sortDir, ['asc', 'desc'])) {
+        if (!in_array($sortDir, ['asc', 'desc'], true)) {
             $sortDir = 'desc';
         }
 
@@ -55,6 +59,7 @@ class SupplierController extends Controller
             'sortDir' => $sortDir,
             'search' => $search,
             'status' => $status,
+            'statuses' => $statuses,
         ]);
     }
 
@@ -154,5 +159,100 @@ class SupplierController extends Controller
             return back()->with('error', 'Failed to delete supplier: ' . $e->getMessage());
         }
     }
-}
 
+    public function deactivate(Request $request, Supplier $supplier)
+    {
+        try {
+            $supplier->update([
+                'status' => 'inactive',
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Supplier deactivated successfully',
+                    'supplier' => $supplier->fresh(),
+                ], 200);
+            }
+
+            return redirect()->route('suppliers.index')
+                ->with('success', 'Supplier deactivated successfully');
+        } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Failed to deactivate supplier: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with('error', 'Failed to deactivate supplier: ' . $e->getMessage());
+        }
+    }
+
+    public function activate(Request $request, Supplier $supplier)
+    {
+        try {
+            $supplier->update([
+                'status' => 'active',
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Supplier activated successfully',
+                    'supplier' => $supplier->fresh(),
+                ], 200);
+            }
+
+            return redirect()->route('suppliers.index')
+                ->with('success', 'Supplier activated successfully');
+        } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Failed to activate supplier: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with('error', 'Failed to activate supplier: ' . $e->getMessage());
+        }
+    }
+
+    public function search(Request $request)
+    {
+        $query = trim((string) $request->query('q', ''));
+        $limit = (int) $request->query('limit', 8);
+        $status = $request->query('status');
+
+        if ($query === '') {
+            return response()->json([]);
+        }
+
+        $limit = max(1, min($limit, 20));
+
+        $suppliersQuery = Supplier::query()
+            ->where(function ($builder) use ($query) {
+                $builder->where('supplier_name', 'like', "%{$query}%")
+                    ->orWhere('contact_person', 'like', "%{$query}%")
+                    ->orWhere('contact_number', 'like', "%{$query}%")
+                    ->orWhere('contact_email', 'like', "%{$query}%")
+                    ->orWhere('id', $query);
+            });
+
+        if (in_array($status, ['active', 'inactive'], true)) {
+            $suppliersQuery->where('status', $status);
+        }
+
+        $suppliers = $suppliersQuery
+            ->orderBy('supplier_name')
+            ->limit($limit)
+            ->get();
+
+        $payload = $suppliers->map(function (Supplier $supplier) {
+            return [
+                'id' => $supplier->id,
+                'supplier_name' => $supplier->supplier_name,
+                'contact_number' => $supplier->contact_number,
+                'status' => $supplier->status,
+            ];
+        });
+
+        return response()->json($payload);
+    }
+}

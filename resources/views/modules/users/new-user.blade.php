@@ -5,7 +5,7 @@
 
     <!-- Removed h-full constraints. Added mb-8 to ensure a gap at the very bottom of the page -->
     <div class="w-full pb-8">
-        <x-card class="w-full">
+        <x-card title="Add New User" class="w-full">
             @can('users.create')
                 <!-- Form flows naturally without internal scrolling -->
                 <form method="POST" action="{{ route('users.store') }}">
@@ -13,7 +13,7 @@
 
                     <!-- Main spacing wrapper -->
                     <div class="space-y-6">
-                        
+
                         {{-- Basic Info (Full Width) --}}
                         <div class="rounded border border-slate-200 p-6 space-y-5 bg-white">
                             <div class="flex items-center gap-2 border-b border-slate-100">
@@ -44,7 +44,7 @@
                         {{-- Two-Column Layout for Role & PIN --}}
                         <!-- This grid puts them side-by-side on desktop (lg:grid-cols-2) and stacked on mobile (grid-cols-1) -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            
+
                             {{-- Role & Access (Left Column) --}}
                             <div class="rounded border border-slate-200 p-6 space-y-5 bg-white">
                                 <div class="flex items-center gap-2 border-b border-slate-100">

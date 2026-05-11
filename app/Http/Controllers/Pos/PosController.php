@@ -83,4 +83,38 @@ class PosController extends Controller
         $request->session()->put($this->sessionKey, $cart);
         return response()->json($cart);
     }
+
+    public function markup(Request $request)
+    {
+        $data = $request->validate([
+            'product_id' => 'required|integer',
+            'markup' => 'required|numeric|min:0',
+        ]);
+
+        $cart = $request->session()->get($this->sessionKey, []);
+        $productId = (int) $data['product_id'];
+        $markup = (float) $data['markup'];
+
+        $updated = false;
+
+        foreach ($cart as &$item) {
+            if ((int) ($item['product_id'] ?? 0) === $productId) {
+                $item['markup'] = $markup;
+                $updated = true;
+                break;
+            }
+        }
+        unset($item);
+
+        if (! $updated) {
+            return response()->json(['message' => 'Product not found in cart.'], 404);
+        }
+
+        $request->session()->put($this->sessionKey, $cart);
+
+        return response()->json([
+            'success' => true,
+            'cart' => $cart,
+        ]);
+    }
 }

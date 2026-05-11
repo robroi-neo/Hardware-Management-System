@@ -6,7 +6,7 @@
     <x-two-column-grid x-data="posApp()" x-init="initPos()" class="h-full min-h-0">
         <x-card title="New Sale" class="lg:col-span-2 flex flex-col h-full min-h-0">
             <div class="flex flex-col h-full min-h-0">
-                
+
                 <div class="flex items-center justify-between mb-4 flex-shrink-0">
                     <x-product-search-typeahead />
                     <button @click="openBrowseModal" class="ml-4 inline-flex text-indigo-600 text-medium items-center gap-2 bg-white border rounded px-3 py-2 text-sm">
@@ -17,7 +17,7 @@
 
                 <div class="border border-gray-200 rounded flex-1 flex flex-col min-h-0 overflow-hidden">
                     <div class="px-4 py-3 bg-slate-50 border-b border-gray-200 font-medium flex-shrink-0">Current Order</div>
-                    
+
                     <div class="flex-1 overflow-y-auto min-h-0 scrollbar-hide">
                         <table class="min-w-full text-sm">
                             <thead class="text-left text-gray-600 bg-indigo-100 sticky top-0 z-10">
@@ -25,7 +25,8 @@
                                     <th class="px-4 py-3 font-normal">Product ID</th>
                                     <th class="px-4 py-3 font-normal">Product Name</th>
                                     <th class="px-4 py-3 font-normal">Unit</th>
-                                    <th class="px-4 py-3 font-normal">Price</th>
+                                    <th class="px-4 py-3 font-normal">Capital</th>
+                                    <th class="px-4 py-3 font-normal">Markup</th>
                                     <th class="px-4 py-3 font-normal">Quantity</th>
                                     <th class="px-4 py-3 font-normal">Subtotal</th>
                                     <th class="px-4 py-3 font-normal"></th>
@@ -38,6 +39,17 @@
                                         <td class="px-4 py-3" x-text="item.product_name"></td>
                                         <td class="px-4 py-3" x-text="item.unit"></td>
                                         <td class="px-4 py-3">P<span x-text="formatPrice(item.unit_price)"></span></td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-gray-500">P</span>
+                                                <input
+                                                    type="number"
+                                                    :value="item.markup"
+                                                    @change="updateMarkup(item.product_id, $event.target.value)"
+                                                    class="w-24 border rounded px-2 py-1 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                />
+                                            </div>
+                                        </td>
                                         <td class="px-4 py-3">
                                             <input
                                                 type="number"
@@ -73,12 +85,12 @@
 
         <x-card title="Summary" class="flex flex-col h-full min-h-0">
             <div class="flex flex-col h-full min-h-0">
-                
+
                 <div class="border-t border-b py-2 mb-4 flex-shrink-0">
                     <div class="grid grid-cols-4 gap-2 text-xs text-gray-500 font-medium px-1">
                         <div>NAME</div>
                         <div>QTY</div>
-                        <div>PRICE</div>
+                        <div>SELLING PRICE</div>
                         <div>TOTAL</div>
                     </div>
                 </div>
@@ -88,7 +100,7 @@
                         <div class="grid grid-cols-4 gap-2 items-center text-sm px-1">
                             <div class="text-gray-700 truncate" x-text="item.product_name"></div>
                             <div class="text-gray-700" x-text="formatQty(item.quantity)"></div>
-                            <div class="text-gray-700">P<span x-text="formatPrice(item.unit_price)"></span></div>
+                            <div class="text-gray-700">P<span x-text="formatPrice((item.unit_price ?? 0) + (item.markup ?? 0))"></span></div>
                             <div class="font-medium text-slate-900">P<span x-text="formatPrice(item.subtotal)"></span></div>
                         </div>
                     </template>
@@ -161,7 +173,7 @@
                             <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-slate-500 mb-2">
                                 <div class="col-span-5">Item</div>
                                 <div class="col-span-2 text-right">Qty</div>
-                                <div class="col-span-2 text-right">Price</div>
+                                <div class="col-span-2 text-right">Total Price</div>
                                 <div class="col-span-3 text-right">Subtotal</div>
                             </div>
                             <template x-for="item in (receipt.items || [])" :key="item.product_id">
@@ -171,7 +183,7 @@
                                         <div class="text-xs text-slate-500">#<span x-text="item.product_id"></span> · <span x-text="item.unit"></span></div>
                                     </div>
                                     <div class="col-span-2 text-right" x-text="formatQty(item.quantity)"></div>
-                                    <div class="col-span-2 text-right">P<span x-text="formatPrice(item.unit_price)"></span></div>
+                                    <div class="col-span-2 text-right">P<span x-text="formatPrice((item.unit_price ?? 0) + (item.markup ?? 0))"></span></div>
                                     <div class="col-span-3 text-right">P<span x-text="formatPrice(item.subtotal)"></span></div>
                                 </div>
                             </template>
@@ -814,6 +826,23 @@ function posApp() {
             });
 
             return this.parseJsonResponse(response);
+        },
+        async updateMarkup(productId, value) {
+            const amount = value === '' ? 0 : parseFloat(value);
+            console.log('markup input:', value, amount);
+            if (!Number.isFinite(amount) || amount < 0) return;
+
+            const item = this.order.find(e => e.product_id === productId);
+            if (!item) return;
+
+            item.markup_amount = amount;
+            item.subtotal = (item.unit_price + amount) * item.quantity;
+            this.total = this.order.reduce((sum, i) => sum + i.subtotal, 0);
+
+            await this.postJson(`{{ route('pos.api.cart.markup') }}`, {
+                product_id: productId,
+                markup: amount,
+            });
         },
     };
 }
