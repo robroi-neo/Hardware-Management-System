@@ -103,7 +103,7 @@ class CheckoutController extends Controller
                 if (! $inv || $inv->quantity < $qty) {
                     abort(422, 'Insufficient stock for product '.$pid);
                 }
-                $markup = (float) ($c['markup_amount'] ?? 10);
+                $markup = (float) ($c['markup_amount'] ?? 0);
                 $sellingPrice = $products[$pid]->capital + $markup;
                 $total += $sellingPrice * $qty;
                 $inv->decrement('quantity', $qty);

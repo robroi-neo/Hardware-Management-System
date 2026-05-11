@@ -38,4 +38,28 @@ class TransactionController extends Controller
             'sortDir' => $sortDir,
         ]);
     }
+
+    public function show(Sale $sale)
+    {
+        $sale->load('items.product');
+
+        return response()->json([
+            'id' => $sale->id,
+            'date' => $sale->date->format('Y-m-d H:i:s'),
+            'payment_method' => ucfirst($sale->payment_method),
+            'cashier' => $sale->user->name ?? 'N/A',
+            'branch_name' => $sale->branch->name ?? ('Branch #' . $sale->branch_id),
+            'total_amount' => (float) $sale->total_amount,
+            'items' => $sale->items->map(fn($item) => [
+                'product_id'   => $item->product_id,
+                'product_name' => $item->product->name,
+                'unit'         => $item->product->unit,
+                'quantity'     => (float) $item->quantity,
+                'cost'         => (float) $item->product->capital,
+                'markup'       => (float) $item->markup,
+                'unit_price'   => (float) ($item->product->capital + $item->markup),
+                'subtotal'     => (float) $item->subtotal,
+            ]),
+        ]);
+    }
 }

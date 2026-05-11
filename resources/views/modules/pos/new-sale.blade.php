@@ -829,6 +829,7 @@ function posApp() {
         },
         async updateMarkup(productId, value) {
             const amount = value === '' ? 0 : parseFloat(value);
+            console.log('markup input:', value, amount);
             if (!Number.isFinite(amount) || amount < 0) return;
 
             const item = this.order.find(e => e.product_id === productId);

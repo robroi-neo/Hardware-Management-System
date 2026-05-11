@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Pos\CheckoutController;
+use App\Http\Controllers\Pos\PosController;
+use App\Http\Controllers\Pos\ProductController;
+use App\Http\Controllers\Pos\TransactionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
@@ -18,7 +22,7 @@ Route::middleware('auth')->group(function () {
         return view('modules.pos.new-sale');
     })->middleware('permission:pos.access')->name('pos');
 
-    Route::get('/pos/transactions', [\App\Http\Controllers\Pos\TransactionController::class, 'index'])
+    Route::get('/pos/transactions', [TransactionController::class, 'index'])
         ->middleware('permission:sales.view-history')->name('pos.transactions');
 
 
@@ -116,17 +120,19 @@ Route::middleware('auth')->group(function () {
 
     // POS API endpoints
     Route::prefix('pos/api')->group(function () {
-        Route::get('products/search', [\App\Http\Controllers\Pos\ProductController::class, 'search'])->name('pos.api.products.search');
-        Route::get('products/browse', [\App\Http\Controllers\Pos\ProductController::class, 'browse'])->name('pos.api.products.browse');
+        Route::get('products/search', [ProductController::class, 'search'])->name('pos.api.products.search');
+        Route::get('products/browse', [ProductController::class, 'browse'])->name('pos.api.products.browse');
+        Route::get('pos/transactions/{sale}', [TransactionController::class, 'show'])->name('pos.transactions.show');
 
-        Route::get('cart', [\App\Http\Controllers\Pos\PosController::class, 'getCart'])->name('pos.api.cart.get');
-        Route::post('cart/add', [\App\Http\Controllers\Pos\PosController::class, 'addItem'])->name('pos.api.cart.add');
-        Route::post('cart/update', [\App\Http\Controllers\Pos\PosController::class, 'updateItem'])->name('pos.api.cart.update');
-        Route::post('cart/remove', [\App\Http\Controllers\Pos\PosController::class, 'removeItem'])->name('pos.api.cart.remove');
-        Route::post('pos/api/cart/markup', [YourCartController::class, 'markup'])->name('pos.api.cart.markup');
 
-        Route::get('checkout/prepare', [\App\Http\Controllers\Pos\CheckoutController::class, 'prepare'])->name('pos.api.checkout.prepare');
-        Route::post('checkout/finalize', [\App\Http\Controllers\Pos\CheckoutController::class, 'finalize'])->name('pos.api.checkout.finalize');
+        Route::get('cart', [PosController::class, 'getCart'])->name('pos.api.cart.get');
+        Route::post('cart/add', [PosController::class, 'addItem'])->name('pos.api.cart.add');
+        Route::post('cart/update', [PosController::class, 'updateItem'])->name('pos.api.cart.update');
+        Route::post('cart/remove', [PosController::class, 'removeItem'])->name('pos.api.cart.remove');
+        Route::post('cart/markup', [PosController::class, 'markup'])->name('pos.api.cart.markup');
+
+        Route::get('checkout/prepare', [CheckoutController::class, 'prepare'])->name('pos.api.checkout.prepare');
+        Route::post('checkout/finalize', [CheckoutController::class, 'finalize'])->name('pos.api.checkout.finalize');
     });
 
     // Inventory API endpoints
