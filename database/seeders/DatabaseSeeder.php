@@ -87,8 +87,6 @@ class DatabaseSeeder extends Seeder
 
         // Manager: mostly sales, inventory, reports, users
         $managerRole->syncPermissions([
-            'dashboard.view',
-
             'pos.access',
 
             'sales.create',
@@ -101,13 +99,6 @@ class DatabaseSeeder extends Seeder
             'inventory.update',
             'inventory.view-movements',
             'inventory.archive',
-            'reports.view',
-            'audit.user-activity.view',
-            'audit.system-logs.view',
-
-            'users.create',
-            'users.edit',
-            'users.view-list',
 
             'suppliers.create',
             'suppliers.edit',
