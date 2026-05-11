@@ -118,7 +118,6 @@ class DatabaseSeeder extends Seeder
         $cashierRole->syncPermissions([
             'pos.access',
             'sales.create',
-            'sales.view-history',
             'sales.print-receipt',
         ]);
 

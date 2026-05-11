@@ -29,7 +29,9 @@
             General
         </p>
     </div>
+
     <nav class="space-y-1">
+        @can('dashboard.view')
         <x-sidebar.link
             href="{{ route('dashboard') }}"
             :active="request()->routeIs('dashboard')"
@@ -51,6 +53,7 @@
 
             <span class="text-base">Dashboard</span>
         </x-sidebar.link>
+        @endcan
 
         @can('pos.access')
         <x-sidebar.dropdown
@@ -66,19 +69,23 @@
                 </svg>
 
             </x-slot:icon>
-
+            @can('sales.create')
             <x-sidebar.item
                 href="{{ route('pos') }}"
                 :active="request()->routeIs('pos')"
             >
                 New Sale
             </x-sidebar.item>
+            @endcan
+            @can('sales.view-history')
             <x-sidebar.item
                 href="{{ route('pos.transactions') }}"
                 :active="request()->routeIs('pos.transactions')"
             >
                 Transactions
             </x-sidebar.item>
+            @endcan
+
         </x-sidebar.dropdown>
         @endcan
 
