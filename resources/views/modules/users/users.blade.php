@@ -14,6 +14,7 @@
                             primaryField="name"
                             secondaryField="phone"
                             :showMeta="false"
+                            :showClearX="false"
                         />
                     </div>
                     <div class="flex gap-2">

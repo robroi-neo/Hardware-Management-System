@@ -36,6 +36,7 @@
                             primaryField="supplier_name"
                             secondaryField="contact_number"
                             :showMeta="false"
+                            :showClearX="false"
                         />
                     </div>
                     <div class="flex gap-2">
