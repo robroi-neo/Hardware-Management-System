@@ -187,10 +187,8 @@
                     @endforelse
                     </tbody>
                 </table>
-                <div class="mt-4 px-4 pb-4">
-                    {{ $users->links() }}
-                </div>
             </div>
+            <x-table.pagination :paginator="$users" />
         </x-card>
 
         <!-- Detail Modal (Read-Only View) -->
