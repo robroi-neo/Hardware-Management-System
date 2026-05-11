@@ -58,9 +58,9 @@ Route::middleware('auth')->group(function () {
         return view('modules.inventory.archives');
     })->middleware('permission:inventory.archive')->name('inventory.archives');
 
-    Route::get('/audit-logs/user-activity', function () {
-        return view('modules.audit-logs.user-activity');
-    })->middleware('permission:audit.user-activity.view')->name('audit-logs.user-activity');
+    Route::get('/audit-logs/user-activity', [\App\Http\Controllers\Audit\UserActivityController::class, 'index'])
+        ->middleware('permission:audit.user-activity.view')
+        ->name('audit-logs.user-activity');
 
     Route::get('/audit-logs/system-logs', function () {
         return view('modules.audit-logs.system-logs');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
@@ -77,6 +78,8 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        $before = $user->only(['name', 'phone', 'branch_id', 'status']);
+        $beforeRole = $user->roles->first()?->name;
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
             'phone'     => 'nullable|string|max:20',
@@ -94,6 +97,18 @@ class UserController extends Controller
             ]);
 
             $user->syncRoles([$validated['role']]);
+
+            $after = $user->fresh()->only(['name', 'phone', 'branch_id', 'status']);
+            $afterRole = $user->roles->first()?->name;
+
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'entity_type' => 'user',
+                'entity_id' => $user->id,
+                'action' => 'updated',
+                'old_values' => array_merge($before, ['role' => $beforeRole]),
+                'new_values' => array_merge($after, ['role' => $afterRole]),
+            ]);
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -143,6 +158,20 @@ class UserController extends Controller
             // assign Spatie role (correct place for role)
             $user->assignRole($role);
 
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'entity_type' => 'user',
+                'entity_id' => $user->id,
+                'action' => 'created',
+                'new_values' => [
+                    'name' => $user->name,
+                    'phone' => $user->phone,
+                    'branch_id' => $user->branch_id,
+                    'status' => $user->status,
+                    'role' => $role,
+                ],
+            ]);
+
             return back()->with('success', 'User created successfully');
         } catch (\Exception $e) {
             return back()->withInput()
@@ -152,8 +181,18 @@ class UserController extends Controller
     public function deactivate(Request $request, User $user)
     {
         try {
-            $user->update([
-                'status' => 'inactive',
+            $beforeStatus = $user->status;
+             $user->update([
+                 'status' => 'inactive',
+             ]);
+
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'entity_type' => 'user',
+                'entity_id' => $user->id,
+                'action' => 'deactivated',
+                'old_values' => ['status' => $beforeStatus],
+                'new_values' => ['status' => 'inactive'],
             ]);
 
             if ($request->expectsJson()) {
@@ -184,8 +223,18 @@ class UserController extends Controller
     public function activate(Request $request, User $user)
     {
         try {
-            $user->update([
-                'status' => 'active',
+            $beforeStatus = $user->status;
+             $user->update([
+                 'status' => 'active',
+             ]);
+
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'entity_type' => 'user',
+                'entity_id' => $user->id,
+                'action' => 'activated',
+                'old_values' => ['status' => $beforeStatus],
+                'new_values' => ['status' => 'active'],
             ]);
 
             if ($request->expectsJson()) {

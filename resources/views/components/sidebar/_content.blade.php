@@ -167,14 +167,13 @@
             </x-sidebar.item>
         </x-sidebar.dropdown>
         @endcanany
-        
+
+        @canany(['audit.user-activity.view', 'audit.system-logs.view'])
         <div class="mt-6 border-white/10 pb-2 pt-4">
             <p class="px-3 text-sm font-semibold uppercase tracking-wide text-slate-300">
                 Admin
             </p>
         </div>
-
-        @canany(['audit.user-activity.view', 'audit.system-logs.view'])
         <x-sidebar.dropdown
             label="Audit Logs"
             :open="request()->routeIs('audit-logs.*')"
@@ -200,6 +199,7 @@
             >
                 User Activity
             </x-sidebar.item>
+            <!--
             <x-sidebar.item
                 href="{{ route('audit-logs.system-logs') }}"
                 :active="request()->routeIs('audit-logs.system-logs')"
@@ -212,6 +212,7 @@
             >
                 Archives
             </x-sidebar.item>
+                -->
         </x-sidebar.dropdown>
         @endcanany
 

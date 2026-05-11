@@ -9,6 +9,7 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Product;
 use App\Models\BranchInventory;
+use App\Models\AuditLog;
 
 class CheckoutController extends Controller
 {
@@ -111,6 +112,19 @@ class CheckoutController extends Controller
                 'total_amount' => $total,
                 'branch_id' => $branchId,
                 'payment_method' => $data['payment_method'],
+            ]);
+
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'entity_type' => 'sale',
+                'entity_id' => $sale->id,
+                'action' => 'created',
+                'new_values' => [
+                    'total_amount' => (float) $total,
+                    'payment_method' => $sale->payment_method,
+                    'items_count' => count($cart),
+                    'branch_id' => $branchId,
+                ],
             ]);
 
             foreach ($cart as $c) {
