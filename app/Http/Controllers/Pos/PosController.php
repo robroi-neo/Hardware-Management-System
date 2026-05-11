@@ -83,4 +83,22 @@ class PosController extends Controller
         $request->session()->put($this->sessionKey, $cart);
         return response()->json($cart);
     }
+
+    public function markup(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|integer',
+            'markup_amount' => 'required|numeric|min:0',
+        ]);
+
+        $cart = session('pos_cart', []);
+        $productId = $request->product_id;
+
+        if (isset($cart[$productId])) {
+            $cart[$productId]['markup_amount'] = (float) $request->markup_amount;
+            session(['pos_cart' => $cart]);
+        }
+
+        return response()->json(['success' => true]);
+    }
 }

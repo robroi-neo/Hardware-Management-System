@@ -43,8 +43,10 @@ class CheckoutController extends Controller
         foreach ($cart as $c) {
             $p = $products[$c['product_id']];
             $qty = $c['quantity'];
-            $unitPrice = $p->capital; // defaulting to capital if no price column
-            $subtotal = $unitPrice * $qty;
+            $unitPrice = $p->capital;
+            $markup = (float) ($c['markup_amount'] ?? 0);
+            $sellingPrice = $unitPrice + $markup;
+            $subtotal = $sellingPrice * $qty;
             $items[] = [
                 'product_id' => $p->id,
                 'product_name' => $p->name,
@@ -52,6 +54,7 @@ class CheckoutController extends Controller
                 'quantity' => $qty,
                 'available_quantity' => (float) (optional($inventories->get($p->id))->quantity ?? 0),
                 'unit_price' => $unitPrice,
+                'markup_amount' => $markup,
                 'cost' => $p->capital,
                 'subtotal' => $subtotal,
             ];
@@ -100,9 +103,9 @@ class CheckoutController extends Controller
                 if (! $inv || $inv->quantity < $qty) {
                     abort(422, 'Insufficient stock for product '.$pid);
                 }
-                $unitPrice = $products[$pid]->capital; // adjust if you have price
-                $subtotal = $unitPrice * $qty;
-                $total += $subtotal;
+                $markup = (float) ($c['markup_amount'] ?? 10);
+                $sellingPrice = $products[$pid]->capital + $markup;
+                $total += $sellingPrice * $qty;
                 $inv->decrement('quantity', $qty);
             }
 
@@ -129,13 +132,17 @@ class CheckoutController extends Controller
 
             foreach ($cart as $c) {
                 $p = $products[$c['product_id']];
-                $unitPrice = $p->capital;
-                $sale->items()->create([
+                $markup = (float) ($c['markup_amount'] ?? 0);
+                $sellingPrice = $p->capital + $markup;
+                $qty = (float) $c['quantity'];
+                $receiptItems[] = [
                     'product_id' => $p->id,
-                    'quantity' => $c['quantity'],
-                    'markup' => 0,
-                    'subtotal' => $unitPrice * $c['quantity'],
-                ]);
+                    'product_name' => $p->name,
+                    'unit' => $p->unit,
+                    'quantity' => $qty,
+                    'unit_price' => $sellingPrice,
+                    'subtotal' => $sellingPrice * $qty,
+                ];
             }
 
             $receiptItems = [];

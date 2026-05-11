@@ -123,6 +123,7 @@ Route::middleware('auth')->group(function () {
         Route::post('cart/add', [\App\Http\Controllers\Pos\PosController::class, 'addItem'])->name('pos.api.cart.add');
         Route::post('cart/update', [\App\Http\Controllers\Pos\PosController::class, 'updateItem'])->name('pos.api.cart.update');
         Route::post('cart/remove', [\App\Http\Controllers\Pos\PosController::class, 'removeItem'])->name('pos.api.cart.remove');
+        Route::post('pos/api/cart/markup', [YourCartController::class, 'markup'])->name('pos.api.cart.markup');
 
         Route::get('checkout/prepare', [\App\Http\Controllers\Pos\CheckoutController::class, 'prepare'])->name('pos.api.checkout.prepare');
         Route::post('checkout/finalize', [\App\Http\Controllers\Pos\CheckoutController::class, 'finalize'])->name('pos.api.checkout.finalize');
