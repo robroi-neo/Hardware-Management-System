@@ -67,7 +67,7 @@
                             route="users.index"
                             :params="['search' => $search, 'status' => $filterStatus]"
                         />
-                        <th class="px-4 py-3 font-semibold">Role</th>
+                        <th class="px-4 py-3 font-medium">Role</th>
                         <x-table.sortable-header
                             label="Branch"
                             :sortBy="$sortBy"

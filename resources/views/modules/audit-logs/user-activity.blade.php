@@ -6,13 +6,16 @@
     <x-card title="User Activity" fullHeight>
         <form method="GET" class="mb-6 flex flex-col items-start gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center">
-                <input
-                    type="text"
-                    name="search"
-                    value="{{ $search }}"
-                    placeholder="Search by user, action, or entity..."
-                    class="w-full rounded border border-slate-200 px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none lg:max-w-md"
-                />
+                <div class="w-full lg:max-w-md">
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ $search }}"
+                        placeholder="Search by user, action, or entity..."
+                        class="placeholder-gray-400 bg-white-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    />
+                </div>
+                
                 <div class="flex gap-2">
                     <button
                         type="submit"
@@ -45,7 +48,7 @@
             <table class="min-w-full text-sm">
                 <thead class="bg-slate-100 text-left text-slate-700">
                 <tr>
-                    <th class="px-4 py-3 font-semibold">User</th>
+                    <th class="px-4 py-3 font-medium">User</th>
                     <x-table.sortable-header
                         label="Action"
                         :sortBy="$sortBy"
@@ -62,8 +65,8 @@
                         route="audit-logs.user-activity"
                         :params="['search' => $search, 'entity_type' => $entityType]"
                     />
-                    <th class="px-4 py-3 font-semibold">Entity ID</th>
-                    <th class="px-4 py-3 font-semibold">Changes</th>
+                    <th class="px-4 py-3 font-medium">Entity ID</th>
+                    <th class="px-4 py-3 font-medium">Changes</th>
                     <x-table.sortable-header
                         label="Date"
                         :sortBy="$sortBy"
