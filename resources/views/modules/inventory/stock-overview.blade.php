@@ -48,7 +48,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-slate-200 bg-indigo-50">
+                        <tr class="border-b border-slate-200 bg-indigo-100">
                             <th class="px-4 py-3 text-left font-medium text-slate-700">ID</th>
                             <x-table.sortable-header
                                 label="Product Name"

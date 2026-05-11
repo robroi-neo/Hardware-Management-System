@@ -8,7 +8,7 @@
         <div class="border border-gray-200 rounded overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
-                    <thead class="bg-indigo-50 text-left text-slate-700">
+                    <thead class="bg-indigo-100 text-left text-slate-700">
                     <tr>
                         <x-table.sortable-header label="ID"             :sortBy="$sortBy" :sortDir="$sortDir" column="id"             route="pos.transactions" />
                         <x-table.sortable-header label="Date"           :sortBy="$sortBy" :sortDir="$sortDir" column="date"           route="pos.transactions" />

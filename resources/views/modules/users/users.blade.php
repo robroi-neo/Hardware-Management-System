@@ -86,7 +86,7 @@
                             :params="['search' => $search, 'status' => $filterStatus]"
                         />
 
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-700">
+                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-700">
                             Actions
                         </th>
                     </tr>

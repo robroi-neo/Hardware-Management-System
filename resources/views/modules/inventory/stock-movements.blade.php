@@ -78,7 +78,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="border-b border-slate-200 bg-indigo-50">
+                    <tr class="border-b border-slate-200 bg-indigo-100">
                         <x-table.sortable-header
                             label="Date & Time"
                             :sortBy="$sortBy"

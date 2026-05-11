@@ -46,7 +46,7 @@
 
         <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
             <table class="min-w-full text-sm">
-                <thead class="bg-slate-100 text-left text-slate-700">
+                <thead class="bg-indigo-100 text-left text-slate-700">
                 <tr>
                     <th class="px-4 py-3 font-medium">User</th>
                     <x-table.sortable-header

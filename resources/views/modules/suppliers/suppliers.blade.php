@@ -72,10 +72,10 @@
             </div>
 
             <!-- Suppliers Table -->
-            <div class="mt-6 overflow-hidden rounded border border-slate-200 bg-white">
+            <div class="overflow-hidden rounded border border-slate-200 bg-white">
                 @if ($suppliers->count() > 0)
-                    <table class="w-full">
-                        <thead class="border-b border-slate-200 bg-indigo-50">
+                    <table class="w-full text-sm">
+                        <thead class="border-b border-slate-200 bg-indigo-100">
                         <tr>
                             <x-table.sortable-header
                                 label="Supplier Name"
@@ -109,7 +109,7 @@
                                 route="suppliers.index"
                                 :params="['search' => $search, 'status' => $status]"
                             />
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-700">
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-700">
                                 Actions
                             </th>
                         </tr>
@@ -117,7 +117,7 @@
                         <tbody class="divide-y divide-slate-200">
                         @foreach ($suppliers as $supplier)
                             <tr class="hover:bg-slate-50">
-                                <td class="px-6 py-4 text-sm font-medium text-slate-900">
+                                <td class="px-4 py-3 text-sm font-medium text-slate-900">
                                     <button
                                         type="button"
                                         @click="openDetailModal({{ $supplier->toJson() }})"
@@ -126,13 +126,13 @@
                                         {{ $supplier->supplier_name }}
                                     </button>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-slate-600">
+                                <td class="px-4 py-3 text-sm text-slate-600">
                                     {{ $supplier->contact_person ?? '—' }}
                                 </td>
-                                <td class="px-6 py-4 text-sm text-slate-600">
+                                <td class="px-4 py-3 text-sm text-slate-600">
                                     {{ $supplier->contact_number ?? '—' }}
                                 </td>
-                                <td class="px-6 py-4 text-sm">
+                                <td class="px-4 py-3 text-sm">
                                     @if ($supplier->status === 'active')
                                         <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
                                             Active
@@ -143,7 +143,7 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 text-sm">
+                                <td class="px-4 py-3 text-sm">
                                     <div class="flex gap-2">
                                         <button
                                             type="button"

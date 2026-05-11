@@ -92,7 +92,7 @@
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-indigo-50 border-b border-slate-200">
+                        <thead class="bg-indigo-100 border-b border-slate-200">
                             <tr>
                                 <th class="px-4 py-3 text-left font-medium text-slate-700">Product ID</th>
                                 <th class="px-4 py-3 text-left font-medium text-slate-700">Product Name</th>
