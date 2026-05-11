@@ -71,7 +71,7 @@
             </div>
 
             <!-- Suppliers Table -->
-            <div class="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <div class="mt-6 overflow-hidden rounded border border-slate-200 bg-white">
                 @if ($suppliers->count() > 0)
                     <table class="w-full">
                         <thead class="border-b border-slate-200 bg-indigo-50">

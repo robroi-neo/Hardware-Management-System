@@ -47,9 +47,9 @@
                     />
                 </div>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-hidden rounded border border-slate-200 bg-white">
                 <table class="min-w-full text-sm">
-                    <thead class="bg-slate-100 text-left text-slate-700">
+                    <thead class="bg-indigo-100 text-left text-slate-700">
                     <tr>
                         <x-table.sortable-header
                             label="Name"

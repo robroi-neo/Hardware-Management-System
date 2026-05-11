@@ -14,7 +14,7 @@
                         <x-table.sortable-header label="Date"           :sortBy="$sortBy" :sortDir="$sortDir" column="date"           route="pos.transactions" />
                         <x-table.sortable-header label="Total Amount"   :sortBy="$sortBy" :sortDir="$sortDir" column="total_amount"   route="pos.transactions" />
                         <x-table.sortable-header label="Payment Method" :sortBy="$sortBy" :sortDir="$sortDir" column="payment_method" route="pos.transactions" />
-                        <th class="px-4 py-3 font-normal">Processed By</th>
+                        <th class="px-4 py-3 font-medium">Processed By</th>
                     </tr>
                     </thead>
                     <tbody class="divide-y border-t border-slate-200">

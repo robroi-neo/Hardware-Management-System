@@ -87,7 +87,7 @@
                                 :params="['search' => $search, 'supplier_id' => $filterSupplierId]"
                                 align="right"
                             />
-                            <th class="px-4 py-3 font-normal">Items</th>
+                            <th class="px-4 py-3 font-medium">Items</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">

@@ -68,7 +68,7 @@
                             <span x-show="item['{{ $secondaryField }}']" x-text="item['{{ $secondaryField }}']"></span>
                             @if($showPrice)
                                 <span x-show="item['{{ $priceField }}'] !== undefined">
-                                    | P<span x-text="formatPrice(item['{{ $priceField }}'])"></span>
+                                    | ₱<span x-text="formatPrice(item['{{ $priceField }}'])"></span>
                                 </span>
                             @endif
                             @if($showStock)
