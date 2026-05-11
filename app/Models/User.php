@@ -21,7 +21,8 @@ class User extends Authenticatable
         'pin',
         'address',
         'branch_id',
-        'created_by'
+        'created_by',
+        'status',
     ];
 
     /**

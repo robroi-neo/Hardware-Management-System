@@ -15,19 +15,57 @@ class UserController extends Controller
     {
         $sortBy = $request->query('sort_by', 'name');
         $sortDir = $request->query('sort_dir', 'asc');
+        $search = $request->query('search');
+        $filterStatus = $request->query('status');
         $branches = Branch::all();
+        $statuses = collect([
+            ['value' => 'active', 'label' => 'Active'],
+            ['value' => 'inactive', 'label' => 'Inactive'],
+        ]);
 
-        // apply sorting before get.
-        $users = User::with('branch')
-            ->orderBy(
+        $allowedSorts = ['name', 'phone', 'status', 'branch'];
+        if (!in_array($sortBy, $allowedSorts, true)) {
+            $sortBy = 'name';
+        }
+        $sortDir = $sortDir === 'desc' ? 'desc' : 'asc';
+
+        $usersQuery = User::with(['branch', 'roles']);
+
+        if ($search) {
+            $usersQuery->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('id', $search);
+            });
+        }
+
+        if (in_array($filterStatus, ['active', 'inactive'], true)) {
+            $usersQuery->where('status', $filterStatus);
+        }
+
+        if ($sortBy === 'branch') {
+            $usersQuery->orderBy(
                 Branch::select('name')
                     ->whereColumn('branches.id', 'users.branch_id'),
                 $sortDir
-            )
+            );
+        } else {
+            $usersQuery->orderBy($sortBy, $sortDir);
+        }
+
+        $users = $usersQuery
             ->paginate(10)
             ->withQueryString();
 
-        return view('modules.users.users', compact('users', 'sortBy', 'sortDir', 'branches'));
+        return view('modules.users.users', compact(
+            'users',
+            'sortBy',
+            'sortDir',
+            'branches',
+            'search',
+            'filterStatus',
+            'statuses'
+        ));
     }
     public function create()
     {
@@ -110,5 +148,109 @@ class UserController extends Controller
             return back()->withInput()
                 ->with('error', 'Failed to create user: ' . $e->getMessage());
         }
+    }
+    public function deactivate(Request $request, User $user)
+    {
+        try {
+            $user->update([
+                'status' => 'inactive',
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'User deactivated successfully',
+                    'user' => $user->fresh(),
+                ], 200);
+            }
+
+            return redirect()
+                ->route('users.index')
+                ->with('success', 'User deactivated successfully');
+
+        } catch (\Exception $e) {
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Failed to deactivate user: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with(
+                'error',
+                'Failed to deactivate user: ' . $e->getMessage()
+            );
+        }
+    }
+    public function activate(Request $request, User $user)
+    {
+        try {
+            $user->update([
+                'status' => 'active',
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'User activated successfully',
+                    'user' => $user->fresh(),
+                ], 200);
+            }
+
+            return redirect()
+                ->route('users.index')
+                ->with('success', 'User activated successfully');
+
+        } catch (\Exception $e) {
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Failed to activate user: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with(
+                'error',
+                'Failed to activate user: ' . $e->getMessage()
+            );
+        }
+    }
+    public function search(Request $request)
+    {
+        $query = trim((string) $request->query('q', ''));
+        $limit = (int) $request->query('limit', 8);
+        $status = $request->query('status');
+
+        if ($query === '') {
+            return response()->json([]);
+        }
+
+        $limit = max(1, min($limit, 20));
+
+        $usersQuery = User::query()->with('roles')
+            ->where(function ($builder) use ($query) {
+                $builder->where('name', 'like', "%{$query}%")
+                    ->orWhere('phone', 'like', "%{$query}%")
+                    ->orWhere('id', $query);
+            });
+
+        if (in_array($status, ['active', 'inactive'], true)) {
+            $usersQuery->where('status', $status);
+        }
+
+        $users = $usersQuery
+            ->orderBy('name')
+            ->limit($limit)
+            ->get();
+
+        $payload = $users->map(function (User $user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'status' => $user->status,
+                'role' => $user->roles->first()?->name,
+            ];
+        });
+
+        return response()->json($payload);
     }
 }

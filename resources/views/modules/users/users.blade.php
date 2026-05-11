@@ -5,6 +5,48 @@
 
     <div x-data="userManager()">
         <x-card title="User Management" fullHeight>
+            <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center">
+                    <div class="w-full lg:max-w-md">
+                        <x-product-search-typeahead
+                            searchInputRef="userSearchInput"
+                            placeholder="Search users by name or phone..."
+                            primaryField="name"
+                            secondaryField="phone"
+                            :showMeta="false"
+                        />
+                    </div>
+                    <div class="flex gap-2">
+                        <button
+                            type="button"
+                            @click="applySearch()"
+                            class="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                        >
+                            Search
+                        </button>
+                        <button
+                            type="button"
+                            @click="clearSearch()"
+                            class="rounded border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                        >
+                            Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <x-filters.dropdown-filter
+                        :items="$statuses"
+                        :selected="$filterStatus"
+                        route="users.index"
+                        :params="['search' => $search, 'sort_by' => $sortBy, 'sort_dir' => $sortDir]"
+                        label="Filter by Status"
+                        filterName="status"
+                        valueField="value"
+                        displayField="label"
+                        :minCount="1"
+                    />
+                </div>
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead class="bg-slate-100 text-left text-slate-700">
@@ -15,7 +57,7 @@
                             :sortDir="$sortDir"
                             column="name"
                             route="users.index"
-                            :params="['search' => request('search')]"
+                            :params="['search' => $search, 'status' => $filterStatus]"
                         />
                         <x-table.sortable-header
                             label="Phone"
@@ -23,25 +65,26 @@
                             :sortDir="$sortDir"
                             column="phone"
                             route="users.index"
-                            :params="['search' => request('search')]"
+                            :params="['search' => $search, 'status' => $filterStatus]"
                         />
                         <th class="px-4 py-3 font-semibold">Role</th>
-                        <x-table.sortable-header
-                            label="Status"
-                            :sortBy="$sortBy"
-                            :sortDir="$sortDir"
-                            column="status"
-                            route="users.index"
-                            :params="['search' => request('search')]"
-                        />
                         <x-table.sortable-header
                             label="Branch"
                             :sortBy="$sortBy"
                             :sortDir="$sortDir"
                             column="branch"
                             route="users.index"
-                            :params="['search' => request('search')]"
+                            :params="['search' => $search, 'status' => $filterStatus]"
                         />
+                        <x-table.sortable-header
+                            label="Status"
+                            :sortBy="$sortBy"
+                            :sortDir="$sortDir"
+                            column="status"
+                            route="users.index"
+                            :params="['search' => $search, 'status' => $filterStatus]"
+                        />
+
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-700">
                             Actions
                         </th>
@@ -60,11 +103,12 @@
                                 </button>
                             </td>
                             <td class="px-4 py-3 text-slate-600">{{ $user->phone }}</td>
+                            <td class="px-4 py-3 text-slate-600">{{ $user->branch?->name }}</td>
                             <td class="px-4 py-3 text-slate-600">
                                 {{ $user->getRoleNames()->join(', ') }}
                             </td>
                             <td class="px-4 py-3 text-slate-900">{{ $user->status }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $user->branch?->name }}</td>
+
                             <td class="px-6 py-4 text-sm">
                                 <div class="flex gap-2">
                                     <button
@@ -83,15 +127,45 @@
                                         </svg>
                                     </button>
                                     @can('users.delete')
-                                        <button
-                                            type="button"
-                                            @click="openDeleteModal({{ $user->id }}, '{{ addslashes($user->name) }}')"
-                                            class="text-red-600 hover:text-red-700"
-                                        >
-                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                            </svg>
-                                        </button>
+                                        @if($user->status === 'inactive')
+                                            <button
+                                                type="button"
+                                                @click="openActivateModal({{ $user->id }}, '{{ addslashes($user->name) }}')"
+                                                class="text-emerald-600 hover:text-emerald-700"
+                                                title="Activate User"
+                                            >
+                                                <svg
+                                                    class="h-4 w-4"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                >
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </button>
+                                        @else
+                                            <button
+                                                type="button"
+                                                @click="openDeactivateModal({{ $user->id }}, '{{ addslashes($user->name) }}')"
+                                                class="text-amber-600 hover:text-amber-700"
+                                                title="Deactivate User"
+                                            >
+                                                <svg
+                                                    class="h-4 w-4"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M18 12H6"
+                                                    />
+                                                </svg>
+                                            </button>
+                                        @endif
                                     @endcan
                                 </div>
                             </td>
@@ -254,40 +328,65 @@
             </form>
         </x-modals.modal>
 
-        <!-- Delete Confirmation Modal -->
+        <!-- Deactivate Modal -->
         <div
-            x-show="showDeleteModal"
+            x-show="showDeactivateModal"
             x-transition
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-            @click.self="closeDeleteModal()"
+            @click.self="closeDeactivateModal()"
         >
             <div class="w-full max-w-sm rounded bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-semibold text-slate-900">Delete User</h3>
+                <h3 class="mb-2 text-lg font-semibold text-slate-900">Deactivate User</h3>
                 <p class="mb-6 text-sm text-slate-600">
-                    Are you sure you want to delete <strong x-text="deleteUserName"></strong>? This action cannot be undone.
+                    Are you sure you want to deactivate <strong x-text="deactivateUserName"></strong>?
                 </p>
-
-                <form
-                    :action="`/users/${deleteId}`"
-                    method="POST"
-                    class="flex gap-3"
-                >
-                    @csrf
-                    @method('DELETE')
+                <div class="flex gap-3">
                     <button
                         type="button"
-                        @click="closeDeleteModal()"
+                        @click="closeDeactivateModal()"
                         class="flex-1 rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                     >
                         Cancel
                     </button>
                     <button
-                        type="submit"
+                        type="button"
+                        @click="deactivateUser()"
                         class="flex-1 rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
                     >
-                        Delete
+                        Deactivate
                     </button>
-                </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activate Modal -->
+        <div
+            x-show="showActivateModal"
+            x-transition
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            @click.self="closeActivateModal()"
+        >
+            <div class="w-full max-w-sm rounded bg-white p-6 shadow-lg">
+                <h3 class="mb-2 text-lg font-semibold text-slate-900">Activate User</h3>
+                <p class="mb-6 text-sm text-slate-600">
+                    Are you sure you want to activate <strong x-text="activateUserName"></strong>?
+                </p>
+                <div class="flex gap-3">
+                    <button
+                        type="button"
+                        @click="closeActivateModal()"
+                        class="flex-1 rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        @click="activateUser()"
+                        class="flex-1 rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                    >
+                        Activate
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -296,13 +395,35 @@
                 return {
                     showModal: false,
                     showDetailModal: false,
-                    showDeleteModal: false,
+                    showDeactivateModal: false,
+                    showActivateModal: false,
+
                     isEditMode: false,
+
                     editingId: null,
-                    deleteId: null,
-                    deleteUserName: '',
+                    deactivateId: null,
+                    activateId: null,
+
+                    deactivateUserName: '',
+                    activateUserName: '',
+
                     errors: {},
                     detail: {},
+
+                    sortBy: @json($sortBy),
+                    sortDir: @json($sortDir),
+                    filterStatus: @json($filterStatus),
+
+                    typeahead: {
+                        q: @json($search ?? ''),
+                        items: [],
+                        open: false,
+                        loading: false,
+                        activeIndex: -1,
+                        debounceHandle: null,
+                        limit: 8,
+                    },
+
                     form: {
                         name: '',
                         phone: '',
@@ -314,6 +435,7 @@
                     openCreateModal() {
                         this.isEditMode = false;
                         this.editingId = null;
+
                         this.form = {
                             name: '',
                             phone: '',
@@ -321,6 +443,7 @@
                             branch_id: '',
                             status: 'active',
                         };
+
                         this.errors = {};
                         this.showModal = true;
                     },
@@ -328,13 +451,15 @@
                     openEditModal(user) {
                         this.isEditMode = true;
                         this.editingId = user.id;
+
                         this.form = {
-                            name:      user.name      || '',
-                            phone:     user.phone     || '',
-                            role:      user.roles?.[0]?.name || '',
+                            name: user.name || '',
+                            phone: user.phone || '',
+                            role: user.roles?.[0]?.name || '',
                             branch_id: user.branch_id || '',
-                            status:    user.status    || 'active',
+                            status: user.status || 'active',
                         };
+
                         this.errors = {};
                         this.showModal = true;
                     },
@@ -346,16 +471,80 @@
                         this.errors = {};
                     },
 
-                    openDeleteModal(id, name) {
-                        this.deleteId = id;
-                        this.deleteUserName = name;
-                        this.showDeleteModal = true;
+                    openDeactivateModal(id, name) {
+                        this.deactivateId = id;
+                        this.deactivateUserName = name;
+                        this.showDeactivateModal = true;
                     },
 
-                    closeDeleteModal() {
-                        this.showDeleteModal = false;
-                        this.deleteId = null;
-                        this.deleteUserName = '';
+                    closeDeactivateModal() {
+                        this.showDeactivateModal = false;
+                        this.deactivateId = null;
+                        this.deactivateUserName = '';
+                    },
+
+                    openActivateModal(id, name) {
+                        this.activateId = id;
+                        this.activateUserName = name;
+                        this.showActivateModal = true;
+                    },
+
+                    closeActivateModal() {
+                        this.showActivateModal = false;
+                        this.activateId = null;
+                        this.activateUserName = '';
+                    },
+
+                    async deactivateUser() {
+                        try {
+                            const response = await fetch(`/users/${this.deactivateId}/deactivate`, {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document
+                                        .querySelector('meta[name="csrf-token"]')
+                                        .getAttribute('content'),
+                                },
+                            });
+
+                            if (!response.ok) {
+                                throw new Error('Failed to deactivate user');
+                            }
+
+                            this.closeDeactivateModal();
+
+                            window.location.reload();
+
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    },
+
+                    async activateUser() {
+                        try {
+                            const response = await fetch(`/users/${this.activateId}/activate`, {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': document
+                                        .querySelector('meta[name="csrf-token"]')
+                                        .getAttribute('content'),
+                                },
+                            });
+
+                            if (!response.ok) {
+                                throw new Error('Failed to activate user');
+                            }
+
+                            this.closeActivateModal();
+
+                            window.location.reload();
+
+                        } catch (error) {
+                            console.error(error);
+                        }
                     },
 
                     openDetailModal(user) {
@@ -370,15 +559,156 @@
 
                     switchToEdit() {
                         const user = this.detail;
+
                         this.closeDetailModal();
                         this.openEditModal(user);
+                    },
+
+                    onTypeaheadInput() {
+                        if (this.typeahead.debounceHandle) {
+                            clearTimeout(this.typeahead.debounceHandle);
+                        }
+
+                        const query = this.typeahead.q.trim();
+                        if (!query) {
+                            this.typeahead.items = [];
+                            this.typeahead.open = false;
+                            this.typeahead.activeIndex = -1;
+                            return;
+                        }
+
+                        this.typeahead.debounceHandle = setTimeout(() => {
+                            this.fetchTypeahead(query);
+                        }, 250);
+                    },
+
+                    async fetchTypeahead(query) {
+                        this.typeahead.loading = true;
+                        this.typeahead.open = true;
+
+                        const params = new URLSearchParams({
+                            q: query,
+                            limit: String(this.typeahead.limit),
+                        });
+
+                        if (this.filterStatus) {
+                            params.set('status', this.filterStatus);
+                        }
+
+                        try {
+                            const response = await fetch(`{{ route('users.api.search') }}?${params.toString()}`);
+                            const data = await response.json();
+
+                            this.typeahead.items = Array.isArray(data) ? data : [];
+                            this.typeahead.activeIndex = this.typeahead.items.length > 0 ? 0 : -1;
+                        } catch (error) {
+                            this.typeahead.items = [];
+                            this.typeahead.activeIndex = -1;
+                            console.error(error);
+                        } finally {
+                            this.typeahead.loading = false;
+                        }
+                    },
+
+                    reopenTypeahead() {
+                        if (this.typeahead.items.length > 0 || this.typeahead.loading) {
+                            this.typeahead.open = true;
+                        }
+                    },
+
+                    closeTypeahead() {
+                        this.typeahead.open = false;
+                        this.typeahead.activeIndex = -1;
+                    },
+
+                    moveTypeahead(step) {
+                        if (!this.typeahead.open || this.typeahead.items.length === 0) {
+                            return;
+                        }
+
+                        const count = this.typeahead.items.length;
+                        const current = this.typeahead.activeIndex < 0 ? 0 : this.typeahead.activeIndex;
+                        this.typeahead.activeIndex = (current + step + count) % count;
+                    },
+
+                    onTypeaheadEnter() {
+                        if (this.typeahead.open && this.typeahead.items.length > 0) {
+                            const index = this.typeahead.activeIndex >= 0 ? this.typeahead.activeIndex : 0;
+                            this.selectTypeaheadItem(index);
+                            return;
+                        }
+
+                        this.applySearch();
+                    },
+
+                    selectTypeaheadItem(index) {
+                        const user = this.typeahead.items[index];
+                        if (!user) {
+                            return;
+                        }
+
+                        this.typeahead.q = user.name || String(user.id ?? '');
+                        this.typeahead.items = [];
+                        this.closeTypeahead();
+
+                        this.applySearch();
+                    },
+
+                    applySearch() {
+                        const query = this.typeahead.q.trim();
+                        const params = new URLSearchParams();
+
+                        if (query) {
+                            params.set('search', query);
+                        }
+                        if (this.filterStatus) {
+                            params.set('status', this.filterStatus);
+                        }
+                        if (this.sortBy) {
+                            params.set('sort_by', this.sortBy);
+                        }
+                        if (this.sortDir) {
+                            params.set('sort_dir', this.sortDir);
+                        }
+
+                        const url = params.toString()
+                            ? `{{ route('users.index') }}?${params.toString()}`
+                            : `{{ route('users.index') }}`;
+
+                        window.location = url;
+                    },
+
+                    clearSearch() {
+                        this.typeahead.q = '';
+                        const params = new URLSearchParams();
+
+                        if (this.filterStatus) {
+                            params.set('status', this.filterStatus);
+                        }
+                        if (this.sortBy) {
+                            params.set('sort_by', this.sortBy);
+                        }
+                        if (this.sortDir) {
+                            params.set('sort_dir', this.sortDir);
+                        }
+
+                        const url = params.toString()
+                            ? `{{ route('users.index') }}?${params.toString()}`
+                            : `{{ route('users.index') }}`;
+
+                        window.location = url;
                     },
 
                     async submitForm() {
                         this.errors = {};
 
-                        const url    = this.isEditMode ? `/users/${this.editingId}` : `/users`;
-                        const method = this.isEditMode ? 'PUT' : 'POST';
+                        const url = this.isEditMode
+                            ? `/users/${this.editingId}`
+                            : `/users`;
+
+                        const method = this.isEditMode
+                            ? 'PUT'
+                            : 'POST';
 
                         try {
                             const response = await fetch(url, {
@@ -400,10 +730,12 @@
                                     this.errors = data.errors;
                                     return;
                                 }
+
                                 throw new Error('Something went wrong');
                             }
 
                             this.closeModal();
+
                             window.location.reload();
 
                         } catch (error) {

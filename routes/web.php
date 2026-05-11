@@ -74,6 +74,18 @@ Route::middleware('auth')->group(function () {
     Route::resource('suppliers', \App\Http\Controllers\Supplier\SupplierController::class)
         ->middleware('permission:suppliers.view');
 
+    Route::patch('/suppliers/{supplier}/deactivate', [\App\Http\Controllers\Supplier\SupplierController::class, 'deactivate'])
+        ->middleware('permission:suppliers.delete')
+        ->name('suppliers.deactivate');
+
+    Route::patch('/suppliers/{supplier}/activate', [\App\Http\Controllers\Supplier\SupplierController::class, 'activate'])
+        ->middleware('permission:suppliers.delete')
+        ->name('suppliers.activate');
+
+    Route::get('/suppliers/api/search', [\App\Http\Controllers\Supplier\SupplierController::class, 'search'])
+        ->middleware('permission:suppliers.view')
+        ->name('suppliers.api.search');
+
     // User routes this shit is the tables.
     Route::get('/users', [UserController::class, 'index'])
         ->middleware('permission:users.view-list')
@@ -89,6 +101,18 @@ Route::middleware('auth')->group(function () {
     // Create user routes API
     Route::post('/users/create',[UserController::class,'store'])
         ->name('users.store');
+
+    Route::patch('/users/{user}/deactivate', [UserController::class, 'deactivate'])
+        ->middleware('permission:users.delete')
+        ->name('users.deactivate');
+
+    Route::patch('/users/{user}/activate', [UserController::class, 'activate'])
+        ->middleware('permission:users.delete')
+        ->name('users.activate');
+
+    Route::get('/users/api/search', [UserController::class, 'search'])
+        ->middleware('permission:users.view-list')
+        ->name('users.api.search');
 
     // POS API endpoints
     Route::prefix('pos/api')->group(function () {

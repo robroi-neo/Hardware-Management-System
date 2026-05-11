@@ -25,33 +25,53 @@
                 @endcan
             </div>
 
-            <!-- Search Bar -->
-            <form method="GET" action="{{ route('suppliers.index') }}" class="flex gap-2">
-                <input
-                    type="text"
-                    name="search"
-                    value="{{ $search }}"
-                    placeholder="Search by name, contact, phone, or email..."
-                    class="flex-1 rounded border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                />
-                <select
-                    name="status"
-                    class="rounded border border-slate-300 pl-4 pr-10 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                >
-                    <option value="">All Status</option>
-                    <option value="active" {{ $status === 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="inactive" {{ $status === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                </select>
-                <button
-                    type="submit"
-                    class="rounded bg-slate-200 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-300"
-                >
-                    Filter
-                </button>
-            </form>
+            <!-- Search & Filters -->
+            <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center">
+                    <div class="w-full lg:max-w-md">
+                        <x-product-search-typeahead
+                            searchInputRef="supplierSearchInput"
+                            placeholder="Search suppliers by name or phone..."
+                            idField="id"
+                            primaryField="supplier_name"
+                            secondaryField="contact_number"
+                            :showMeta="false"
+                        />
+                    </div>
+                    <div class="flex gap-2">
+                        <button
+                            type="button"
+                            @click="applySearch()"
+                            class="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                        >
+                            Search
+                        </button>
+                        <button
+                            type="button"
+                            @click="clearSearch()"
+                            class="rounded border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                        >
+                            Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <x-filters.dropdown-filter
+                        :items="$statuses"
+                        :selected="$status"
+                        route="suppliers.index"
+                        :params="['search' => $search, 'sort_by' => $sortBy, 'sort_dir' => $sortDir]"
+                        label="Filter by Status"
+                        filterName="status"
+                        valueField="value"
+                        displayField="label"
+                        :minCount="1"
+                    />
+                </div>
+            </div>
 
             <!-- Suppliers Table -->
-            <div class="mt-6 overflow-hidden rounded border border-slate-200 bg-white">
+            <div class="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
                 @if ($suppliers->count() > 0)
                     <table class="w-full">
                         <thead class="border-b border-slate-200 bg-indigo-50">
@@ -88,7 +108,7 @@
                                 route="suppliers.index"
                                 :params="['search' => $search, 'status' => $status]"
                             />
-                            <th class="px-6 py-3 text-left text-base font-normal text-slate-700">
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-700">
                                 Actions
                             </th>
                         </tr>
@@ -113,11 +133,11 @@
                                 </td>
                                 <td class="px-6 py-4 text-sm">
                                     @if ($supplier->status === 'active')
-                                        <span class="inline-flex items-center rounded bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                                        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
                                             Active
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center rounded bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800">
+                                        <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800">
                                             Inactive
                                         </span>
                                     @endif
@@ -128,50 +148,52 @@
                                             type="button"
                                             @click="openEditModal({{ $supplier->toJson() }})"
                                             @can('suppliers.edit')
-                                                class="text-indigo-600 hover:text-indigo-700 transition-colors"
+                                                class="text-indigo-600 hover:text-indigo-700"
                                             @else
                                                 disabled
-                                                class="cursor-not-allowed text-slate-400"
+                                            class="cursor-not-allowed text-slate-400"
                                             @endcan
                                         >
-                                            <svg width="18" height="18" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <g clip-path="url(#clip0_586_3461)">
-                                                    <!-- Changed fill and stroke to currentColor -->
-                                                    <path d="M13.3923 16.0714L8.03516 17.0357L8.92801 11.6071L19.1602 1.41066C19.3262 1.24329 19.5237 1.11044 19.7413 1.01978C19.9589 0.929122 20.1923 0.882446 20.428 0.882446C20.6637 0.882446 20.8972 0.929122 21.1148 1.01978C21.3324 1.11044 21.5299 1.24329 21.6959 1.41066L23.5887 3.30351C23.7561 3.46952 23.8889 3.66702 23.9796 3.88463C24.0703 4.10223 24.1169 4.33564 24.1169 4.57137C24.1169 4.80711 24.0703 5.04051 23.9796 5.25812C23.8889 5.47572 23.7561 5.67322 23.5887 5.83923L13.3923 16.0714Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    <path d="M21.4283 16.9643V22.3214C21.4283 22.795 21.2402 23.2492 20.9053 23.5841C20.5704 23.919 20.1162 24.1071 19.6426 24.1071H2.67829C2.20469 24.1071 1.75049 23.919 1.4156 23.5841C1.08072 23.2492 0.892578 22.795 0.892578 22.3214V5.35713C0.892578 4.88352 1.08072 4.42932 1.4156 4.09443C1.75049 3.75955 2.20469 3.57141 2.67829 3.57141H8.03544" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                </g>
-                                                <defs>
-                                                    <clipPath id="clip0_586_3461">
-                                                        <rect width="25" height="25" fill="white"/>
-                                                    </clipPath>
-                                                </defs>
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
                                             </svg>
                                         </button>
-                                        
                                         @can('suppliers.delete')
-                                            <button
-                                                type="button"
-                                                @click="openDeleteModal({{ $supplier->id }}, '{{ addslashes($supplier->supplier_name) }}')"
-                                                class="text-red-600 hover:text-red-700 transition-colors"
-                                            >
-                                                <svg width="20" height="20" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <g clip-path="url(#clip0_586_3460)">
-                                                        <!-- Changed fill and stroke to currentColor -->
-                                                        <path d="M1.78613 6.25H23.2147" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        <path d="M4.46484 6.25H20.5363V22.3214C20.5363 22.795 20.3481 23.2492 20.0132 23.5841C19.6784 23.919 19.2242 24.1071 18.7506 24.1071H6.25056C5.77696 24.1071 5.32275 23.919 4.98787 23.5841C4.65298 23.2492 4.46484 22.795 4.46484 22.3214V6.25Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        <path d="M8.03613 6.24997V5.35711C8.03613 4.17311 8.50648 3.0376 9.34369 2.20038C10.1809 1.36317 11.3164 0.892822 12.5004 0.892822C13.6844 0.892822 14.8199 1.36317 15.6571 2.20038C16.4944 3.0376 16.9647 4.17311 16.9647 5.35711V6.24997" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        
-                                                        <!-- Left these two white so the details show up inside the red trash can -->
-                                                        <path d="M9.82227 9.82141V19.6428" stroke="#F9FAFB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        <path d="M15.1787 9.82141V19.6428" stroke="#F9FAFB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    </g>
-                                                    <defs>
-                                                        <clipPath id="clip0_586_3460">
-                                                            <rect width="25" height="25" fill="white"/>
-                                                        </clipPath>
-                                                    </defs>
-                                                </svg>
-                                            </button>
+                                            @if ($supplier->status === 'inactive')
+                                                <button
+                                                    type="button"
+                                                    @click="openActivateModal({{ $supplier->id }}, '{{ addslashes($supplier->supplier_name) }}')"
+                                                    class="text-emerald-600 hover:text-emerald-700"
+                                                    title="Activate Supplier"
+                                                >
+                                                    <svg
+                                                        class="h-4 w-4"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        stroke-width="2"
+                                                    >
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </button>
+                                            @else
+                                                <button
+                                                    type="button"
+                                                    @click="openDeactivateModal({{ $supplier->id }}, '{{ addslashes($supplier->supplier_name) }}')"
+                                                    class="text-amber-600 hover:text-amber-700"
+                                                    title="Deactivate Supplier"
+                                                >
+                                                    <svg
+                                                        class="h-4 w-4"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        stroke-width="2"
+                                                    >
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6" />
+                                                    </svg>
+                                                </button>
+                                            @endif
                                         @endcan
                                     </div>
                                 </td>
@@ -352,40 +374,65 @@
 
         </x-modals.modal>
 
-        <!-- Delete Confirmation Modal -->
+        <!-- Deactivate Modal -->
         <div
-            x-show="showDeleteModal"
+            x-show="showDeactivateModal"
             x-transition
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-            @click.self="closeDeleteModal()"
+            @click.self="closeDeactivateModal()"
         >
             <div class="w-full max-w-sm rounded bg-white p-6 shadow-lg">
-                <h3 class="mb-2 text-lg font-semibold text-slate-900">Delete Supplier</h3>
+                <h3 class="mb-2 text-lg font-semibold text-slate-900">Deactivate Supplier</h3>
                 <p class="mb-6 text-sm text-slate-600">
-                    Are you sure you want to delete <strong x-text="deleteSupplierName"></strong>? This action cannot be undone.
+                    Are you sure you want to deactivate <strong x-text="deactivateSupplierName"></strong>?
                 </p>
-
-                <form
-                    :action="`/suppliers/${deleteId}`"
-                    method="POST"
-                    class="flex gap-3"
-                >
-                    @csrf
-                    @method('DELETE')
+                <div class="flex gap-3">
                     <button
                         type="button"
-                        @click="closeDeleteModal()"
+                        @click="closeDeactivateModal()"
                         class="flex-1 rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                     >
                         Cancel
                     </button>
                     <button
-                        type="submit"
+                        type="button"
+                        @click="deactivateSupplier()"
                         class="flex-1 rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
                     >
-                        Delete
+                        Deactivate
                     </button>
-                </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activate Modal -->
+        <div
+            x-show="showActivateModal"
+            x-transition
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            @click.self="closeActivateModal()"
+        >
+            <div class="w-full max-w-sm rounded bg-white p-6 shadow-lg">
+                <h3 class="mb-2 text-lg font-semibold text-slate-900">Activate Supplier</h3>
+                <p class="mb-6 text-sm text-slate-600">
+                    Are you sure you want to activate <strong x-text="activateSupplierName"></strong>?
+                </p>
+                <div class="flex gap-3">
+                    <button
+                        type="button"
+                        @click="closeActivateModal()"
+                        class="flex-1 rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        @click="activateSupplier()"
+                        class="flex-1 rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                    >
+                        Activate
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -395,13 +442,28 @@
             return {
                 showModal: false,
                 showDetailModal: false,
-                showDeleteModal: false,
+                showDeactivateModal: false,
+                showActivateModal: false,
                 isEditMode: false,
                 editingId: null,
-                deleteId: null,
-                deleteSupplierName: '',
+                deactivateId: null,
+                activateId: null,
+                deactivateSupplierName: '',
+                activateSupplierName: '',
                 errors: {},
                 detail: {},
+                sortBy: @json($sortBy),
+                sortDir: @json($sortDir),
+                filterStatus: @json($status),
+                typeahead: {
+                    q: @json($search ?? ''),
+                    items: [],
+                    open: false,
+                    loading: false,
+                    activeIndex: -1,
+                    debounceHandle: null,
+                    limit: 8,
+                },
                 form: {
                     supplier_name: '',
                     contact_person: '',
@@ -448,16 +510,28 @@
                     this.errors = {};
                 },
 
-                openDeleteModal(id, name) {
-                    this.deleteId = id;
-                    this.deleteSupplierName = name;
-                    this.showDeleteModal = true;
+                openDeactivateModal(id, name) {
+                    this.deactivateId = id;
+                    this.deactivateSupplierName = name;
+                    this.showDeactivateModal = true;
                 },
 
-                closeDeleteModal() {
-                    this.showDeleteModal = false;
-                    this.deleteId = null;
-                    this.deleteSupplierName = '';
+                closeDeactivateModal() {
+                    this.showDeactivateModal = false;
+                    this.deactivateId = null;
+                    this.deactivateSupplierName = '';
+                },
+
+                openActivateModal(id, name) {
+                    this.activateId = id;
+                    this.activateSupplierName = name;
+                    this.showActivateModal = true;
+                },
+
+                closeActivateModal() {
+                    this.showActivateModal = false;
+                    this.activateId = null;
+                    this.activateSupplierName = '';
                 },
 
                 openDetailModal(supplier) {
@@ -475,9 +549,194 @@
                     this.openEditModal(this.detail);
                 },
 
-                async submitForm() {
+                async deactivateSupplier() {
+                    try {
+                        const response = await fetch(`/suppliers/${this.deactivateId}/deactivate`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document
+                                    .querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                            },
+                        });
 
-                    console.log('submitted')
+                        if (!response.ok) {
+                            throw new Error('Failed to deactivate supplier');
+                        }
+
+                        this.closeDeactivateModal();
+
+                        window.location.reload();
+
+                    } catch (error) {
+                        console.error(error);
+                    }
+                },
+
+                async activateSupplier() {
+                    try {
+                        const response = await fetch(`/suppliers/${this.activateId}/activate`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document
+                                    .querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                            },
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to activate supplier');
+                        }
+
+                        this.closeActivateModal();
+
+                        window.location.reload();
+
+                    } catch (error) {
+                        console.error(error);
+                    }
+                },
+
+                onTypeaheadInput() {
+                    if (this.typeahead.debounceHandle) {
+                        clearTimeout(this.typeahead.debounceHandle);
+                    }
+
+                    const query = this.typeahead.q.trim();
+                    if (!query) {
+                        this.typeahead.items = [];
+                        this.typeahead.open = false;
+                        this.typeahead.activeIndex = -1;
+                        return;
+                    }
+
+                    this.typeahead.debounceHandle = setTimeout(() => {
+                        this.fetchTypeahead(query);
+                    }, 250);
+                },
+
+                async fetchTypeahead(query) {
+                    this.typeahead.loading = true;
+                    this.typeahead.open = true;
+
+                    const params = new URLSearchParams({
+                        q: query,
+                        limit: String(this.typeahead.limit),
+                    });
+
+                    if (this.filterStatus) {
+                        params.set('status', this.filterStatus);
+                    }
+
+                    try {
+                        const response = await fetch(`{{ route('suppliers.api.search') }}?${params.toString()}`);
+                        const data = await response.json();
+
+                        this.typeahead.items = Array.isArray(data) ? data : [];
+                        this.typeahead.activeIndex = this.typeahead.items.length > 0 ? 0 : -1;
+                    } catch (error) {
+                        this.typeahead.items = [];
+                        this.typeahead.activeIndex = -1;
+                        console.error(error);
+                    } finally {
+                        this.typeahead.loading = false;
+                    }
+                },
+
+                reopenTypeahead() {
+                    if (this.typeahead.items.length > 0 || this.typeahead.loading) {
+                        this.typeahead.open = true;
+                    }
+                },
+
+                closeTypeahead() {
+                    this.typeahead.open = false;
+                    this.typeahead.activeIndex = -1;
+                },
+
+                moveTypeahead(step) {
+                    if (!this.typeahead.open || this.typeahead.items.length === 0) {
+                        return;
+                    }
+
+                    const count = this.typeahead.items.length;
+                    const current = this.typeahead.activeIndex < 0 ? 0 : this.typeahead.activeIndex;
+                    this.typeahead.activeIndex = (current + step + count) % count;
+                },
+
+                onTypeaheadEnter() {
+                    if (this.typeahead.open && this.typeahead.items.length > 0) {
+                        const index = this.typeahead.activeIndex >= 0 ? this.typeahead.activeIndex : 0;
+                        this.selectTypeaheadItem(index);
+                        return;
+                    }
+
+                    this.applySearch();
+                },
+
+                selectTypeaheadItem(index) {
+                    const supplier = this.typeahead.items[index];
+                    if (!supplier) {
+                        return;
+                    }
+
+                    this.typeahead.q = supplier.supplier_name || String(supplier.id ?? '');
+                    this.typeahead.items = [];
+                    this.closeTypeahead();
+
+                    this.applySearch();
+                },
+
+                applySearch() {
+                    const query = this.typeahead.q.trim();
+                    const params = new URLSearchParams();
+
+                    if (query) {
+                        params.set('search', query);
+                    }
+                    if (this.filterStatus) {
+                        params.set('status', this.filterStatus);
+                    }
+                    if (this.sortBy) {
+                        params.set('sort_by', this.sortBy);
+                    }
+                    if (this.sortDir) {
+                        params.set('sort_dir', this.sortDir);
+                    }
+
+                    const url = params.toString()
+                        ? `{{ route('suppliers.index') }}?${params.toString()}`
+                        : `{{ route('suppliers.index') }}`;
+
+                    window.location = url;
+                },
+
+                clearSearch() {
+                    this.typeahead.q = '';
+                    const params = new URLSearchParams();
+
+                    if (this.filterStatus) {
+                        params.set('status', this.filterStatus);
+                    }
+                    if (this.sortBy) {
+                        params.set('sort_by', this.sortBy);
+                    }
+                    if (this.sortDir) {
+                        params.set('sort_dir', this.sortDir);
+                    }
+
+                    const url = params.toString()
+                        ? `{{ route('suppliers.index') }}?${params.toString()}`
+                        : `{{ route('suppliers.index') }}`;
+
+                    window.location = url;
+                },
+
+                async submitForm() {
                     this.errors = {};
 
                     const url = this.isEditMode
