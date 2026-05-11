@@ -74,7 +74,7 @@
                                 label="Role"
                                 :sortBy="$sortBy"
                                 :sortDir="$sortDir"
-                                column="role"
+                                column="branch"
                                 route="users.index"
                                 :params="['search' => $search, 'status' => $filterStatus]"
                             />
