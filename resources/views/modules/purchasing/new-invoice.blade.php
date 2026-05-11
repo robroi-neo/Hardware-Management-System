@@ -93,12 +93,12 @@
                         <table class="w-full text-sm">
                             <thead class="text-left text-gray-600 bg-indigo-50">
                                 <tr>
-                                    <th class="px-4 py-3 font-normal">Product</th>
-                                    <th class="px-4 py-3 font-normal">Unit</th>
-                                    <th class="px-4 py-3 font-normal">Quantity</th>
-                                    <th class="px-4 py-3 font-normal">Unit Price</th>
-                                    <th class="px-4 py-3 font-normal">Subtotal</th>
-                                    <th class="px-4 py-3 font-normal"></th>
+                                    <th class="px-4 py-3 font-medium">Product</th>
+                                    <th class="px-4 py-3 font-medium">Unit</th>
+                                    <th class="px-4 py-3 font-medium">Quantity</th>
+                                    <th class="px-4 py-3 font-medium">Unit Price</th>
+                                    <th class="px-4 py-3 font-medium">Subtotal</th>
+                                    <th class="px-4 py-3 font-medium"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y">

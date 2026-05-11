@@ -4,7 +4,7 @@
     </x-slot>
 
     <x-card>
-        <!-- Search Bar & Branch Filter -->
+        <!-- Search Bar & Branch Filter --> 
         <div class="mb-6 flex flex-col gap-4" x-data="inventorySearch('{{ route('pos.api.products.search') }}', '{{ route('inventory.overview') }}', '{{ $filterBranchId }}')">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex-1">
@@ -48,8 +48,8 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b border-slate-200 bg-indigo-50">
-                            <th class="px-4 py-3 text-left font-normal text-slate-700">ID</th>
+                        <tr class="border-b border-slate-200 bg-indigo-100">
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">ID</th>
                             <x-table.sortable-header
                                 label="Product Name"
                                 :sortBy="$sortBy"
@@ -58,7 +58,7 @@
                                 route="inventory.overview"
                                 :params="['search' => $search]"
                             />
-                            <th class="px-4 py-3 text-left font-normal text-slate-700">Unit</th>
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">Unit</th>
                             <x-table.sortable-header
                                 label="Quantity"
                                 :sortBy="$sortBy"
@@ -68,10 +68,10 @@
                                 :params="['search' => $search]"
                                 align="right"
                             />
-                            <th class="px-4 py-3 text-right font-normal text-slate-700">Unit Cost</th>
-                            <th class="px-4 py-3 text-right font-normal text-slate-700">Total Value</th>
-                            <th class="px-4 py-3 text-left font-normal text-slate-700">Branch</th>
-                            <th class="px-4 py-3 text-left font-normal text-slate-700">Status</th>
+                            <th class="px-4 py-3 text-right font-medium text-slate-700">Unit Cost</th>
+                            <th class="px-4 py-3 text-right font-medium text-slate-700">Total Value</th>
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">Branch</th>
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">Status</th>
                         </tr>
                     </thead>
                     <tbody>

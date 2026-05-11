@@ -11,7 +11,7 @@
                 name="search"
                 value="{{ $search }}"
                 placeholder="Search by invoice ID, purchase ID, or supplier..."
-                class="flex-1 border-gray-200 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                class="flex-1 placeholder-gray-400 border-gray-200 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
 
             @if($suppliers->count() >= 2)
@@ -87,7 +87,7 @@
                                 :params="['search' => $search, 'supplier_id' => $filterSupplierId]"
                                 align="right"
                             />
-                            <th class="px-4 py-3 font-normal">Items</th>
+                            <th class="px-4 py-3 font-medium">Items</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">

@@ -36,7 +36,7 @@
     };
 @endphp
 
-<th class="px-4 py-3 font-normal text-slate-700 {{ $alignClass }}">
+<th class="px-4 py-3 font-medium text-slate-700 {{ $alignClass }}">
     <a
         href="{{ route($route, array_merge($params, ['sort_by' => $column, 'sort_dir' => $newDirection])) }}"
         class="inline-flex items-center gap-1 {{ $flexAlign }} w-full hover:text-blue-600 transition-colors"

@@ -8,8 +8,10 @@
             <div class="flex flex-col h-full min-h-0">
 
                 <div class="flex items-center justify-between mb-4 flex-shrink-0">
-                    <x-product-search-typeahead />
-                    <button @click="openBrowseModal" class="ml-4 inline-flex text-indigo-600 text-medium items-center gap-2 bg-white border rounded px-3 py-2 text-sm">
+                    <div class="flex-1 w-full min-w-0">
+                        <x-product-search-typeahead />
+                    </div>
+                    <button @click="openBrowseModal" class="ml-4 inline-flex flex-shrink-0 whitespace-nowrap text-indigo-600 font-medium items-center gap-2 bg-white border rounded px-3 py-2 text-sm">
                         <span class="bg-indigo-600 text-white rounded w-5 h-5 flex items-center justify-center">+</span>
                         Browse Products
                     </button>
@@ -22,14 +24,14 @@
                         <table class="min-w-full text-sm">
                             <thead class="text-left text-gray-600 bg-indigo-100 sticky top-0 z-10">
                                 <tr>
-                                    <th class="px-4 py-3 font-normal">Product ID</th>
-                                    <th class="px-4 py-3 font-normal">Product Name</th>
-                                    <th class="px-4 py-3 font-normal">Unit</th>
-                                    <th class="px-4 py-3 font-normal">Capital</th>
-                                    <th class="px-4 py-3 font-normal">Markup</th>
-                                    <th class="px-4 py-3 font-normal">Quantity</th>
-                                    <th class="px-4 py-3 font-normal">Subtotal</th>
-                                    <th class="px-4 py-3 font-normal"></th>
+                                    <th class="px-4 py-3 font-medium">ID</th>
+                                    <th class="px-4 py-3 font-medium">Product Name</th>
+                                    <th class="px-4 py-3 font-medium">Unit</th>
+                                    <th class="px-4 py-3 font-medium">Capital</th>
+                                    <th class="px-4 py-3 font-medium">Markup</th>
+                                    <th class="px-4 py-3 font-medium">Quantity</th>
+                                    <th class="px-4 py-3 font-medium">Subtotal</th>
+                                    <th class="px-4 py-3 font-medium"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y">
@@ -38,10 +40,10 @@
                                         <td class="px-4 py-3" x-text="item.product_id"></td>
                                         <td class="px-4 py-3" x-text="item.product_name"></td>
                                         <td class="px-4 py-3" x-text="item.unit"></td>
-                                        <td class="px-4 py-3">P<span x-text="formatPrice(item.unit_price)"></span></td>
+                                        <td class="px-4 py-3">₱<span x-text="formatPrice(item.unit_price)"></span></td>
                                         <td class="px-4 py-3">
                                             <div class="flex items-center gap-1">
-                                                <span class="text-gray-500">P</span>
+                                                <span class="text-gray-500">₱</span>
                                                 <input
                                                     type="number"
                                                     :value="item.markup"
@@ -65,7 +67,7 @@
                                                 Max: <span x-text="formatQty(getOrderMaxQty(item))"></span>
                                             </div>
                                         </td>
-                                        <td class="px-4 py-3">P<span x-text="formatPrice(item.subtotal)"></span></td>
+                                        <td class="px-4 py-3">₱<span x-text="formatPrice(item.subtotal)"></span></td>
                                         <td class="px-4 py-3 text-right">
                                             <button @click="removeOrderItem(item.product_id)" class="text-xs text-red-500">Remove</button>
                                         </td>
@@ -90,7 +92,7 @@
                     <div class="grid grid-cols-4 gap-2 text-xs text-gray-500 font-medium px-1">
                         <div>NAME</div>
                         <div>QTY</div>
-                        <div>SELLING PRICE</div>
+                        <div>PRICE</div>
                         <div>TOTAL</div>
                     </div>
                 </div>
@@ -100,8 +102,8 @@
                         <div class="grid grid-cols-4 gap-2 items-center text-sm px-1">
                             <div class="text-gray-700 truncate" x-text="item.product_name"></div>
                             <div class="text-gray-700" x-text="formatQty(item.quantity)"></div>
-                            <div class="text-gray-700">P<span x-text="formatPrice((item.unit_price ?? 0) + (item.markup ?? 0))"></span></div>
-                            <div class="font-medium text-slate-900">P<span x-text="formatPrice(item.subtotal)"></span></div>
+                            <div class="text-gray-700">₱<span x-text="formatPrice((item.unit_price ?? 0) + (item.markup ?? 0))"></span></div>
+                            <div class="font-medium text-slate-900">₱<span x-text="formatPrice(item.subtotal)"></span></div>
                         </div>
                     </template>
                     <template x-if="order.length === 0">
@@ -112,7 +114,7 @@
                 <div class="border-t pt-4 flex-shrink-0">
                     <div class="flex items-center justify-between mb-6">
                         <div class="text-lg font-semibold">Total:</div>
-                        <div class="text-lg font-semibold text-indigo-700">P<span x-text="formatPrice(total)"></span></div>
+                        <div class="text-lg font-semibold text-indigo-700">₱<span x-text="formatPrice(total)"></span></div>
                     </div>
 
                     <button @click="openCheckoutModal" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded mb-3 disabled:opacity-50" :disabled="order.length === 0 || checkout.processing">Checkout</button>
@@ -135,7 +137,7 @@
                     </div>
                     <div class="flex items-center justify-between border-t pt-3">
                         <span class="text-slate-600">Amount Due</span>
-                        <span class="text-base font-semibold text-slate-900">P<span x-text="formatPrice(total)"></span></span>
+                        <span class="text-base font-semibold text-slate-900">₱<span x-text="formatPrice(total)"></span></span>
                     </div>
                 </div>
 
@@ -183,15 +185,15 @@
                                         <div class="text-xs text-slate-500">#<span x-text="item.product_id"></span> · <span x-text="item.unit"></span></div>
                                     </div>
                                     <div class="col-span-2 text-right" x-text="formatQty(item.quantity)"></div>
-                                    <div class="col-span-2 text-right">P<span x-text="formatPrice((item.unit_price ?? 0) + (item.markup ?? 0))"></span></div>
-                                    <div class="col-span-3 text-right">P<span x-text="formatPrice(item.subtotal)"></span></div>
+                                    <div class="col-span-2 text-right">₱<span x-text="formatPrice((item.unit_price ?? 0) + (item.markup ?? 0))"></span></div>
+                                    <div class="col-span-3 text-right">₱<span x-text="formatPrice(item.subtotal)"></span></div>
                                 </div>
                             </template>
                         </div>
 
                         <div class="border-t pt-3 flex items-center justify-between text-base">
                             <span class="font-medium">Total</span>
-                            <span class="font-semibold">P<span x-text="formatPrice(receipt.total)"></span></span>
+                            <span class="font-semibold">₱<span x-text="formatPrice(receipt.total)"></span></span>
                         </div>
                     </div>
                 </template>
@@ -225,12 +227,12 @@
                         <table class="min-w-full text-sm">
                             <thead class="bg-slate-100 text-slate-700 text-left">
                                 <tr>
-                                    <th class="px-3 py-2">ID</th>
-                                    <th class="px-3 py-2">Name</th>
-                                    <th class="px-3 py-2">Unit</th>
-                                    <th class="px-3 py-2">Price</th>
-                                    <th class="px-3 py-2">Stock</th>
-                                    <th class="px-3 py-2">Qty</th>
+                                    <th class="px-3 py-2 font-medium">ID</th>
+                                    <th class="px-3 py-2 font-medium">Name</th>
+                                    <th class="px-3 py-2 font-medium">Unit</th>
+                                    <th class="px-3 py-2 font-medium">Price</th>
+                                    <th class="px-3 py-2 font-medium">Stock</th>
+                                    <th class="px-3 py-2 font-medium">Qty</th>
                                     <th class="px-3 py-2"></th>
                                 </tr>
                             </thead>
@@ -240,7 +242,7 @@
                                         <td class="px-3 py-2" x-text="product.id"></td>
                                         <td class="px-3 py-2" x-text="product.name"></td>
                                         <td class="px-3 py-2" x-text="product.unit"></td>
-                                        <td class="px-3 py-2">P<span x-text="formatPrice(product.capital)"></span></td>
+                                        <td class="px-3 py-2">₱<span x-text="formatPrice(product.capital)"></span></td>
                                         <td class="px-3 py-2">
                                             <span x-text="formatQty(product.available_quantity ?? 0)"></span>
                                             <span class="text-xs text-slate-500" x-show="getOrderQty(product.id) > 0">
@@ -449,7 +451,7 @@ function posApp() {
                         </thead>
                         <tbody>${rows}</tbody>
                     </table>
-                    <div class="total">Total: P${this.formatPrice(this.receipt.total)}</div>
+                    <div class="total">Total: ₱${this.formatPrice(this.receipt.total)}</div>
                     <script>window.print();window.close();<\/script>
                 </body>
                 </html>

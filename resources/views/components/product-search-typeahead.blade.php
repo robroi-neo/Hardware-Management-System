@@ -9,6 +9,7 @@
     'priceField' => 'capital',
     'showStock' => true,
     'stockField' => 'available_quantity',
+    'showClearX' => true,
 ])
 
 <div class="w-full relative" @click.outside="() => closeTypeahead()">
@@ -26,17 +27,19 @@
             placeholder="{{ $placeholder }}"
             class="placeholder-gray-400 bg-white-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
         />
-        <button
-            type="button"
-            @click="typeahead.q = ''; closeTypeahead(); typeahead.items = []; $refs['{{ $searchInputRef }}']?.focus()"
-            x-show="typeahead.q.trim().length > 0"
-            class="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
-            aria-label="Clear search"
-        >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </button>
+        @if($showClearX)
+            <button
+                type="button"
+                @click="typeahead.q = ''; closeTypeahead(); typeahead.items = []; $refs['{{ $searchInputRef }}']?.focus()"
+                x-show="typeahead.q.trim().length > 0"
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+                aria-label="Clear search"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        @endif
     </label>
 
     <div
@@ -68,7 +71,7 @@
                             <span x-show="item['{{ $secondaryField }}']" x-text="item['{{ $secondaryField }}']"></span>
                             @if($showPrice)
                                 <span x-show="item['{{ $priceField }}'] !== undefined">
-                                    | P<span x-text="formatPrice(item['{{ $priceField }}'])"></span>
+                                    | ₱<span x-text="formatPrice(item['{{ $priceField }}'])"></span>
                                 </span>
                             @endif
                             @if($showStock)

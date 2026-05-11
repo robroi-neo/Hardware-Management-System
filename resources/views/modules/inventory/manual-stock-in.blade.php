@@ -40,14 +40,14 @@
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-indigo-50 border-b border-slate-200">
+                        <thead class="bg-indigo-100 border-b border-slate-200">
                             <tr>
-                                <th class="px-4 py-3 text-left font-normal text-slate-700">Product ID</th>
-                                <th class="px-4 py-3 text-left font-normal text-slate-700">Product Name</th>
-                                <th class="px-4 py-3 text-left font-normal text-slate-700">Unit</th>
-                                <th class="px-4 py-3 text-right font-normal text-slate-700">Unit Cost</th>
-                                <th class="px-4 py-3 text-right font-normal text-slate-700">Quantity</th>
-                                <th class="px-4 py-3 text-right font-normal text-slate-700">Subtotal</th>
+                                <th class="px-4 py-3 text-left font-medium text-slate-700">Product ID</th>
+                                <th class="px-4 py-3 text-left font-medium text-slate-700">Product Name</th>
+                                <th class="px-4 py-3 text-left font-medium text-slate-700">Unit</th>
+                                <th class="px-4 py-3 text-right font-medium text-slate-700">Unit Cost</th>
+                                <th class="px-4 py-3 text-right font-medium text-slate-700">Quantity</th>
+                                <th class="px-4 py-3 text-right font-medium text-slate-700">Subtotal</th>
                                 <th class="px-4 py-3 text-center"></th>
                             </tr>
                         </thead>

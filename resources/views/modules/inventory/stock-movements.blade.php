@@ -78,7 +78,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="border-b border-slate-200 bg-indigo-50">
+                    <tr class="border-b border-slate-200 bg-indigo-100">
                         <x-table.sortable-header
                             label="Date & Time"
                             :sortBy="$sortBy"
@@ -95,7 +95,7 @@
                             route="inventory.stock-movements"
                             :params="['search' => $search, 'type' => $filterType, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
                         />
-                        <th class="px-4 py-3 text-left font-normal text-slate-700">Unit</th>
+                        <th class="px-4 py-3 text-left font-medium text-slate-700">Unit</th>
                         <x-table.sortable-header
                             label="Type"
                             :sortBy="$sortBy"
@@ -113,8 +113,8 @@
                             :params="['search' => $search, 'type' => $filterType, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
                             align="right"
                         />
-                        <th class="px-4 py-3 text-left font-normal text-slate-700">Branch</th>
-                        <th class="px-4 py-3 text-left font-normal text-slate-700">User</th>
+                        <th class="px-4 py-3 text-left font-medium text-slate-700">Branch</th>
+                        <th class="px-4 py-3 text-left font-medium text-slate-700">User</th>
                     </tr>
                 </thead>
                 <tbody>
