@@ -122,8 +122,6 @@ Route::middleware('auth')->group(function () {
     Route::prefix('pos/api')->group(function () {
         Route::get('products/search', [ProductController::class, 'search'])->name('pos.api.products.search');
         Route::get('products/browse', [ProductController::class, 'browse'])->name('pos.api.products.browse');
-        Route::get('pos/transactions/{sale}', [TransactionController::class, 'show'])->name('pos.transactions.show');
-
 
         Route::get('cart', [PosController::class, 'getCart'])->name('pos.api.cart.get');
         Route::post('cart/add', [PosController::class, 'addItem'])->name('pos.api.cart.add');
@@ -134,6 +132,9 @@ Route::middleware('auth')->group(function () {
         Route::get('checkout/prepare', [CheckoutController::class, 'prepare'])->name('pos.api.checkout.prepare');
         Route::post('checkout/finalize', [CheckoutController::class, 'finalize'])->name('pos.api.checkout.finalize');
     });
+
+// Moved out — resolves to /pos/transactions/{sale}
+    Route::get('pos/transactions/{sale}', [TransactionController::class, 'show'])->name('pos.transactions.show');
 
     // Inventory API endpoints
     Route::prefix('inventory/api')->group(function () {

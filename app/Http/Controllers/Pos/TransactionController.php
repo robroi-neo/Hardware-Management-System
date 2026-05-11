@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
 use App\Models\Sale;
+use App\Models\SaleItem;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, SaleItem $saleItem)
     {
         // Get sort parameters from query string
         $sortBy = $request->query('sort_by', 'date');
@@ -41,8 +42,9 @@ class TransactionController extends Controller
 
     public function show(Sale $sale)
     {
-        $sale->load('items.product');
 
+        $sale->load('items.product');
+        logger($sale);
         return response()->json([
             'id' => $sale->id,
             'date' => $sale->date->format('Y-m-d H:i:s'),

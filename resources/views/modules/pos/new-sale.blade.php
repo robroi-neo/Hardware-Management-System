@@ -44,7 +44,7 @@
                                                 <span class="text-gray-500">P</span>
                                                 <input
                                                     type="number"
-                                                    :value="item.markup_amount"
+                                                    :value="item.markup"
                                                     @change="updateMarkup(item.product_id, $event.target.value)"
                                                     class="w-24 border rounded px-2 py-1 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                 />
@@ -100,7 +100,7 @@
                         <div class="grid grid-cols-4 gap-2 items-center text-sm px-1">
                             <div class="text-gray-700 truncate" x-text="item.product_name"></div>
                             <div class="text-gray-700" x-text="formatQty(item.quantity)"></div>
-                            <div class="text-gray-700">P<span x-text="formatPrice((item.unit_price ?? 0) + (item.markup_amount ?? 0))"></span></div>
+                            <div class="text-gray-700">P<span x-text="formatPrice((item.unit_price ?? 0) + (item.markup ?? 0))"></span></div>
                             <div class="font-medium text-slate-900">P<span x-text="formatPrice(item.subtotal)"></span></div>
                         </div>
                     </template>
@@ -173,7 +173,7 @@
                             <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-slate-500 mb-2">
                                 <div class="col-span-5">Item</div>
                                 <div class="col-span-2 text-right">Qty</div>
-                                <div class="col-span-2 text-right">Price</div>
+                                <div class="col-span-2 text-right">Total Price</div>
                                 <div class="col-span-3 text-right">Subtotal</div>
                             </div>
                             <template x-for="item in (receipt.items || [])" :key="item.product_id">
@@ -183,7 +183,7 @@
                                         <div class="text-xs text-slate-500">#<span x-text="item.product_id"></span> · <span x-text="item.unit"></span></div>
                                     </div>
                                     <div class="col-span-2 text-right" x-text="formatQty(item.quantity)"></div>
-                                    <div class="col-span-2 text-right">P<span x-text="formatPrice(item.unit_price)"></span></div>
+                                    <div class="col-span-2 text-right">P<span x-text="formatPrice((item.unit_price ?? 0) + (item.markup ?? 0))"></span></div>
                                     <div class="col-span-3 text-right">P<span x-text="formatPrice(item.subtotal)"></span></div>
                                 </div>
                             </template>
@@ -841,10 +841,8 @@ function posApp() {
 
             await this.postJson(`{{ route('pos.api.cart.markup') }}`, {
                 product_id: productId,
-                markup_amount: amount,
+                markup: amount,
             });
-
-            await this.refreshOrder();
         },
     };
 }

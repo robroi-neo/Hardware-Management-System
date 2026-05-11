@@ -88,18 +88,18 @@ class PosController extends Controller
     {
         $data = $request->validate([
             'product_id' => 'required|integer',
-            'markup_amount' => 'required|numeric|min:0',
+            'markup' => 'required|numeric|min:0',
         ]);
 
         $cart = $request->session()->get($this->sessionKey, []);
         $productId = (int) $data['product_id'];
-        $markupAmount = (float) $data['markup_amount'];
+        $markup = (float) $data['markup'];
 
         $updated = false;
 
         foreach ($cart as &$item) {
             if ((int) ($item['product_id'] ?? 0) === $productId) {
-                $item['markup_amount'] = $markupAmount;
+                $item['markup'] = $markup;
                 $updated = true;
                 break;
             }

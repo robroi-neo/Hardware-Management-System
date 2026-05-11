@@ -44,7 +44,7 @@ class CheckoutController extends Controller
             $p = $products[$c['product_id']];
             $qty = $c['quantity'];
             $unitPrice = $p->capital;
-            $markup = (float) ($c['markup_amount'] ?? 0);
+            $markup = (float) ($c['markup'] ?? 0);
             $sellingPrice = $unitPrice + $markup;
             $subtotal = $sellingPrice * $qty;
             $items[] = [
@@ -54,7 +54,7 @@ class CheckoutController extends Controller
                 'quantity' => $qty,
                 'available_quantity' => (float) (optional($inventories->get($p->id))->quantity ?? 0),
                 'unit_price' => $unitPrice,
-                'markup_amount' => $markup,
+                'markup' => $markup,
                 'cost' => $p->capital,
                 'subtotal' => $subtotal,
             ];
@@ -68,7 +68,7 @@ class CheckoutController extends Controller
         ]);
     }
 //  Finalize Function - This function handles the finalization of the checkout process.
-// It validates the incoming request data, checks for sufficient stock in the branch inventory,
+//// It validates the incoming request data, checks for sufficient stock in the branch inventory,
     public function finalize(Request $request)
     {
         $data = $request->validate([
@@ -101,82 +101,78 @@ class CheckoutController extends Controller
                 $qty = $c['quantity'];
                 $inv = $inventories[$pid] ?? null;
                 if (! $inv || $inv->quantity < $qty) {
-                    abort(422, 'Insufficient stock for product '.$pid);
+                    abort(422, 'Insufficient stock for product ' . $pid);
                 }
-                $markup = (float) ($c['markup_amount'] ?? 0);
+                $markup = (float) ($c['markup'] ?? 0); // fixed key
                 $sellingPrice = $products[$pid]->capital + $markup;
                 $total += $sellingPrice * $qty;
                 $inv->decrement('quantity', $qty);
             }
 
             $sale = Sale::create([
-                'date' => now(),
-                'user_id' => $request->user()->id,
-                'total_amount' => $total,
-                'branch_id' => $branchId,
+                'date'           => now(),
+                'user_id'        => $request->user()->id,
+                'total_amount'   => $total,
+                'branch_id'      => $branchId,
                 'payment_method' => $data['payment_method'],
             ]);
 
             AuditLog::create([
-                'user_id' => $request->user()->id,
+                'user_id'     => $request->user()->id,
                 'entity_type' => 'sale',
-                'entity_id' => $sale->id,
-                'action' => 'created',
-                'new_values' => [
-                    'total_amount' => (float) $total,
+                'entity_id'   => $sale->id,
+                'action'      => 'created',
+                'new_values'  => [
+                    'total_amount'   => (float) $total,
                     'payment_method' => $sale->payment_method,
-                    'items_count' => count($cart),
-                    'branch_id' => $branchId,
+                    'items_count'    => count($cart),
+                    'branch_id'      => $branchId,
                 ],
             ]);
 
-            foreach ($cart as $c) {
-                $p = $products[$c['product_id']];
-                $markup = (float) ($c['markup_amount'] ?? 0);
-                $sellingPrice = $p->capital + $markup;
-                $qty = (float) $c['quantity'];
-                $receiptItems[] = [
-                    'product_id' => $p->id,
-                    'product_name' => $p->name,
-                    'unit' => $p->unit,
-                    'quantity' => $qty,
-                    'unit_price' => $sellingPrice,
-                    'subtotal' => $sellingPrice * $qty,
-                ];
-            }
-
+            // Save line items to DB and build receipt
             $receiptItems = [];
             foreach ($cart as $c) {
-                $p = $products[$c['product_id']];
-                $unitPrice = (float) $p->capital;
-                $qty = (float) $c['quantity'];
+                $p        = $products[$c['product_id']];
+                $markup   = (float) ($c['markup'] ?? 0); // fixed key
+                $qty      = (float) $c['quantity'];
+                $selling  = $p->capital + $markup;
+                $subtotal = $selling * $qty;
+
+                // Persist each line item
+                $sale->items()->create([
+                    'product_id'    => $p->id,
+                    'quantity'      => $qty,
+                    'unit_price'    => $selling,
+                    'markup' => $markup,
+                    'subtotal'      => $subtotal,
+                ]);
+
                 $receiptItems[] = [
-                    'product_id' => $p->id,
+                    'product_id'   => $p->id,
                     'product_name' => $p->name,
-                    'unit' => $p->unit,
-                    'quantity' => $qty,
-                    'unit_price' => $unitPrice,
-                    'subtotal' => $unitPrice * $qty,
+                    'unit'         => $p->unit,
+                    'quantity'     => $qty,
+                    'unit_price'   => $selling,
+                    'subtotal'     => $subtotal,
                 ];
             }
-
-            // clear cart
             $request->session()->forget('pos_cart');
 
             return response()->json([
                 'sale_id' => $sale->id,
-                'total' => $total,
+                'total'   => $total,
                 'receipt' => [
-                    'sale_id' => $sale->id,
-                    'date' => optional($sale->date)->format('Y-m-d H:i:s'),
-                    'cashier' => $request->user()->name,
-                    'branch_id' => $branchId,
-                    'branch_name' => $terminal['branch_name'] ?? null,
-                    'terminal_id' => $terminal['terminal_id'] ?? null,
-                    'terminal_name' => $terminal['terminal_name'] ?? null,
+                    'sale_id'        => $sale->id,
+                    'date'           => optional($sale->date)->format('Y-m-d H:i:s'),
+                    'cashier'        => $request->user()->name,
+                    'branch_id'      => $branchId,
+                    'branch_name'    => $terminal['branch_name'] ?? null,
+                    'terminal_id'    => $terminal['terminal_id'] ?? null,
+                    'terminal_name'  => $terminal['terminal_name'] ?? null,
                     'payment_method' => $sale->payment_method,
-                    'items' => $receiptItems,
-                    'total' => (float) $total,
+                    'items'          => $receiptItems,
+                    'total'          => (float) $total,
                 ],
             ]);
         });
