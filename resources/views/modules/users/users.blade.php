@@ -51,45 +51,46 @@
             <div class="overflow-hidden rounded border border-slate-200 bg-white">
                 <table class="min-w-full text-sm">
                     <thead class="bg-indigo-100 text-left text-slate-700">
-                    <tr>
-                        <x-table.sortable-header
-                            label="Name"
-                            :sortBy="$sortBy"
-                            :sortDir="$sortDir"
-                            column="name"
-                            route="users.index"
-                            :params="['search' => $search, 'status' => $filterStatus]"
-                        />
-                        <x-table.sortable-header
-                            label="Phone"
-                            :sortBy="$sortBy"
-                            :sortDir="$sortDir"
-                            column="phone"
-                            route="users.index"
-                            :params="['search' => $search, 'status' => $filterStatus]"
-                        />
-                        <th class="px-4 py-3 font-medium">Role</th>
-                        <x-table.sortable-header
-                            label="Branch"
-                            :sortBy="$sortBy"
-                            :sortDir="$sortDir"
-                            column="branch"
-                            route="users.index"
-                            :params="['search' => $search, 'status' => $filterStatus]"
-                        />
-                        <x-table.sortable-header
-                            label="Status"
-                            :sortBy="$sortBy"
-                            :sortDir="$sortDir"
-                            column="status"
-                            route="users.index"
-                            :params="['search' => $search, 'status' => $filterStatus]"
-                        />
+                        <tr>
+                            <x-table.sortable-header
+                                label="Name"
+                                :sortBy="$sortBy"
+                                :sortDir="$sortDir"
+                                column="name"
+                                route="users.index"
+                                :params="['search' => $search, 'status' => $filterStatus]"
+                            />
+                            <x-table.sortable-header
+                                label="Phone"
+                                :sortBy="$sortBy"
+                                :sortDir="$sortDir"
+                                column="phone"
+                                route="users.index"
+                                :params="['search' => $search, 'status' => $filterStatus]"
+                            />
+                            <th class="px-4 py-3 font-medium">Branch</th>
 
-                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-700">
-                            Actions
-                        </th>
-                    </tr>
+                            <x-table.sortable-header
+                                label="Role"
+                                :sortBy="$sortBy"
+                                :sortDir="$sortDir"
+                                column="role"
+                                route="users.index"
+                                :params="['search' => $search, 'status' => $filterStatus]"
+                            />
+                            <x-table.sortable-header
+                                label="Status"
+                                :sortBy="$sortBy"
+                                :sortDir="$sortDir"
+                                column="status"
+                                route="users.index"
+                                :params="['search' => $search, 'status' => $filterStatus]"
+                            />
+
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-700">
+                                Actions
+                            </th>
+                        </tr>
                     </thead>
                     <tbody class="divide-y border-t border-slate-200">
                     @forelse($users as $user)
@@ -108,7 +109,17 @@
                             <td class="px-4 py-3 text-slate-600">
                                 {{ $user->getRoleNames()->join(', ') }}
                             </td>
-                            <td class="px-4 py-3 text-slate-900">{{ $user->status }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                @if ($user->status === 'active')
+                                    <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                                        Active
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800">
+                                        Inactive
+                                    </span>
+                                @endif
+                            </td>
 
                             <td class="px-6 py-4 text-sm">
                                 <div class="flex gap-2">
