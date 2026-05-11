@@ -74,7 +74,7 @@
         <select
             name="{{ $filterName }}"
             onchange="this.form.submit()"
-            class="rounded border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 hover:border-slate-400 transition-colors {{ $class }}"
+            class="rounded border border-slate-200 pl-3 pr-10 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 hover:border-slate-400 transition-colors {{ $class }}"
             aria-label="{{ $label }}"
         >
             <option value="">{{ $label }}</option>
