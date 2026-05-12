@@ -31,12 +31,23 @@ class InvoiceHistoryController extends Controller
 
         // Apply search filter
         if ($search) {
+
             $query->where(function ($q) use ($search) {
-                $q->where('invoices.id', 'like', "%{$search}%")
-                    ->orWhere('invoices.purchase_id', 'like', "%{$search}%")
-                    ->orWhereHas('purchase.supplier', function ($subQ) use ($search) {
-                        $subQ->where('supplier_name', 'like', "%{$search}%");
-                    });
+
+                // 1. PRIORITY: Exact invoice ID match (fast path)
+                if (is_numeric($search)) {
+                    $q->orWhere('invoices.id', (int) $search)
+                        ->orWhere('invoices.purchase_id', (int) $search);
+                }
+
+                // 2. SECONDARY: Supplier name exact-ish match (still structured)
+                $q->orWhereHas('purchase.supplier', function ($subQ) use ($search) {
+                    $subQ->where('supplier_name', 'like', "{$search}%"); // prefix match (not full wildcard)
+                });
+
+                // 3. FALLBACK: Broad match only if needed
+                $q->orWhere('invoices.id', 'like', "%{$search}%")
+                    ->orWhere('invoices.purchase_id', 'like', "%{$search}%");
             });
         }
 
@@ -50,7 +61,7 @@ class InvoiceHistoryController extends Controller
         // Apply sorting and pagination
         $invoices = $query->orderBy($sortBy, $sortDir)
             ->paginate(15)
-            ->appends($request->query());
+            ->appends(request()->except('page'));  // Exclude 'page' to prevent pagination duplicates
 
         // Get all suppliers for filter dropdown
         $suppliers = Supplier::where('status', 'active')->orderBy('supplier_name')->get();
