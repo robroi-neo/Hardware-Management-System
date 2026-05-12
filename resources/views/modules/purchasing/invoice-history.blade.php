@@ -78,11 +78,12 @@
                     </a>
                 @endif
             </div>
-
-
         </form>
 
-
+        {{-- Active filter summary --}}
+        <x-filters.active-summary
+            :fields="['search', 'supplier_id', 'date_from', 'date_to']"
+        />
 
         <!-- Invoices Table -->
         <div class="border border-gray-200 rounded overflow-hidden">

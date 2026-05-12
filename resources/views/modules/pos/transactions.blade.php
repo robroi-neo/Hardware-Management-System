@@ -99,26 +99,9 @@
         </form>
 
         {{-- Active filter summary --}}
-        @if(request()->hasAny(['search', 'payment_method', 'date_from', 'date_to']))
-            <div class="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                <span>Showing results for:</span>
-                @if(request('search'))
-                    <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 font-medium text-indigo-700">
-                        "{{ request('search') }}"
-                    </span>
-                @endif
-                @if(request('payment_method'))
-                    <span class="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 font-medium text-green-700">
-                        {{ ucfirst(request('payment_method')) }}
-                    </span>
-                @endif
-                @if(request('date_from') || request('date_to'))
-                    <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 font-medium text-amber-700">
-                        {{ request('date_from', '...') }} → {{ request('date_to', '...') }}
-                    </span>
-                @endif
-            </div>
-        @endif
+        <x-filters.active-summary
+            :fields="['search', 'payment_method', 'date_from', 'date_to']"
+        />
 
         <div class="border border-gray-200 rounded overflow-hidden">
             <div class="overflow-x-auto">
