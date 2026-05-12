@@ -306,19 +306,21 @@
                 </div>
 
                 <!-- Status -->
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-slate-700">
-                        Status <span class="text-red-500">*</span>
-                    </label>
-                    <select
-                        name="status"
-                        x-model="form.status"
-                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                    >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
+                <template x-if="!isEditMode">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-slate-700">
+                            Status <span class="text-red-500">*</span>
+                        </label>
+                        <select
+                            name="status"
+                            x-model="form.status"
+                            class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        >
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </template>
 
                 <div class="flex gap-3">
                     <button

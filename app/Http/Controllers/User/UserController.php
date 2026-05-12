@@ -82,7 +82,7 @@ class UserController extends Controller
         $beforeRole = $user->roles->first()?->name;
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
-            'phone'     => 'nullable|string|max:20',
+            'phone'     => ['nullable', 'regex:/^09\d{9}$/'],
             'role'      => 'required|string|exists:roles,name',
             'branch_id' => 'nullable|exists:branches,id',
             'status'    => 'required|in:active,inactive',
