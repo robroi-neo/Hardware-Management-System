@@ -5,6 +5,105 @@
 
     {{-- x-data moved here so openDetail() is accessible to both the table rows and the modal --}}
     <x-card title="Transaction History" fullHeight x-data="transactionDetail()">
+
+        {{-- Search & Filter Bar --}}
+        <form method="GET" action="{{ route('pos.transactions') }}" class="mb-4 flex flex-col sm:flex-row gap-3">
+            {{-- Preserve existing sort state --}}
+            @if(request('sort_by'))
+                <input type="hidden" name="sort_by" value="{{ request('sort_by') }}">
+            @endif
+            @if(request('sort_dir'))
+                <input type="hidden" name="sort_dir" value="{{ request('sort_dir') }}">
+            @endif
+
+            {{-- Search Input --}}
+            <div class="flex-1 relative">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 15.803 7.5 7.5 0 0 0 15.803 15.803Z" />
+                    </svg>
+                </div>
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    placeholder="Search by ID or cashier..."
+                    class="w-full rounded border-gray-200 pl-9 pr-4 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+            </div>
+
+            {{-- Payment Method Filter
+            <select
+                name="payment_method"
+                class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >
+                <option value="">All Payment Methods</option>
+                <option value="cash"    {{ request('payment_method') === 'cash'    ? 'selected' : '' }}>Cash</option>
+                <option value="card"    {{ request('payment_method') === 'card'    ? 'selected' : '' }}>Card</option>
+                <option value="gcash"   {{ request('payment_method') === 'gcash'   ? 'selected' : '' }}>GCash</option>
+                <option value="maya"    {{ request('payment_method') === 'maya'    ? 'selected' : '' }}>Maya</option>
+                <option value="other"   {{ request('payment_method') === 'other'   ? 'selected' : '' }}>Other</option>
+            </select>
+            --}}
+            {{-- Date From --}}
+            <input
+                type="date"
+                name="date_from"
+                value="{{ request('date_from') }}"
+                class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                title="From date"
+            />
+
+            {{-- Date To --}}
+            <input
+                type="date"
+                name="date_to"
+                value="{{ request('date_to') }}"
+                class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                title="To date"
+            />
+
+            {{-- Actions --}}
+            <div class="flex gap-2">
+                <button
+                    type="submit"
+                    class="px-4 py-2 rounded bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition-colors"
+                >
+                    Filter
+                </button>
+                @if(request()->hasAny(['search', 'payment_method', 'date_from', 'date_to']))
+                    <a
+                        href="{{ route('pos.transactions', array_filter(['sort_by' => request('sort_by'), 'sort_dir' => request('sort_dir')])) }}"
+                        class="px-4 py-2 rounded border border-gray-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+                    >
+                        Clear
+                    </a>
+                @endif
+            </div>
+        </form>
+
+        {{-- Active filter summary --}}
+        @if(request()->hasAny(['search', 'payment_method', 'date_from', 'date_to']))
+            <div class="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <span>Showing results for:</span>
+                @if(request('search'))
+                    <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 font-medium text-indigo-700">
+                        "{{ request('search') }}"
+                    </span>
+                @endif
+                @if(request('payment_method'))
+                    <span class="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 font-medium text-green-700">
+                        {{ ucfirst(request('payment_method')) }}
+                    </span>
+                @endif
+                @if(request('date_from') || request('date_to'))
+                    <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 font-medium text-amber-700">
+                        {{ request('date_from', '...') }} → {{ request('date_to', '...') }}
+                    </span>
+                @endif
+            </div>
+        @endif
+
         <div class="border border-gray-200 rounded overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
