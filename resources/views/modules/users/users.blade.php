@@ -34,19 +34,19 @@
                         </button>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <x-filters.dropdown-filter
-                        :items="$statuses"
-                        :selected="$filterStatus"
-                        route="users.index"
-                        :params="['search' => $search, 'sort_by' => $sortBy, 'sort_dir' => $sortDir]"
-                        label="Filter by Status"
-                        filterName="status"
-                        valueField="value"
-                        displayField="label"
-                        :minCount="1"
-                    />
-                </div>
+                <form method="GET">
+                    <div class="flex items-center gap-2">
+                        <x-filters.dropdown-filter
+                            :items="$statuses"
+                            :selected="$filterStatus"
+                            name="status"
+                            label="Filter by Status"
+                            valueField="value"
+                            displayField="label"
+                            :autoSubmit="true"
+                        />
+                    </div>
+                </form>
             </div>
             <div class="overflow-hidden rounded border border-slate-200 bg-white">
                 <table class="min-w-full text-sm">

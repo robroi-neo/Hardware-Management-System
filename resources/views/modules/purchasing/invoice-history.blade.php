@@ -4,15 +4,12 @@
     </x-slot>
 
     <x-card title="Invoice History" fullHeight>
-        <!-- Search & Filters -->
-        <div class="mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
-            {{-- Search Form --}}
-            <form method="GET" action="{{ route('purchasing.invoice-history') }}" class="flex-1 relative">
-                {{-- Preserve filter/sort params as hidden inputs --}}
-                <input type="hidden" name="supplier_id" value="{{ $filterSupplierId }}" />
-                <input type="hidden" name="sort_by" value="{{ $sortBy }}" />
-                <input type="hidden" name="sort_dir" value="{{ $sortDir }}" />
-
+        {{-- Search Form --}}
+        <form method="GET" class="mb-4 flex flex-col sm:flex-row gap-3 items-end">
+            {{-- Preserve filter/sort params as hidden inputs --}}
+            <input type="hidden" name="supplier_id" value="{{ $filterSupplierId }}" />
+            {{-- Search Input --}}
+            <div class="flex-1 relative">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                     <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 15.803 7.5 7.5 0 0 0 15.803 15.803Z" />
@@ -21,24 +18,71 @@
                 <input
                     type="text"
                     name="search"
-                    value="{{ $search }}"
-                    placeholder="Search by ID or Supplier"
+                    value="{{ request('search') }}"
+                    placeholder="Search by ID or cashier..."
                     class="w-full rounded border-gray-200 pl-9 pr-4 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 />
-            </form>
+            </div>
 
-            @if($suppliers->count() >= 2)
-            <x-filters.dropdown-filter
-                :items="$suppliers"
-                :selected="$filterSupplierId"
-                route="purchasing.invoice-history"
-                :params="['search' => $search, 'sort_by' => $sortBy, 'sort_dir' => $sortDir]"
-                label="Filter by Supplier"
-                filterName="supplier_id"
-                displayField="supplier_name"
-            />
-            @endif
-        </div>
+            {{-- Date From --}}
+            <div class="flex flex-col">
+                <span class="text-xs text-gray-500 mb-1">Date From</span>
+                <input
+                    type="date"
+                    name="date_from"
+                    value="{{ request('date_from') }}"
+                    class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    title="From date"
+                />
+            </div>
+
+            {{-- Date To --}}
+            <div class="flex flex-col">
+                <span class="text-xs text-gray-500 mb-1">Date To</span>
+                <input
+                    type="date"
+                    name="date_to"
+                    value="{{ request('date_to') }}"
+                    class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    title="To date"
+                />
+            </div>
+
+            <div class="flex flex-col">
+                @if($suppliers->count() >= 2)
+                    <x-filters.dropdown-filter
+                        :items="$suppliers"
+                        :selected="$filterSupplierId"
+                        name="supplier_id"
+                        label="Filter by Supplier"
+                        displayField="supplier_name"
+                        placeholder="All Suppliers"
+                        onchange="this.form.submit()"
+                    />
+                @endif
+            </div>
+            {{-- Actions --}}
+            <div class="flex gap-2">
+                <button
+                    type="submit"
+                    class="px-4 py-2 rounded bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition-colors"
+                >
+                    Filter
+                </button>
+                @if(request()->hasAny(['search', 'payment_method', 'date_from', 'date_to']))
+                    <a
+                        href="{{ route('purchasing.invoice-history', array_filter(['sort_by' => request('sort_by'), 'sort_dir' => request('sort_dir')])) }}"
+                        class="px-4 py-2 rounded border border-gray-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+                    >
+                        Clear
+                    </a>
+                @endif
+            </div>
+
+
+        </form>
+
+
 
         <!-- Invoices Table -->
         <div class="border border-gray-200 rounded overflow-hidden">

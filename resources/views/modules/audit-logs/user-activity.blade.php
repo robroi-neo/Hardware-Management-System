@@ -15,7 +15,7 @@
                         class="placeholder-gray-400 bg-white-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
                     />
                 </div>
-                
+
                 <div class="flex gap-2">
                     <button
                         type="submit"
@@ -34,13 +34,11 @@
             <x-filters.dropdown-filter
                 :items="$entityTypes"
                 :selected="$entityType"
-                route="audit-logs.user-activity"
-                :params="['search' => $search, 'sort_by' => $sortBy, 'sort_dir' => $sortDir]"
-                label="Filter by Entity"
-                filterName="entity_type"
+                name="entity_type"
                 valueField="value"
                 displayField="label"
-                :minCount="1"
+                label="Filter by Entity"
+                onchange="this.form.submit()"
             />
         </form>
 
