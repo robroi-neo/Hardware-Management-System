@@ -57,17 +57,17 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <x-filters.dropdown-filter
-                        :items="$statuses"
-                        :selected="$status"
-                        route="suppliers.index"
-                        :params="['search' => $search, 'sort_by' => $sortBy, 'sort_dir' => $sortDir]"
-                        label="Filter by Status"
-                        filterName="status"
-                        valueField="value"
-                        displayField="label"
-                        :minCount="1"
-                    />
+                    <form>
+                        <x-filters.dropdown-filter
+                            :items="$statuses"
+                            :selected="$status"
+                            name="status"
+                            label="Filter by Status"
+                            valueField="value"
+                            displayField="label"
+                            :autoSubmit="true"
+                        />
+                    </form>
                 </div>
             </div>
 
