@@ -16,7 +16,7 @@
         </div>
 
         {{-- Search & Filter Bar --}}
-        <form method="GET" action="{{ route('pos.transactions') }}" class="mb-4 flex flex-col sm:flex-row gap-3">
+        <form method="GET" action="{{ route('pos.transactions') }}" class="mb-4 flex flex-col sm:flex-row gap-3 items-end">
             {{-- Preserve existing sort state --}}
             @if(request('sort_by'))
                 <input type="hidden" name="sort_by" value="{{ request('sort_by') }}">
@@ -55,22 +55,29 @@
             </select>
             --}}
             {{-- Date From --}}
-            <input
-                type="date"
-                name="date_from"
-                value="{{ request('date_from') }}"
-                class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                title="From date"
-            />
+            <div class="flex flex-col">
+                <span class="text-xs text-gray-500 mb-1">Date From</span>
+                <input
+                    type="date"
+                    name="date_from"
+                    value="{{ request('date_from') }}"
+                    class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    title="From date"
+                />
+            </div>
 
             {{-- Date To --}}
-            <input
-                type="date"
-                name="date_to"
-                value="{{ request('date_to') }}"
-                class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                title="To date"
-            />
+            <div class="flex flex-col">
+                <span class="text-xs text-gray-500 mb-1">Date To</span>
+                <input
+                    type="date"
+                    name="date_to"
+                    value="{{ request('date_to') }}"
+                    class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    title="To date"
+                />
+            </div>
+
 
             {{-- Actions --}}
             <div class="flex gap-2">
