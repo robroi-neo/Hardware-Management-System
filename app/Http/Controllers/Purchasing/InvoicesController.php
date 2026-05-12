@@ -7,7 +7,7 @@ use App\Models\Invoice;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 
-class InvoiceHistoryController extends Controller
+class InvoicesController extends Controller
 {
     public function index(Request $request)
     {
@@ -71,7 +71,7 @@ class InvoiceHistoryController extends Controller
         // Get all suppliers for filter dropdown
         $suppliers = Supplier::where('status', 'active')->orderBy('supplier_name')->get();
 
-        return view('modules.purchasing.invoice-history', [
+        return view('modules.purchasing.invoices', [
             'invoices' => $invoices,
             'suppliers' => $suppliers,
             'sortBy' => $sortBy,
