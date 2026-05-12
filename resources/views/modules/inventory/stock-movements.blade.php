@@ -9,7 +9,7 @@
             <h3 class="mb-4 text-lg font-semibold text-slate-900">Filters</h3>
 
             <form method="GET" action="{{ route('inventory.stock-movements') }}" class="space-y-4">
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                     <!-- Search -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Search Product</label>
@@ -57,20 +57,23 @@
                             class="mt-1 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         />
                     </div>
+                    <!-- Branch Filter (Admin Only) -->
+                    @if($isAdmin)
+                        <div class="pt-2">
+                            <x-filters.dropdown-filter
+                                :items="$branches"
+                                :selected="$filterBranchId"
+                                name="branch_id"
+                                label="Filter by Branch"
+                                valueField="id"
+                                displayField="name"
+                                :autoSubmit="true"
+                            />
+                        </div>
+                    @endif
                 </div>
 
-                <!-- Branch Filter (Admin Only) -->
-                @if($isAdmin)
-                    <div class="pt-2">
-                        <x-filters.branch-select
-                            :branches="$branches"
-                            :selected="$filterBranchId"
-                            route="inventory.stock-movements"
-                            :params="['search' => $search, 'type' => $filterType, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'sort_by' => $sortBy, 'sort_dir' => $sortDir]"
-                            label="Filter by Branch"
-                        />
-                    </div>
-                @endif
+
             </form>
         </div>
 

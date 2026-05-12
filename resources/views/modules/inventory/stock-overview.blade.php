@@ -4,7 +4,7 @@
     </x-slot>
 
     <x-card>
-        <!-- Search Bar & Branch Filter --> 
+        <!-- Search Bar & Branch Filter -->
         <div class="mb-6 flex flex-col gap-4" x-data="inventorySearch('{{ route('pos.api.products.search') }}', '{{ route('inventory.overview') }}', '{{ $filterBranchId }}')">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex-1">
@@ -12,13 +12,17 @@
                 </div>
 
                 @if($isAdmin)
-                    <x-filters.branch-select
-                        :branches="$allBranches"
-                        :selected="$filterBranchId"
-                        route="inventory.overview"
-                        :params="['search' => $search, 'sort_by' => $sortBy, 'sort_dir' => $sortDir]"
-                        label="Filter by Branch"
-                    />
+                    <form>
+                        <x-filters.dropdown-filter
+                            :items="$allBranches"
+                            :selected="$filterBranchId"
+                            name="branch_id"
+                            label="Filter by Branch"
+                            valueField="id"
+                            displayField="name"
+                            :autoSubmit="true"
+                        />
+                    </form>
                 @endif
             </div>
         </div>
@@ -44,7 +48,7 @@
         </div>
 
         <!-- Table -->
-        <div class="border border-gray-200 rounded overflow-hidden"> 
+        <div class="border border-gray-200 rounded overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
