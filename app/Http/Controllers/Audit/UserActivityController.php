@@ -24,6 +24,7 @@ class UserActivityController extends Controller
 
         $entityTypes = collect([
             ['value' => 'sale', 'label' => 'Sales'],
+            ['value' => 'refund', 'label' => 'Refunds'],
             ['value' => 'purchase', 'label' => 'Purchases'],
             ['value' => 'user', 'label' => 'Users'],
             ['value' => 'product', 'label' => 'Products'],
@@ -44,7 +45,7 @@ class UserActivityController extends Controller
             });
         }
 
-        if (in_array($entityType, ['sale', 'purchase', 'user', 'product', 'other'], true)) {
+        if (in_array($entityType, ['sale', 'refund', 'purchase', 'user', 'product', 'other'], true)) {
             $logsQuery->where('entity_type', $entityType);
         }
 

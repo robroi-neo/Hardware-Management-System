@@ -6,6 +6,15 @@
     {{-- x-data moved here so openDetail() is accessible to both the table rows and the modal --}}
     <x-card title="Transaction History" fullHeight x-data="transactionDetail()">
 
+        {{-- Toast Notifications --}}
+        <div x-data="{ show: false, message: '', type: 'success' }"
+             @show-toast.window="show = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => show = false, 3000)"
+             x-show="show"
+             :class="type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'"
+             class="fixed top-4 right-4 border rounded px-4 py-3 shadow-lg z-50">
+            <span x-text="message"></span>
+        </div>
+
         {{-- Search & Filter Bar --}}
         <form method="GET" action="{{ route('pos.transactions') }}" class="mb-4 flex flex-col sm:flex-row gap-3">
             {{-- Preserve existing sort state --}}
@@ -144,7 +153,12 @@
         <x-modal name="transaction-detail" maxWidth="2xl" focusable>
             <div class="p-6 text-sm text-slate-800">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold">Transaction #<span x-text="detail.id"></span></h3>
+                    <div>
+                        <h3 class="text-lg font-semibold">Transaction #<span x-text="detail.id"></span></h3>
+                        <template x-if="detail.refunded">
+                            <p class="text-xs text-amber-600 mt-1">✓ Refunded on <span x-text="detail.refunded_at"></span> by <span x-text="detail.refunded_by"></span></p>
+                        </template>
+                    </div>
                     <button @click="$dispatch('close-modal', 'transaction-detail')" class="text-sm text-slate-500 hover:text-slate-700">Close</button>
                 </div>
 
@@ -186,9 +200,28 @@
                             </tbody>
                         </table>
 
-                        <div class="flex justify-end border-t pt-3 font-semibold text-base">
-                            Total: ₱<span x-text="detail.total_amount.toFixed(2)"></span>
+                        <div class="flex justify-between items-end border-t pt-3">
+                            <div class="flex-1"></div>
+                            <div class="font-semibold text-base">
+                                Total: ₱<span x-text="detail.total_amount.toFixed(2)"></span>
+                            </div>
                         </div>
+
+                        {{-- Refund Button --}}
+                        @can('sales.refund')
+                        <template x-if="!detail.refunded">
+                            <div class="border-t pt-4">
+                                <button
+                                    @click="refundTransaction(detail.id)"
+                                    :disabled="refunding"
+                                    class="w-full px-4 py-2 rounded bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <span x-show="!refunding">Refund Transaction</span>
+                                    <span x-show="refunding">Processing...</span>
+                                </button>
+                            </div>
+                        </template>
+                        @endcan
                     </div>
                 </template>
             </div>
@@ -200,6 +233,7 @@
             return {
                 detail: {},
                 loading: false,
+                refunding: false,
 
                 async openDetail(id) {
                     this.detail = {};
@@ -219,6 +253,62 @@
                         console.error(e);
                     } finally {
                         this.loading = false;
+                    }
+                },
+
+                async refundTransaction(saleId) {
+                    if (!confirm('Are you sure you want to refund this transaction? This will restore inventory.')) {
+                        return;
+                    }
+
+                    this.refunding = true;
+
+                    try {
+                        const res = await fetch(`/pos/transactions/${saleId}/refund`, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            credentials: 'same-origin',
+                        });
+
+                        const data = await res.json();
+
+                        if (data.success) {
+                            // Show success toast
+                            this.$dispatch('show-toast', {
+                                message: data.message,
+                                type: 'success'
+                            });
+
+                            // Update detail to show refunded status
+                            this.detail.refunded = true;
+                            this.detail.refunded_at = new Date().toLocaleString();
+                            this.detail.refunded_by = '{{ auth()->user()->name }}';
+
+                            // Close modal after 2 seconds
+                            setTimeout(() => {
+                                this.$dispatch('close-modal', 'transaction-detail');
+                                // Reload the page to show updated transaction list
+                                window.location.reload();
+                            }, 2000);
+                        } else {
+                            this.$dispatch('show-toast', {
+                                message: data.message || 'Error processing refund',
+                                type: 'error'
+                            });
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.$dispatch('show-toast', {
+                            message: 'Error processing refund',
+                            type: 'error'
+                        });
+                    } finally {
+                        this.refunding = false;
                     }
                 }
             };

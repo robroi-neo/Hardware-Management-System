@@ -65,8 +65,7 @@ class TransactionController extends Controller
 
     public function show(Sale $sale)
     {
-        $sale->load('items.product');
-        logger($sale);
+        $sale->load('items.product', 'refundedBy:id,name');
 
         return response()->json([
             'id'             => $sale->id,
@@ -75,6 +74,9 @@ class TransactionController extends Controller
             'cashier'        => $sale->user->name ?? 'N/A',
             'branch_name'    => $sale->branch->name ?? ('Branch #' . $sale->branch_id),
             'total_amount'   => (float) $sale->total_amount,
+            'refunded'       => (bool) $sale->refunded,
+            'refunded_at'    => $sale->refunded_at ? $sale->refunded_at->format('M d, Y H:i') : null,
+            'refunded_by'    => $sale->refundedBy?->name ?? null,
             'items'          => $sale->items->map(fn ($item) => [
                 'product_id'   => $item->product_id,
                 'product_name' => $item->product->name,
