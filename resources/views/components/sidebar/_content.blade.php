@@ -3,7 +3,7 @@
 --}}
 <aside
     :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
-    class="fixed left-0 top-0 bottom-0 z-50 flex w-64 flex-col overflow-y-auto bg-indigo-950 px-4 py-6 text-white transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0"
+    class="fixed left-0 top-0 bottom-0 z-50 flex w-64 flex-col overflow-y-auto bg-indigo-950 px-4 py-6 text-white transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
 >
     <div class="mb-8 flex items-center gap-3 px-2">
         <x-application-logo />
