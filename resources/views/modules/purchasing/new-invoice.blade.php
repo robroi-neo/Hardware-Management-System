@@ -268,7 +268,11 @@
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-slate-900">Create New Product</h3>
-                    <button @click="$dispatch('close-modal', 'create-product')" class="text-sm text-slate-500 hover:text-slate-700">Close</button>
+                    <button @click="$dispatch('close-modal', 'create-product')" class="text-sm text-slate-500 hover:text-slate-700">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
                 <div class="space-y-4">
@@ -348,7 +352,11 @@
             <div class="p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-slate-900">Confirm Purchase</h3>
-                    <button @click="$dispatch('close-modal', 'checkout-confirm')" class="text-sm text-slate-500 hover:text-slate-700">Close</button>
+                    <button @click="$dispatch('close-modal', 'checkout-confirm')" class="text-sm text-slate-500 hover:text-slate-700">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
                 <div class="space-y-4 mb-6">

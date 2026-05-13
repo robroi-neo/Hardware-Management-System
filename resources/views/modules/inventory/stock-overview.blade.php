@@ -72,8 +72,8 @@
                                 :params="['search' => $search]"
                                 align="right"
                             />
-                            <th class="px-4 py-3 text-right font-medium text-slate-700">Unit Cost</th>
-                            <th class="px-4 py-3 text-right font-medium text-slate-700">Total Value</th>
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">Unit Cost</th>
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">Total Value</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Branch</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Status</th>
                         </tr>
@@ -84,9 +84,9 @@
                                 <td class="px-4 py-3 font-medium text-slate-900">{{ $inventory->product_id }}</td>
                                 <td class="px-4 py-3 text-slate-700">{{ $inventory->product->name }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $inventory->product->unit }}</td>
-                                <td class="px-4 py-3 text-right text-slate-700 font-semibold">{{ number_format($inventory->quantity, 2) }}</td>
-                                <td class="px-4 py-3 text-right text-slate-600">₱{{ number_format($inventory->product->capital, 2) }}</td>
-                                <td class="px-4 py-3 text-right text-slate-700 font-semibold">₱{{ number_format($inventory->quantity * $inventory->product->capital, 2) }}</td>
+                                <td class="px-4 py-3 text-center text-slate-700 font-semibold">{{ number_format($inventory->quantity, 2) }}</td>
+                                <td class="px-4 py-3 text-slate-600">₱{{ number_format($inventory->product->capital, 2) }}</td>
+                                <td class="px-4 py-3 text-slate-700 font-semibold">₱{{ number_format($inventory->quantity * $inventory->product->capital, 2) }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $inventory->branch->name }}</td>
                                 <td class="px-4 py-3">
                                     @if($inventory->quantity < 5)
