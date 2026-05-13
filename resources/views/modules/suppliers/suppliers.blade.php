@@ -286,7 +286,6 @@
                     name="contact_number"
                     label="Contact Number"
                     model="form.contact_number"
-                    :required="false"
                     required
                 />
 
