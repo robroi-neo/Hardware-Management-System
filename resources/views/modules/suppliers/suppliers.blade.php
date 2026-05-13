@@ -271,6 +271,7 @@
                     label="Contact Person"
                     model="form.contact_person"
                     placeholder="Enter contact person name"
+                    required
                 />
 
                 <x-forms.textarea
@@ -278,6 +279,7 @@
                     label="Company Address"
                     model="form.company_address"
                     placeholder="Enter company address"
+                    required
                 />
 
                 <x-forms.phone-input
@@ -285,6 +287,7 @@
                     label="Contact Number"
                     model="form.contact_number"
                     :required="false"
+                    required
                 />
 
                 <x-forms.input
@@ -293,6 +296,7 @@
                     type="email"
                     model="form.contact_email"
                     placeholder="Enter email address"
+                    required
                 />
 
                 <!-- Status -->

@@ -486,7 +486,7 @@
 
                 async refreshCartFromServer() {
                     try {
-                        const response = await fetch(`{{ route('purchasing.api.checkout.prepare') }}`);
+                        const response = await fetch(`{{ route('purchasing.api.checkout.current') }}`);
                         const data = await response.json();
 
                         if (!response.ok || !data.success) {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Pos\CheckoutController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\Pos\ProductController;
@@ -19,6 +20,11 @@ Route::get('/dashboard', function () {
 
 # Routes for logged in users
 Route::middleware('auth')->group(function () {
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('permission:dashboard.view')
+        ->name('dashboard');
+
     Route::get('/pos', function () {
         return view('modules.pos.new-sale');
     })->middleware('permission:pos.access')->name('pos');
@@ -161,6 +167,7 @@ Route::middleware('auth')->group(function () {
         Route::get('supplier', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'getSelectedSupplier'])->name('purchasing.api.supplier.get');
         Route::post('supplier', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'setSelectedSupplier'])->name('purchasing.api.supplier.set');
 
+        Route::get('checkout/current', [\App\Http\Controllers\Purchasing\CheckoutController::class, 'current'])->name('purchasing.api.checkout.current');
         Route::get('checkout/prepare', [\App\Http\Controllers\Purchasing\CheckoutController::class, 'prepare'])->name('purchasing.api.checkout.prepare');
         Route::post('checkout/finalize', [\App\Http\Controllers\Purchasing\CheckoutController::class, 'finalize'])->name('purchasing.api.checkout.finalize');
     });

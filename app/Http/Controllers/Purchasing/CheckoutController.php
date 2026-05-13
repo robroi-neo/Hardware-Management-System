@@ -16,6 +16,61 @@ use Carbon\Carbon;
 
 class CheckoutController extends Controller
 {
+    public function current(Request $request)
+    {
+        $cart = $request->session()->get('purchasing_cart', []);
+
+        if (empty($cart)) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'items' => [],
+                    'total' => 0,
+                ],
+            ]);
+        }
+
+        $productIds = array_column($cart, 'product_id');
+
+        $products = Product::whereIn('id', $productIds)
+            ->get()
+            ->keyBy('id');
+
+        $items = [];
+        $total = 0;
+
+        foreach ($cart as $cartItem) {
+            $product = $products->get($cartItem['product_id']);
+
+            // Skip deleted products silently
+            if (!$product) {
+                continue;
+            }
+
+            $quantity = (float) $cartItem['quantity'];
+            $unitPrice = (float) $cartItem['unit_price'];
+            $subtotal = $quantity * $unitPrice;
+
+            $items[] = [
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'unit' => $product->unit,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'subtotal' => $subtotal,
+            ];
+
+            $total += $subtotal;
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'items' => $items,
+                'total' => $total,
+            ],
+        ]);
+    }
     /**
      * Prepare checkout: hydrate cart with product details and calculate totals
      */
@@ -30,57 +85,27 @@ class CheckoutController extends Controller
             ], 422);
         }
 
-        try {
-            $productIds = array_column($cart, 'product_id');
-            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        foreach ($cart as $cartItem) {
+            $product = $products->get($cartItem['product_id']);
 
-            $items = [];
-            $total = 0;
-
-            foreach ($cart as $cartItem) {
-                $product = $products->get($cartItem['product_id']);
-
-                if (!$product) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "Product #{$cartItem['product_id']} not found",
-                    ], 422);
-                }
-
-                $quantity = $cartItem['quantity'];
-                $unitPrice = $cartItem['unit_price'];
-                $subtotal = $unitPrice * $quantity;
-
-                $product->update([
-                    'capital' => $unitPrice
-                ]);
-
-                $items[] = [
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'unit' => $product->unit,
-                    'quantity' => $quantity,
-                    'unit_price' => $unitPrice,
-                    'capital' => $product->capital,
-                    'subtotal' => $subtotal,
-                ];
-
-                $total += $subtotal;
+            if (!$product) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Product #{$cartItem['product_id']} not found",
+                ], 422);
             }
 
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'items' => $items,
-                    'total' => $total,
-                ],
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Checkout preparation failed: ' . $e->getMessage(),
-            ], 500);
+            if ($cartItem['quantity'] <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Invalid quantity for {$product->name}",
+                ], 422);
+            }
         }
+        return response()->json([
+            'success' => false,
+            'message' => 'Checkout preparation failed: ' . $e->getMessage(),
+        ], 500);
     }
 
     /**
@@ -144,6 +169,9 @@ class CheckoutController extends Controller
                     $unitPrice = $cartItem['unit_price'];
                     $subtotal = $unitPrice * $quantity;
 
+                    $product->update([
+                        'capital' => $unitPrice
+                    ]);
                     // Create purchase detail
                     PurchaseDetail::create([
                         'purchase_id' => $purchase->id,
