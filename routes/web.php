@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Pos\CheckoutController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\Pos\ProductController;
@@ -19,6 +20,11 @@ Route::get('/dashboard', function () {
 
 # Routes for logged in users
 Route::middleware('auth')->group(function () {
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('permission:dashboard.view')
+        ->name('dashboard');
+
     Route::get('/pos', function () {
         return view('modules.pos.new-sale');
     })->middleware('permission:pos.access')->name('pos');
