@@ -175,7 +175,7 @@
                             <div class="grid grid-cols-12 gap-2 text-xs font-semibold text-slate-500 mb-2">
                                 <div class="col-span-5">Item</div>
                                 <div class="col-span-2 text-right">Qty</div>
-                                <div class="col-span-2 text-right">Total Price</div>
+                                <div class="col-span-2 text-right">Price</div>
                                 <div class="col-span-3 text-right">Subtotal</div>
                             </div>
                             <template x-for="item in (receipt.items || [])" :key="item.product_id">
