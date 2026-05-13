@@ -94,9 +94,10 @@ class CheckoutController extends Controller
     public function finalize(Request $request)
     {
         $validated = $request->validate([
-            'supplier_id' => 'required|integer|exists:suppliers,id',
-            'branch_id' => 'required|integer|exists:branches,id',
-            'date_due_offset' => 'nullable|integer|min:0|max:365',
+            'supplier_id'      => 'required|integer|exists:suppliers,id',
+            'branch_id'        => 'required|integer|exists:branches,id',
+            'date_due_offset'  => 'nullable|integer|min:0|max:365',
+            'due_date'         => 'nullable|date|after_or_equal:today',
         ]);
 
         try {
@@ -109,9 +110,14 @@ class CheckoutController extends Controller
                 ], 422);
             }
 
-            $dateDueOffset = $validated['date_due_offset'] ?? 30;
             $today = Carbon::now();
-            $dateDue = $today->copy()->addDays($dateDueOffset);
+
+            if (!empty($validated['due_date'])) {
+                $dateDue = Carbon::parse($validated['due_date']);
+            } else {
+                $dateDueOffset = $validated['date_due_offset'] ?? 30;
+                $dateDue = $today->copy()->addDays($dateDueOffset);
+            }
 
             return DB::transaction(function () use ($cart, $validated, $today, $dateDue, $request) {
                 $productIds = array_column($cart, 'product_id');
@@ -125,7 +131,6 @@ class CheckoutController extends Controller
                 ]);
 
                 $totalAmount = 0;
-                $productController = new ProductController();
 
                 // Create PurchaseDetail records and handle new products
                 foreach ($cart as $cartItem) {
@@ -209,4 +214,3 @@ class CheckoutController extends Controller
         }
     }
 }
-

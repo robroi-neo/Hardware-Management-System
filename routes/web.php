@@ -46,7 +46,7 @@ Route::middleware('auth')->group(function () {
         return view('modules.purchasing.new-invoice', compact('suppliers', 'branches', 'branchId', 'terminalName', 'selectedBranch', 'selectedSupplierId'));
     })->middleware('permission:purchases.create')->name('purchasing.new-invoice');
 
-    Route::get('/purchasing/invoice-history', [\App\Http\Controllers\Purchasing\InvoiceHistoryController::class, 'index'])
+    Route::get('/purchasing/invoice-history', [\App\Http\Controllers\Purchasing\InvoicesController::class, 'index'])
         ->middleware('permission:purchases.view-history')->name('purchasing.invoice-history');
 
     Route::get('/inventory/overview', [\App\Http\Controllers\Inventory\OverviewController::class, 'index'])
@@ -119,7 +119,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/users/api/search', [UserController::class, 'search'])
         ->middleware('permission:users.view-list')
-        ->name('users.api.search');
+            ->name('users.api.search');
 
     // POS API endpoints
     Route::prefix('pos/api')->group(function () {
