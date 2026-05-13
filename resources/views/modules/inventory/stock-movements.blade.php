@@ -26,6 +26,7 @@
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Movement Type</label>
                         <select
+                            onchange="this.form.submit()"
                             name="type"
                             class="mt-1 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         >
@@ -35,7 +36,6 @@
                             <option value="adjustment" {{ $filterType === 'adjustment' ? 'selected' : '' }}>Adjustment</option>
                         </select>
                     </div>
-
                     <!-- Date From -->
                     <div>
                         <label class="block text-sm font-medium text-slate-700">From Date</label>

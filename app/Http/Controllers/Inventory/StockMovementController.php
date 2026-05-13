@@ -36,6 +36,7 @@ class StockMovementController extends Controller
         $dateFrom = $request->query('date_from', null);
         $dateTo = $request->query('date_to', null);
 
+
         // Whitelist allowed columns
         $allowedColumns = ['id', 'created_at', 'product_id', 'quantity_change', 'type'];
         if (!in_array($sortBy, $allowedColumns)) {
