@@ -119,7 +119,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/users/api/search', [UserController::class, 'search'])
         ->middleware('permission:users.view-list')
-        ->name('users.api.search');
+            ->name('users.api.search');
 
     // POS API endpoints
     Route::prefix('pos/api')->group(function () {

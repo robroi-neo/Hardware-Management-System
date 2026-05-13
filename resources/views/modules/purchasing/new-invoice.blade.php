@@ -146,84 +146,123 @@
             </x-card>
         </div>
 
-        <!-- Right Column: Summary Sidebar -->
-        <x-card title="Summary" fullHeight>
-            
-            <!-- 1. List Headers (Pinned to top) -->
-            <div class="border-t border-b border-slate-200 py-2 mb-4 flex-shrink-0">
-                <div class="grid grid-cols-4 gap-2 text-xs text-slate-500 font-medium px-1">
-                    <div>NAME</div>
-                    <div>QTY</div>
-                    <div>PRICE</div>
-                    <div>TOTAL</div>
-                </div>
-            </div>
+        <div class="lg:col-span-1 flex h-full flex-col gap-6">
+            <x-card title="Invoice Details">
 
-            <!-- 2. Scrollable Items List (Takes up all middle space) -->
-            <div class="space-y-3 overflow-y-auto flex-1 min-h-0 mb-6 pr-1 scrollbar-hide">
-                <template x-for="item in cartItems" :key="item.product_id">
-                    <div class="grid grid-cols-4 gap-2 items-center text-sm px-1">
-                        <div class="text-slate-700 truncate" :title="item.product_name" x-text="item.product_name"></div>
-                        <div class="text-slate-700" x-text="formatQty(item.quantity)"></div>
-                        <div class="text-slate-700">₱<span x-text="formatPrice(item.unit_price)"></span></div>
-                        <!-- Purchasing API doesn't pass subtotal per item, so we calculate it instantly here -->
-                        <div class="font-medium text-slate-900">₱<span x-text="formatPrice(item.quantity * item.unit_price)"></span></div>
+                <div class="space-y-4">
+
+                    <!-- Payment Terms -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            Payment Terms
+                        </label>
+
+                        <select
+                            x-model="paymentTerms"
+                            @change="updateDueDate"
+                            class="w-full border-gray-200 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                            <option value="0">Due on Receipt</option>
+                            <option value="7">Net 7</option>
+                            <option value="15">Net 15</option>
+                            <option value="30">Net 30</option>
+                            <option value="60">Net 60</option>
+                            <option value="custom">Custom Date</option>
+                        </select>
                     </div>
-                </template>
-                
-                <!-- Empty State -->
-                <template x-if="cartItems.length === 0">
-                    <div class="text-slate-400 text-sm py-4 text-center">No items added yet</div>
-                </template>
-            </div>
 
-            <!-- 3. Pinned Bottom Section -->
-            <div class="mt-auto w-full flex-shrink-0 border-t border-slate-200 pt-4">
-                
-                <!-- Totals Section -->
-                <div class="space-y-2 mb-4">
-                    <div class="pt-2 flex justify-between text-lg">
-                        <span class="font-semibold">Total:</span>
-                        <span class="font-semibold text-indigo-700">₱<span x-text="formatPrice(cartSubtotal)"></span></span>
+                    <!-- Due Date -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            Due Date
+                        </label>
+
+                        <input
+                            type="date"
+                            x-model="customDueDate"
+                            :disabled="paymentTerms !== 'custom'"
+                            class="w-full border-gray-200 rounded-lg shadow-sm disabled:bg-slate-100 disabled:text-slate-500"
+                        />
                     </div>
-                </div>
 
-                <!-- Invoice Details -->
-                <div class="mb-5 p-3 bg-indigo-50/50 border border-indigo-100 rounded text-sm text-indigo-800">
-                    <div class="font-medium mb-1">Invoice Details:</div>
-                    <div class="text-indigo-600 text-xs">Due in 30 days from today</div>
-                    <div x-show="selectedSupplier && selectedBranch">
-                        <div class="text-xs font-medium text-indigo-500 mt-2 pt-2 border-t border-indigo-100/50">
-                            Ready to checkout with <span x-text="cartItems.length"></span> item(s)
+                    <!-- Invoice Summary -->
+                    <div class="pt-3 border-t border-slate-200 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Invoice Date</span>
+                            <span class="font-medium">{{ now()->format('M d, Y') }}</span>
                         </div>
                     </div>
+
                 </div>
 
-                <!-- Action Buttons -->
-                <button
-                    @click="proceedToCheckout"
-                    :disabled="!selectedSupplier || !selectedBranch || cartItems.length === 0 || isProcessing"
-                    class="w-full flex items-center justify-center bg-indigo-600 text-white py-2.5 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors duration-200"
-                >
-                    <span x-show="!isProcessing">Proceed to Checkout</span>
-                    <span x-show="isProcessing" x-cloak>
+            </x-card>
+            <x-card title="Summary" fullHeight>
+
+                <!-- 1. List Headers (Pinned to top) -->
+                <div class="border-t border-b border-slate-200 py-2 mb-4 flex-shrink-0">
+                    <div class="grid grid-cols-4 gap-2 text-xs text-slate-500 font-medium px-1">
+                        <div>NAME</div>
+                        <div>QTY</div>
+                        <div>PRICE</div>
+                        <div>TOTAL</div>
+                    </div>
+                </div>
+
+                <!-- 2. Scrollable Items List (Takes up all middle space) -->
+                <div class="space-y-3 overflow-y-auto flex-1 min-h-0 mb-0 pr-1 scrollbar-hide">
+                    <template x-for="item in cartItems" :key="item.product_id">
+                        <div class="grid grid-cols-4 gap-2 items-center text-sm px-1">
+                            <div class="text-slate-700 truncate" :title="item.product_name" x-text="item.product_name"></div>
+                            <div class="text-slate-700" x-text="formatQty(item.quantity)"></div>
+                            <div class="text-slate-700">₱<span x-text="formatPrice(item.unit_price)"></span></div>
+                            <!-- Purchasing API doesn't pass subtotal per item, so we calculate it instantly here -->
+                            <div class="font-medium text-slate-900">₱<span x-text="formatPrice(item.quantity * item.unit_price)"></span></div>
+                        </div>
+                    </template>
+
+                    <!-- Empty State -->
+                    <template x-if="cartItems.length === 0">
+                        <div class="text-slate-400 text-sm py-4 text-center">No items added yet</div>
+                    </template>
+                </div>
+
+                <!-- 3. Pinned Bottom Section -->
+                <div class="mt-auto w-full flex-shrink-0 border-t border-slate-200 pt-4">
+
+                    <!-- Totals Section -->
+                    <div class="space-y-2 mb-4">
+                        <div class="pt-2 flex justify-between text-lg">
+                            <span class="font-semibold">Total:</span>
+                            <span class="font-semibold text-indigo-700">₱<span x-text="formatPrice(cartSubtotal)"></span></span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <button
+                        @click="proceedToCheckout"
+                        :disabled="!selectedSupplier || !selectedBranch || cartItems.length === 0 || isProcessing"
+                        class="w-full flex items-center justify-center bg-indigo-600 text-white py-2.5 rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors duration-200"
+                    >
+                        <span x-show="!isProcessing">Proceed to Checkout</span>
+                        <span x-show="isProcessing" x-cloak>
                         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                         Processing...
                     </span>
-                </button>
+                    </button>
 
-                <button
-                    @click="resetCart"
-                    class="w-full mt-2 border border-slate-300 text-slate-700 py-2 rounded-md hover:bg-slate-50 transition-colors duration-200 text-sm"
-                >
-                    Clear Cart
-                </button>
-            </div>
-        </x-card>
+                    <button
+                        @click="resetCart"
+                        class="w-full mt-2 border border-slate-300 text-slate-700 py-2 rounded-md hover:bg-slate-50 transition-colors duration-200 text-sm"
+                    >
+                        Clear Cart
+                    </button>
+                </div>
+            </x-card>
 
+        </div>
         <!-- Product Creation Modal -->
         <x-modal name="create-product" maxWidth="md" focusable>
             <div class="p-6">
@@ -298,7 +337,6 @@
                             class="px-4 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <span x-show="!isCreatingProduct">Create Product</span>
-                            <span x-show="isCreatingProduct">Creating...</span>
                         </button>
                     </div>
                 </div>
@@ -426,10 +464,23 @@
                 isCreatingProduct: false,
                 productCreateError: '',
                 checkoutError: '',
+
                 successData: {},
                 invoiceDueDate: '',
 
+                paymentTerms: '30',
+                customDueDate: '',
+
+                updateDueDate() {
+                    if (this.paymentTerms === 'custom') return;
+
+                    const date = new Date();
+                    date.setDate(date.getDate() + parseInt(this.paymentTerms));
+                    this.customDueDate = date.toISOString().split('T')[0]; // yyyy-mm-dd for the date input
+                },
+
                 async initCart() {
+                    this.updateDueDate();
                     await this.refreshCartFromServer();
                 },
 
@@ -701,12 +752,13 @@
 
 
                     const tomorrow = new Date();
-                    tomorrow.setDate(tomorrow.getDate() + 30);
-                    this.invoiceDueDate = tomorrow.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                    });
+                    // Display the date that's already computed in customDueDate
+                    this.invoiceDueDate = this.customDueDate
+                        ? new Date(this.customDueDate + 'T00:00:00').toLocaleDateString('en-US', {
+                            year: 'numeric', month: 'long', day: 'numeric'
+                        })
+                        : 'Due on Receipt';
+
 
                     this.$dispatch('open-modal', 'checkout-confirm');
                 },
@@ -737,8 +789,9 @@
                             },
                             body: JSON.stringify({
                                 supplier_id: parseInt(this.selectedSupplier),
-                                branch_id: parseInt(this.selectedBranch),
-                                date_due_offset: 30,
+                                branch_id:   parseInt(this.selectedBranch),
+                                date_due_offset: this.paymentTerms === 'custom' ? null : parseInt(this.paymentTerms),
+                                due_date: this.paymentTerms === 'custom' ? this.customDueDate : null,
                             }),
                         });
 
