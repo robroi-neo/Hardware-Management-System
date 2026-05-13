@@ -161,6 +161,7 @@ Route::middleware('auth')->group(function () {
         Route::get('supplier', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'getSelectedSupplier'])->name('purchasing.api.supplier.get');
         Route::post('supplier', [\App\Http\Controllers\Purchasing\PurchasingController::class, 'setSelectedSupplier'])->name('purchasing.api.supplier.set');
 
+        Route::get('checkout/current', [\App\Http\Controllers\Purchasing\CheckoutController::class, 'current'])->name('purchasing.api.checkout.current');
         Route::get('checkout/prepare', [\App\Http\Controllers\Purchasing\CheckoutController::class, 'prepare'])->name('purchasing.api.checkout.prepare');
         Route::post('checkout/finalize', [\App\Http\Controllers\Purchasing\CheckoutController::class, 'finalize'])->name('purchasing.api.checkout.finalize');
     });
