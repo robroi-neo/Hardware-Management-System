@@ -4,12 +4,16 @@
     'model' => null,
     'rows' => 3,
     'placeholder' => '',
+    'required' => false,
 ])
 
 <div class="mb-4">
     @if($label)
         <label class="block text-sm font-medium text-slate-700">
             {{ $label }}
+            @if($required)
+                <span class="text-red-500">*</span>
+            @endif
         </label>
     @endif
 

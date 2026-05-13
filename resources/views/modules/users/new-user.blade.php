@@ -9,11 +9,13 @@
             @can('users.create')
                 <!-- Form flows naturally without internal scrolling -->
                 <form method="POST" action="{{ route('users.store') }}"
-                                  x-data="{
+                    x-data="{
                       form: {
-                          phone: ''
-                      }
+                          phone: '{{ old('phone') }}'
+                      },
+                      errors: @js($errors->getMessages())
                   }"
+                  novalidate
                 >
                     @csrf
 
@@ -45,8 +47,8 @@
                                         name="phone"
                                         label="Contact number"
                                         model="form.phone"
+                                        required
                                         :required="true"
-                                        :errors="$errors"
                                     />
                                 </div>
                             </div>

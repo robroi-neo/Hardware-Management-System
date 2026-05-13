@@ -250,7 +250,7 @@
             <form
                 :action="isEditMode ? `/suppliers/${editingId}` : '{{ route('suppliers.store') }}'"
                 method="POST"
-                @submit.prevent="submitForm"
+                @submit.prevent="submitForm" novalidate
             >
                 @csrf
                 <template x-if="isEditMode">
