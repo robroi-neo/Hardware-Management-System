@@ -149,7 +149,14 @@
                             <p class="text-xs text-amber-600 mt-1">✓ Refunded on <span x-text="detail.refunded_at"></span> by <span x-text="detail.refunded_by"></span></p>
                         </template>
                     </div>
-                    <button @click="$dispatch('close-modal', 'transaction-detail')" class="text-sm text-slate-500 hover:text-slate-700">Close</button>
+                    <button 
+                        @click="$dispatch('close-modal', 'transaction-detail')" 
+                        class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors"
+                    >
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
                 <div x-show="loading" class="py-8 text-center text-slate-400">Loading...</div>
@@ -197,25 +204,77 @@
                             </div>
                         </div>
 
-                        {{-- Refund Button --}}
-                        @can('sales.refund')
-                        <template x-if="!detail.refunded">
-                            <div class="border-t pt-4">
+                        {{-- Modal Footer Actions --}}
+                        <div class="border-t pt-4 mt-6 flex items-center justify-end gap-3">
+                            {{-- Cancel / Close Button (Always visible) --}}
+                            <button
+                                type="button"
+                                @click="$dispatch('close-modal', 'transaction-detail')"
+                                class="px-4 py-2 rounded border border-gray-300 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+
+                            {{-- Refund Button (Conditionally visible) --}}
+                            @can('sales.refund')
+                            <template x-if="!detail.refunded">
                                 <button
-                                    @click="refundTransaction(detail.id)"
+                                    type="button"
+                                    @click="$dispatch('open-modal', 'refund-confirm')"
                                     :disabled="refunding"
-                                    class="w-full px-4 py-2 rounded bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors"
+                                    class="px-4 py-2 rounded bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    <span x-show="!refunding">Refund Transaction</span>
-                                    <span x-show="refunding">Processing...</span>
+                                    Refund Transaction
                                 </button>
-                            </div>
-                        </template>
-                        @endcan
+                            </template>
+                            @endcan
+                        </div>
                     </div>
                 </template>
             </div>
         </x-modal>
+        
+        <!-- Refund Confirmation Modal -->
+        <x-modal name="refund-confirm" maxWidth="md" focusable>
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-slate-900">Confirm Refund</h3>
+                    <button @click="$dispatch('close-modal', 'refund-confirm')" class="text-slate-400 hover:text-slate-600">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <p class="text-sm text-slate-600">
+                        Are you sure you want to refund Transaction #<span x-text="detail.id" class="font-semibold text-slate-900"></span>?
+                    </p>
+                    <p class="text-sm text-red-600 mt-2 font-medium">
+                        Warning: This action cannot be undone and will restore the inventory items.
+                    </p>
+                </div>
+                
+                <div class="flex items-center justify-end gap-3">
+                    <button
+                        @click="$dispatch('close-modal', 'refund-confirm')"
+                        class="px-4 py-2 rounded border border-gray-300 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                        :disabled="refunding"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        @click="processRefund()"
+                        :disabled="refunding"
+                        class="px-4 py-2 rounded bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <span x-show="!refunding">Confirm Refund</span>
+                        <span x-show="refunding">Processing...</span>
+                    </button>
+                </div>
+            </div>
+        </x-modal>
+
     </x-card>
 
     <script>
@@ -246,12 +305,10 @@
                     }
                 },
 
-                async refundTransaction(saleId) {
-                    if (!confirm('Are you sure you want to refund this transaction? This will restore inventory.')) {
-                        return;
-                    }
-
+                async processRefund() {
+                    // No more browser confirm() needed!
                     this.refunding = true;
+                    const saleId = this.detail.id; // Gets the ID from the currently open transaction
 
                     try {
                         const res = await fetch(`/pos/transactions/${saleId}/refund`, {
@@ -279,7 +336,10 @@
                             this.detail.refunded_at = new Date().toLocaleString();
                             this.detail.refunded_by = '{{ auth()->user()->name }}';
 
-                            // Close modal after 2 seconds
+                            // Close the confirmation modal immediately
+                            this.$dispatch('close-modal', 'refund-confirm');
+
+                            // Close the main detail modal after 2 seconds
                             setTimeout(() => {
                                 this.$dispatch('close-modal', 'transaction-detail');
                                 // Reload the page to show updated transaction list

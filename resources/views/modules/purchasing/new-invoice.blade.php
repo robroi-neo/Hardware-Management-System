@@ -21,7 +21,7 @@
 
                     <!-- Supplier Selection -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Supplier *</label>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Supplier <span class="text-red-500">*</span></label>
                         <select
                             x-model="selectedSupplier"
                             class="w-full border-gray-200 rounded shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -274,7 +274,7 @@
                 <div class="space-y-4">
                     <!-- Product Name -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Product Name *</label>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Product Name <span class="text-red-500">*</span></label>
                         <input
                             type="text"
                             x-model="newProduct.name"
@@ -293,7 +293,7 @@
 
                     <!-- Unit -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Unit *</label>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Unit <span class="text-red-500">*</span></label>
                         <select x-model="newProduct.unit" class="w-full border-gray-300 rounded shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="">-- Select Unit --</option>
                             <option value="pcs">pcs (pieces)</option>
@@ -307,7 +307,7 @@
 
                     <!-- Capital (Cost Price) -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Capital (Cost Price) *</label>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Capital (Cost Price) <span class="text-red-500">*</span></label>
                         <div class="flex items-center">
                             <span class="text-gray-600 mr-2">₱</span>
                             <input
