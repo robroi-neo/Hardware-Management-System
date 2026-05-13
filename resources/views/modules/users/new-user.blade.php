@@ -8,13 +8,20 @@
         <x-card title="Add New User" class="w-full">
             @can('users.create')
                 <!-- Form flows naturally without internal scrolling -->
-                <form method="POST" action="{{ route('users.store') }}">
+                <form method="POST" action="{{ route('users.store') }}"
+                                  x-data="{
+                      form: {
+                          phone: ''
+                      }
+                  }"
+                >
                     @csrf
 
                     <!-- Main spacing wrapper -->
                     <div class="space-y-6">
 
                         {{-- Basic Info (Full Width) --}}
+                        {{-- TODO: Refactor to x-forms.input with :errors="$errors" for consistency --}}
                         <div class="rounded border border-slate-200 p-6 space-y-5 bg-white">
                             <div class="flex items-center gap-2 border-b border-slate-100">
                                 <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Basic info</span>
@@ -34,9 +41,13 @@
                                 </div>
 
                                 <div class="sm:col-span-1">
-                                    <x-input-label for="phone" :value="__('Contact number')" />
-                                    <x-text-input id="phone" class="block mt-1 w-full text-sm" type="tel" name="phone" :value="old('phone')" required autocomplete="tel" placeholder="+63 9XX XXX XXXX" />
-                                    <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+                                    <x-forms.phone-input
+                                        name="phone"
+                                        label="Contact number"
+                                        model="form.phone"
+                                        :required="true"
+                                        :errors="$errors"
+                                    />
                                 </div>
                             </div>
                         </div>

@@ -5,6 +5,104 @@
 
     {{-- x-data moved here so openDetail() is accessible to both the table rows and the modal --}}
     <x-card title="Transaction History" fullHeight x-data="transactionDetail()">
+
+        {{-- Toast Notifications --}}
+        <div x-data="{ show: false, message: '', type: 'success' }"
+             @show-toast.window="show = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => show = false, 3000)"
+             x-show="show"
+             :class="type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'"
+             class="fixed top-4 right-4 border rounded px-4 py-3 shadow-lg z-50">
+            <span x-text="message"></span>
+        </div>
+
+        {{-- Search & Filter Bar --}}
+        <form method="GET" action="{{ route('pos.transactions') }}" class="mb-4 flex flex-col sm:flex-row gap-3 items-end">
+            {{-- Preserve existing sort state --}}
+            @if(request('sort_by'))
+                <input type="hidden" name="sort_by" value="{{ request('sort_by') }}">
+            @endif
+            @if(request('sort_dir'))
+                <input type="hidden" name="sort_dir" value="{{ request('sort_dir') }}">
+            @endif
+
+            {{-- Search Input --}}
+            <div class="flex-1 relative">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 15.803 7.5 7.5 0 0 0 15.803 15.803Z" />
+                    </svg>
+                </div>
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    placeholder="Search by ID or cashier..."
+                    class="w-full rounded border-gray-200 pl-9 pr-4 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+            </div>
+
+            {{-- Payment Method Filter
+            <select
+                name="payment_method"
+                class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >
+                <option value="">All Payment Methods</option>
+                <option value="cash"    {{ request('payment_method') === 'cash'    ? 'selected' : '' }}>Cash</option>
+                <option value="card"    {{ request('payment_method') === 'card'    ? 'selected' : '' }}>Card</option>
+                <option value="gcash"   {{ request('payment_method') === 'gcash'   ? 'selected' : '' }}>GCash</option>
+                <option value="maya"    {{ request('payment_method') === 'maya'    ? 'selected' : '' }}>Maya</option>
+                <option value="other"   {{ request('payment_method') === 'other'   ? 'selected' : '' }}>Other</option>
+            </select>
+            --}}
+            {{-- Date From --}}
+            <div class="flex flex-col">
+                <span class="text-xs text-gray-500 mb-1">Date From</span>
+                <input
+                    type="date"
+                    name="date_from"
+                    value="{{ request('date_from') }}"
+                    class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    title="From date"
+                />
+            </div>
+
+            {{-- Date To --}}
+            <div class="flex flex-col">
+                <span class="text-xs text-gray-500 mb-1">Date To</span>
+                <input
+                    type="date"
+                    name="date_to"
+                    value="{{ request('date_to') }}"
+                    class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    title="To date"
+                />
+            </div>
+
+
+            {{-- Actions --}}
+            <div class="flex gap-2">
+                <button
+                    type="submit"
+                    class="px-4 py-2 rounded bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition-colors"
+                >
+                    Filter
+                </button>
+                @if(request()->hasAny(['search', 'payment_method', 'date_from', 'date_to']))
+                    <a
+                        href="{{ route('pos.transactions', array_filter(['sort_by' => request('sort_by'), 'sort_dir' => request('sort_dir')])) }}"
+                        class="px-4 py-2 rounded border border-gray-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+                    >
+                        Clear
+                    </a>
+                @endif
+            </div>
+        </form>
+
+        {{-- Active filter summary --}}
+        <x-filters.active-summary
+            :fields="['search', 'payment_method', 'date_from', 'date_to']"
+        />
+
         <div class="border border-gray-200 rounded overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
@@ -45,7 +143,12 @@
         <x-modal name="transaction-detail" maxWidth="2xl" focusable>
             <div class="p-6 text-sm text-slate-800">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold">Transaction #<span x-text="detail.id"></span></h3>
+                    <div>
+                        <h3 class="text-lg font-semibold">Transaction #<span x-text="detail.id"></span></h3>
+                        <template x-if="detail.refunded">
+                            <p class="text-xs text-amber-600 mt-1">✓ Refunded on <span x-text="detail.refunded_at"></span> by <span x-text="detail.refunded_by"></span></p>
+                        </template>
+                    </div>
                     <button @click="$dispatch('close-modal', 'transaction-detail')" class="text-sm text-slate-500 hover:text-slate-700">Close</button>
                 </div>
 
@@ -87,9 +190,28 @@
                             </tbody>
                         </table>
 
-                        <div class="flex justify-end border-t pt-3 font-semibold text-base">
-                            Total: ₱<span x-text="detail.total_amount.toFixed(2)"></span>
+                        <div class="flex justify-between items-end border-t pt-3">
+                            <div class="flex-1"></div>
+                            <div class="font-semibold text-base">
+                                Total: ₱<span x-text="detail.total_amount.toFixed(2)"></span>
+                            </div>
                         </div>
+
+                        {{-- Refund Button --}}
+                        @can('sales.refund')
+                        <template x-if="!detail.refunded">
+                            <div class="border-t pt-4">
+                                <button
+                                    @click="refundTransaction(detail.id)"
+                                    :disabled="refunding"
+                                    class="w-full px-4 py-2 rounded bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    <span x-show="!refunding">Refund Transaction</span>
+                                    <span x-show="refunding">Processing...</span>
+                                </button>
+                            </div>
+                        </template>
+                        @endcan
                     </div>
                 </template>
             </div>
@@ -101,6 +223,7 @@
             return {
                 detail: {},
                 loading: false,
+                refunding: false,
 
                 async openDetail(id) {
                     this.detail = {};
@@ -120,6 +243,62 @@
                         console.error(e);
                     } finally {
                         this.loading = false;
+                    }
+                },
+
+                async refundTransaction(saleId) {
+                    if (!confirm('Are you sure you want to refund this transaction? This will restore inventory.')) {
+                        return;
+                    }
+
+                    this.refunding = true;
+
+                    try {
+                        const res = await fetch(`/pos/transactions/${saleId}/refund`, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            credentials: 'same-origin',
+                        });
+
+                        const data = await res.json();
+
+                        if (data.success) {
+                            // Show success toast
+                            this.$dispatch('show-toast', {
+                                message: data.message,
+                                type: 'success'
+                            });
+
+                            // Update detail to show refunded status
+                            this.detail.refunded = true;
+                            this.detail.refunded_at = new Date().toLocaleString();
+                            this.detail.refunded_by = '{{ auth()->user()->name }}';
+
+                            // Close modal after 2 seconds
+                            setTimeout(() => {
+                                this.$dispatch('close-modal', 'transaction-detail');
+                                // Reload the page to show updated transaction list
+                                window.location.reload();
+                            }, 2000);
+                        } else {
+                            this.$dispatch('show-toast', {
+                                message: data.message || 'Error processing refund',
+                                type: 'error'
+                            });
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.$dispatch('show-toast', {
+                            message: 'Error processing refund',
+                            type: 'error'
+                        });
+                    } finally {
+                        this.refunding = false;
                     }
                 }
             };

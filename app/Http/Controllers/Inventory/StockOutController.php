@@ -59,71 +59,95 @@ class StockOutController extends Controller
             'reference_id' => 'nullable|integer',
             'notes' => 'nullable|string|max:500',
         ]);
-        // Check user permission for branch
-        $isAdmin = auth()->user()->hasRole('admin');
+
+        $user = $request->user();
+        $isAdmin = $user->hasRole('admin');
+
+        // ---- branch permission check ----
         if (!$isAdmin) {
-            // Non-admin users can only stock-out from their assigned terminal's branch
-            $terminalId = $request->session()->get('pos_terminal_id');
-            $terminal = PosTerminal::find($terminalId);
+            $terminal = PosTerminal::find($request->session()->get('pos_terminal_id'));
+
             if (!$terminal || $terminal->branch_id != $data['branch_id']) {
                 return response()->json(['message' => 'Unauthorized branch access'], 403);
             }
         }
+
         try {
-            return DB::transaction(function () use ($data, $request) {
-                $movements = [];
+            return DB::transaction(function () use ($data, $user) {
+
+                $branchId = $data['branch_id'];
+                $referenceType = $data['reference_type'] ?? 'other';
+                $referenceId = $data['reference_id'] ?? null;
+
+                $items = collect($data['items'])
+                    ->filter(fn ($i) => (float) $i['quantity'] > 0)
+                    ->values();
+
+                if ($items->isEmpty()) {
+                    return response()->json(['message' => 'No valid items to process'], 422);
+                }
+
+                $productIds = $items->pluck('product_id');
+
+                // ---- preload all inventories in 1 query ----
+                $inventories = BranchInventory::where('branch_id', $branchId)
+                    ->whereIn('product_id', $productIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('product_id');
+
+                $movementRows = [];
                 $totalItems = 0;
-                foreach ($data['items'] as $item) {
+
+                foreach ($items as $item) {
+
                     $productId = $item['product_id'];
                     $quantity = (float) $item['quantity'];
-                    if ($quantity <= 0) {
-                        continue;
-                    }
-                    // Get branch inventory record
-                    $inventory = BranchInventory::where('branch_id', $data['branch_id'])
-                        ->where('product_id', $productId)
-                        ->first();
-                    // Check if product exists in inventory
+
+                    $inventory = $inventories[$productId] ?? null;
+
+                    // ---- validation checks ----
                     if (!$inventory) {
                         return response()->json([
                             'message' => "Product {$productId} not found in branch inventory"
                         ], 422);
                     }
-                    // Check if sufficient stock exists
+
                     if ($inventory->quantity < $quantity) {
                         return response()->json([
                             'message' => "Insufficient stock for product {$productId}. Available: {$inventory->quantity}"
                         ], 422);
                     }
-                    // Decrement quantity
+
+                    // ---- update in memory + DB ----
                     $inventory->decrement('quantity', $quantity);
-                    // Record movement (negative quantity for stock-out)
-                    InventoryMovement::create([
+
+                    $movementRows[] = [
                         'product_id' => $productId,
-                        'branch_id' => $data['branch_id'],
-                        'user_id' => $request->user()->id,
+                        'branch_id' => $branchId,
+                        'user_id' => $user->id,
                         'type' => 'out',
                         'quantity_change' => -$quantity,
-                        'reference_type' => $data['reference_type'] ?? 'other',
-                        'reference_id' => $data['reference_id'] ?? null,
-                    ]);
-                    $movements[] = [
-                        'product_id' => $productId,
-                        'quantity' => $quantity,
+                        'reference_type' => $referenceType,
+                        'reference_id' => $referenceId,
+                        'created_at' => now(),
                     ];
+
                     $totalItems += $quantity;
                 }
-                if (empty($movements)) {
-                    return response()->json(['message' => 'No valid items to process'], 422);
-                }
+
+                // ---- bulk insert movements ----
+                InventoryMovement::insert($movementRows);
+
                 return response()->json([
                     'success' => true,
                     'message' => "Stock-out completed. {$totalItems} units removed.",
-                    'movements_count' => count($movements),
+                    'movements_count' => count($movementRows),
                     'total_quantity' => $totalItems,
                 ]);
             });
-        } catch (\Exception $e) {
+
+        } catch (\Throwable $e) {
             return response()->json([
                 'message' => 'Error processing stock-out: ' . $e->getMessage(),
             ], 500);

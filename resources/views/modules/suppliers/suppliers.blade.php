@@ -57,17 +57,17 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <x-filters.dropdown-filter
-                        :items="$statuses"
-                        :selected="$status"
-                        route="suppliers.index"
-                        :params="['search' => $search, 'sort_by' => $sortBy, 'sort_dir' => $sortDir]"
-                        label="Filter by Status"
-                        filterName="status"
-                        valueField="value"
-                        displayField="label"
-                        :minCount="1"
-                    />
+                    <form>
+                        <x-filters.dropdown-filter
+                            :items="$statuses"
+                            :selected="$status"
+                            name="status"
+                            label="Filter by Status"
+                            valueField="value"
+                            displayField="label"
+                            :autoSubmit="true"
+                        />
+                    </form>
                 </div>
             </div>
 
@@ -276,84 +276,60 @@
                 </template>
 
                 <!-- Supplier Name -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-slate-700">Supplier Name <span class="text-red-500">*</span></label>
-                    <input
-                        type="text"
-                        name="supplier_name"
-                        x-model="form.supplier_name"
-                        required
-                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                        placeholder="Enter supplier name"
-                    />
-                    <template x-if="errors.supplier_name">
-                        <p class="mt-1 text-sm text-red-600" x-text="errors.supplier_name[0]"></p>
-                    </template>
-                </div>
+                <x-forms.input
+                    name="supplier_name"
+                    label="Supplier Name"
+                    model="form.supplier_name"
+                    placeholder="Enter supplier name"
+                    required
+                />
 
-                <!-- Contact Person -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-slate-700">Contact Person</label>
-                    <input
-                        type="text"
-                        name="contact_person"
-                        x-model="form.contact_person"
-                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                        placeholder="Enter contact person name"
-                    />
-                </div>
+                <x-forms.input
+                    name="contact_person"
+                    label="Contact Person"
+                    model="form.contact_person"
+                    placeholder="Enter contact person name"
+                />
 
-                <!-- Company Address -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-slate-700">Company Address</label>
-                    <textarea
-                        name="company_address"
-                        x-model="form.company_address"
-                        rows="3"
-                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                        placeholder="Enter company address"
-                    ></textarea>
-                </div>
+                <x-forms.textarea
+                    name="company_address"
+                    label="Company Address"
+                    model="form.company_address"
+                    placeholder="Enter company address"
+                />
 
-                <!-- Contact Number -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-slate-700">Contact Number</label>
-                    <input
-                        type="tel"
-                        name="contact_number"
-                        x-model="form.contact_number"
-                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                        placeholder="Enter contact number"
-                    />
-                </div>
+                <x-forms.phone-input
+                    name="contact_number"
+                    label="Contact Number"
+                    model="form.contact_number"
+                    :required="false"
+                />
 
-                <!-- Contact Email -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-slate-700">Contact Email</label>
-                    <input
-                        type="email"
-                        name="contact_email"
-                        x-model="form.contact_email"
-                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                        placeholder="Enter email address"
-                    />
-                    <template x-if="errors.contact_email">
-                        <p class="mt-1 text-sm text-red-600" x-text="errors.contact_email[0]"></p>
-                    </template>
-                </div>
+                <x-forms.input
+                    name="contact_email"
+                    label="Contact Email"
+                    type="email"
+                    model="form.contact_email"
+                    placeholder="Enter email address"
+                />
 
                 <!-- Status -->
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-slate-700">Status <span class="text-red-500">*</span></label>
-                    <select
-                        name="status"
-                        x-model="form.status"
-                        class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                    >
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
+                <template x-if="!isEditMode">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-slate-700">
+                            Status <span class="text-red-500">*</span>
+                        </label>
+
+                        <select
+                            name="status"
+                            x-model="form.status"
+                            class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                        >
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </template>
 
                 <div class="flex gap-3">
                     <button

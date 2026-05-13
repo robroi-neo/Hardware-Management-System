@@ -20,7 +20,7 @@ return new class extends Migration
             $table->double('quantity_change')->default(0);
             $table->enum('reference_type', ['purchase','sale','transfer','other'])->nullable();
             $table->unsignedBigInteger('reference_id')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
         });
     }
     /**

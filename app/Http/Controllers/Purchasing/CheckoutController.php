@@ -51,6 +51,10 @@ class CheckoutController extends Controller
                 $unitPrice = $cartItem['unit_price'];
                 $subtotal = $unitPrice * $quantity;
 
+                $product->update([
+                    'capital' => $unitPrice
+                ]);
+
                 $items[] = [
                     'product_id' => $product->id,
                     'product_name' => $product->name,

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Pos\CheckoutController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\Pos\ProductController;
+use App\Http\Controllers\Pos\RefundController;
 use App\Http\Controllers\Pos\TransactionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\UserController;
@@ -25,6 +26,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/pos/transactions', [TransactionController::class, 'index'])
         ->middleware('permission:sales.view-history')->name('pos.transactions');
 
+    Route::post('/pos/transactions/{sale}/refund', [RefundController::class, 'store'])
+        ->middleware('permission:sales.refund')->name('pos.transactions.refund');
 
     Route::get('/purchasing/new-invoice', function () {
         // Get terminal from session
