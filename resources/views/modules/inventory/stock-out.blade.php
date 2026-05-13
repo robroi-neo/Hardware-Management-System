@@ -207,12 +207,11 @@
                 </button>
                 <button
                     type="button"
-                    @click="submitForm()"
+                    @click="$dispatch('open-modal', 'confirm-stock-out')"
                     :disabled="!canSubmit()"
                     class="rounded bg-red-600 px-6 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    <span x-show="!submitting">Complete Stock-Out</span>
-                    <span x-show="submitting">Processing...</span>
+                    Stock-Out
                 </button>
             </div>
 
@@ -222,6 +221,57 @@
                     <p class="text-sm font-medium" x-text="message"></p>
                 </div>
             </template>
+
+            <!-- Success/Error Messages -->
+            <template x-if="message">
+                <div :class="messageType === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'" class="rounded border p-4">
+                    <p class="text-sm font-medium" x-text="message"></p>
+                </div>
+            </template>
+
+            <!-- Stock-Out Confirmation Modal MUST be inside the x-data div -->
+            <x-modal name="confirm-stock-out" maxWidth="md" focusable>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-slate-900">Confirm Stock-Out</h3>
+                        <button type="button" @click="$dispatch('close-modal', 'confirm-stock-out')" class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <p class="text-sm text-slate-600">
+                            Are you sure you want to complete this stock-out? You are removing <strong x-text="getTotalQuantity()" class="text-slate-900"></strong> items with a total value of <strong class="text-slate-900">₱<span x-text="formatPrice(getTotalCost())"></span></strong>.
+                        </p>
+                        <p class="text-sm text-amber-600 mt-2 font-medium">
+                            This action will immediately reduce your inventory levels.
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center justify-end gap-3">
+                        <button
+                            type="button"
+                            @click="$dispatch('close-modal', 'confirm-stock-out')"
+                            class="px-4 py-2 rounded border border-gray-300 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                            :disabled="submitting"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            @click="submitForm()"
+                            :disabled="submitting"
+                            class="px-4 py-2 rounded bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            <span x-show="!submitting">Confirm Stock-Out</span>
+                            <span x-show="submitting">Processing...</span>
+                        </button>
+                    </div>
+                </div>
+            </x-modal>
+
         </div>
     </x-card>
 
@@ -345,6 +395,9 @@
                         const data = await response.json();
 
                         if (response.ok && data.success) {
+                            // Close the modal
+                            this.$dispatch('close-modal', 'confirm-stock-out');
+
                             this.showMessage(data.message, 'success');
                             setTimeout(() => this.resetForm(), 2000);
                         } else {
