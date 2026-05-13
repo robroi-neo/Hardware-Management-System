@@ -65,41 +65,41 @@ class SupplierController extends Controller
 
     /**
      * Store a newly created supplier in the database
-     */public function store(Request $request)
-{
-    $validated = $request->validate([
-        'supplier_name' => 'required|string|max:255|unique:suppliers,supplier_name',
-        'contact_person' => 'nullable|string|max:255',
-        'company_address' => 'nullable|string|max:500',
-        'contact_number' => ['nullable', 'regex:/^09\d{9}$/'],
-        'contact_email' => 'nullable|email|max:255',
-        'status' => 'required|in:active,inactive',
-    ]);
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'supplier_name' => 'required|string|max:255|unique:suppliers,supplier_name',
+            'contact_person' => 'required|string|max:255',
+            'company_address' => 'required|string|max:500',
+            'contact_number' => 'required|regex:/^09\d{9}$/',
+            'contact_email' => 'required|email|max:255',
+            'status' => 'required|in:active,inactive',
+        ]);
+        try {
+            $supplier = Supplier::create($validated);
 
-    try {
-        $supplier = Supplier::create($validated);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Supplier created successfully',
+                    'supplier' => $supplier,
+                ], 201);
+            }
 
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => 'Supplier created successfully',
-                'supplier' => $supplier,
-            ], 201);
+            return redirect()->route('suppliers.index')
+                ->with('success', 'Supplier created successfully');
+
+        } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Failed to create supplier: ' . $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->withInput()
+                ->with('error', 'Failed to create supplier: ' . $e->getMessage());
         }
-
-        return redirect()->route('suppliers.index')
-            ->with('success', 'Supplier created successfully');
-
-    } catch (\Exception $e) {
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => 'Failed to create supplier: ' . $e->getMessage(),
-            ], 500);
-        }
-
-        return back()->withInput()
-            ->with('error', 'Failed to create supplier: ' . $e->getMessage());
     }
-}
 
     /**
      * Update the specified supplier in the database
