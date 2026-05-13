@@ -29,7 +29,7 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div class="sm:col-span-2">
-                                    <x-input-label for="name" :value="__('Full name')" />
+                                    <x-input-label for="name" :value="__('Full name')"/>
                                     <x-text-input id="name" class="block mt-1 w-full text-sm" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
                                     <x-input-error :messages="$errors->get('name')" class="mt-2" />
                                 </div>
