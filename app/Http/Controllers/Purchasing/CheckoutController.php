@@ -85,6 +85,12 @@ class CheckoutController extends Controller
             ], 422);
         }
 
+        $productIds = array_column($cart, 'product_id');
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+
+        $items = [];
+        $total = 0;
+
         foreach ($cart as $cartItem) {
             $product = $products->get($cartItem['product_id']);
 
@@ -101,11 +107,32 @@ class CheckoutController extends Controller
                     'message' => "Invalid quantity for {$product->name}",
                 ], 422);
             }
+
+            $quantity = (float) $cartItem['quantity'];
+            $unitPrice = (float) $cartItem['unit_price'];
+            $subtotal = $quantity * $unitPrice;
+
+            $items[] = [
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'unit' => $product->unit,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'subtotal' => $subtotal,
+            ];
+
+            $total += $subtotal;
         }
+
         return response()->json([
-            'success' => false,
-            'message' => 'Checkout preparation failed: ' . $e->getMessage(),
-        ], 500);
+            'success' => true,
+            'data' => [
+                'items' => $items,
+                'total' => $total,
+                'supplier_id' => $request->session()->get('purchasing_supplier_id'),
+                'branch_id' => $request->session()->get('purchasing_branch_id'),
+            ],
+        ]);
     }
 
     /**

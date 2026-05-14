@@ -23,7 +23,7 @@ class InvoicesController extends Controller
             : 'desc';
 
         // Build query
-        $query = Invoice::with(['purchase.supplier', 'purchase.details']);
+        $query = Invoice::with(['purchase.supplier', 'purchase.details', 'refundedBy']);
 
         // Apply search filter
         if ($search = $request->query('search', '')) {
@@ -69,7 +69,7 @@ class InvoicesController extends Controller
             ->appends(request()->except('page'));  // Exclude 'page' to prevent pagination duplicates
 
         // Get all suppliers for filter dropdown
-        $suppliers = Supplier::where('status', 'active')->orderBy('supplier_name')->get();
+        $suppliers = Supplier::where('status', '=', 'active')->orderBy('supplier_name')->get();
 
         return view('modules.purchasing.invoices', [
             'invoices' => $invoices,

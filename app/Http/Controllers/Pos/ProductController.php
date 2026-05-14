@@ -32,7 +32,7 @@ class ProductController extends Controller
         // search all active products, limit to q if there is a query string
         $productsQuery = Product::query()
             ->search($q)
-            ->where('status', 'active');
+            ->whereRaw('status = ?', ['active']);
 
         // return top products and return id, name, unit, capital
         $products = $productsQuery
@@ -43,7 +43,7 @@ class ProductController extends Controller
         // Always attach inventory from the terminal's branch context.
         if ($products->isNotEmpty()) {
             $prodIds = $products->pluck('id')->all();
-            $inventories = BranchInventory::where('branch_id', $branchId)
+            $inventories = BranchInventory::whereRaw('branch_id = ?', [$branchId])
                 ->whereIn('product_id', $prodIds)
                 ->get()
                 ->keyBy('product_id');
@@ -65,14 +65,14 @@ class ProductController extends Controller
 
         $products = Product::query()
             ->search($q)
-            ->where('status', 'active')
+            ->whereRaw('status = ?', ['active'])
             ->paginate($perPage, ['id','name','unit','capital']);
 
         if ($products->isNotEmpty()) {
             $productIds = $products->getCollection()->pluck('id')->all();
 
             $availableByProduct = BranchInventory::query()
-                ->where('branch_id', $branchId)
+                ->whereRaw('branch_id = ?', [$branchId])
                 ->whereIn('product_id', $productIds)
                 ->get()
                 ->keyBy('product_id');

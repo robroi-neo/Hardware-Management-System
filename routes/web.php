@@ -7,6 +7,7 @@ use App\Http\Controllers\Pos\ProductController;
 use App\Http\Controllers\Pos\RefundController;
 use App\Http\Controllers\Pos\TransactionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Purchasing\InvoiceRefundController;
 use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,7 +43,7 @@ Route::middleware('auth')->group(function () {
             return redirect('/')->with('error', 'No branch selected. Please select a branch first.');
         }
 
-        $suppliers = \App\Models\Supplier::where('status', 'active')->get();
+        $suppliers = \App\Models\Supplier::where('status', '=', 'active')->get();
         $branches = \App\Models\Branch::all();
         $branchId = $branch['id'];
         $terminalName = $branch['name'] ?? 'Selected Branch';
@@ -54,6 +55,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/purchasing/invoice-history', [\App\Http\Controllers\Purchasing\InvoicesController::class, 'index'])
         ->middleware('permission:purchases.view-history')->name('purchasing.invoice-history');
+
+    Route::post('/purchasing/invoices/{invoice}/refund', [InvoiceRefundController::class, 'store'])
+        ->middleware('permission:purchases.refund')
+        ->name('purchasing.invoices.refund');
 
     Route::get('/inventory/overview', [\App\Http\Controllers\Inventory\OverviewController::class, 'index'])
         ->middleware('permission:inventory.view-overview')->name('inventory.overview');
