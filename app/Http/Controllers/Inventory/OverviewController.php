@@ -14,15 +14,9 @@ class OverviewController extends Controller
         // Check if user is admin
         $isAdmin = auth()->user()->hasRole('admin');
 
-        // Get the user's terminal branch from session
-        $terminalId = session('pos_terminal_id');
-        $userDefaultBranchId = null;
-
-        if ($terminalId) {
-            // Get branch from terminal
-            $terminal = \App\Models\PosTerminal::find($terminalId);
-            $userDefaultBranchId = $terminal?->branch_id;
-        }
+        // Get the user's selected branch from session
+        $sessionBranch = session('branch');
+        $userDefaultBranchId = $sessionBranch['id'] ?? null;
 
         // Get sort parameters
         $sortBy = $request->query('sort_by', 'date');

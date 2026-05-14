@@ -15,14 +15,9 @@ class StockMovementController extends Controller
      */
     public function index(Request $request)
     {
-        // Get user's terminal branch (if assigned)
-        $terminalId = $request->session()->get('pos_terminal_id');
-        $userDefaultBranchId = null;
-
-        if ($terminalId) {
-            $terminal = PosTerminal::find($terminalId);
-            $userDefaultBranchId = $terminal?->branch_id;
-        }
+        // Get selected branch from session (if assigned)
+        $sessionBranch = $request->session()->get('branch');
+        $userDefaultBranchId = $sessionBranch['id'] ?? null;
 
         $isAdmin = auth()->user()->hasRole('admin');
         $branches = $isAdmin ? Branch::all() : collect();

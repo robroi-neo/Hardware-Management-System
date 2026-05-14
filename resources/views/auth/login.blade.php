@@ -2,10 +2,9 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    @if (session('pos_terminal'))
+    @if (session('branch'))
         <div class="mb-4 rounded border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-            <div>Terminal: <strong>T{{ session('pos_terminal.terminal_id') }} - {{ session('pos_terminal.terminal_name') }}</strong></div>
-            <div>Branch: {{ session('pos_terminal.branch_name') }}</div>
+            <div>Branch: {{ session('branch.name') }}</div>
         </div>
     @endif
 
