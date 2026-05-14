@@ -80,24 +80,28 @@ class SupplierController extends Controller
             $supplier = Supplier::create($validated);
 
             if ($request->expectsJson()) {
+                session()->flash('success', 'Supplier successfully added!');
+
                 return response()->json([
-                    'message' => 'Supplier created successfully',
+                    'message' => 'Supplier successfully added!',
                     'supplier' => $supplier,
                 ], 201);
             }
 
-            return redirect()->route('suppliers.index')
-                ->with('success', 'Supplier created successfully');
+            return back()
+                ->with('success', 'Supplier successfully added!');
 
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
+                session()->flash('error', 'Failed to add supplier. Please try again.');
+
                 return response()->json([
-                    'message' => 'Failed to create supplier: ' . $e->getMessage(),
+                    'message' => 'Failed to add supplier. Please try again.',
                 ], 500);
             }
 
             return back()->withInput()
-                ->with('error', 'Failed to create supplier: ' . $e->getMessage());
+                ->with('error', 'Failed to add supplier. Please try again.');
         }
     }
 
@@ -119,24 +123,28 @@ class SupplierController extends Controller
             $supplier->update($validated);
 
             if ($request->expectsJson()) {
+                session()->flash('success', 'Supplier details successfully updated!');
+
                 return response()->json([
-                    'message' => 'Supplier updated successfully',
+                    'message' => 'Supplier details successfully updated!',
                     'supplier' => $supplier->fresh(),
                 ], 200);
             }
 
-            return redirect()->route('suppliers.index')
-                ->with('success', 'Supplier updated successfully');
+            return back()
+                ->with('success', 'Supplier details successfully updated!');
 
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
+                session()->flash('error', 'Failed to update supplier. Please try again.');
+
                 return response()->json([
-                    'message' => 'Failed to update supplier: ' . $e->getMessage(),
+                    'message' => 'Failed to update supplier. Please try again.',
                 ], 500);
             }
 
             return back()->withInput()
-                ->with('error', 'Failed to update supplier: ' . $e->getMessage());
+                ->with('error', 'Failed to update supplier. Please try again.');
         }
     }
 
@@ -168,22 +176,26 @@ class SupplierController extends Controller
             ]);
 
             if ($request->expectsJson()) {
+                session()->flash('success', 'Supplier successfully deactivated!');
+
                 return response()->json([
-                    'message' => 'Supplier deactivated successfully',
+                    'message' => 'Supplier successfully deactivated!',
                     'supplier' => $supplier->fresh(),
                 ], 200);
             }
 
-            return redirect()->route('suppliers.index')
-                ->with('success', 'Supplier deactivated successfully');
+            return back()
+                ->with('success', 'Supplier successfully deactivated!');
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
+                session()->flash('error', 'Failed to deactivate supplier. Please try again.');
+
                 return response()->json([
-                    'message' => 'Failed to deactivate supplier: ' . $e->getMessage(),
+                    'message' => 'Failed to deactivate supplier. Please try again.',
                 ], 500);
             }
 
-            return back()->with('error', 'Failed to deactivate supplier: ' . $e->getMessage());
+            return back()->with('error', 'Failed to deactivate supplier. Please try again.');
         }
     }
 
@@ -195,22 +207,26 @@ class SupplierController extends Controller
             ]);
 
             if ($request->expectsJson()) {
+                session()->flash('success', 'Supplier successfully activated!');
+
                 return response()->json([
-                    'message' => 'Supplier activated successfully',
+                    'message' => 'Supplier successfully activated!',
                     'supplier' => $supplier->fresh(),
                 ], 200);
             }
 
-            return redirect()->route('suppliers.index')
-                ->with('success', 'Supplier activated successfully');
+            return back()
+                ->with('success', 'Supplier successfully activated!');
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
+                session()->flash('error', 'Failed to activate supplier. Please try again.');
+
                 return response()->json([
-                    'message' => 'Failed to activate supplier: ' . $e->getMessage(),
+                    'message' => 'Failed to activate supplier. Please try again.',
                 ], 500);
             }
 
-            return back()->with('error', 'Failed to activate supplier: ' . $e->getMessage());
+            return back()->with('error', 'Failed to activate supplier. Please try again.');
         }
     }
 
