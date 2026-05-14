@@ -3,9 +3,10 @@
         <h2 class="text-3xl font-medium leading-tight text-slate-900">Stock Overview</h2>
     </x-slot>
 
-    <x-card>
+    <x-card x-data="inventorySearch('{{ route('pos.api.products.search') }}', '{{ route('inventory.overview') }}', '{{ $filterBranchId }}')">
         <!-- Search Bar & Branch Filter -->
-        <div class="mb-6 flex flex-col gap-4" x-data="inventorySearch('{{ route('pos.api.products.search') }}', '{{ route('inventory.overview') }}', '{{ $filterBranchId }}')">
+        <div class="mb-6 flex flex-col gap-4">
+
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div class="flex-1">
                     <x-product-search-typeahead searchInputRef="inventorySearchInput" />
@@ -130,12 +131,21 @@
                                         @php
                                             $productQuantity = $inventory->product->branchInventories->sum('quantity');
                                         @endphp
+                                    <!--   -->
                                         @if($inventory->product->status !== 'inactive' && $productQuantity <= 0)
-                                            <form action="{{ route('inventory.products.archive', $inventory->product->id) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit" class="rounded bg-gray-600 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700">Archive</button>
-                                            </form>
+                                            <button
+                                                type="button"
+                                                @click="confirmArchive.open = true; confirmArchive.product = {
+                                                id: {{ $inventory->product->id }},
+                                                name: '{{ addslashes($inventory->product->name) }}',
+                                                unit: '{{ $inventory->product->unit }}',
+                                                quantity: {{ $inventory->quantity }},
+                                                branch: '{{ addslashes($inventory->branch->name) }}'
+                                            }"
+                                                class="rounded bg-gray-600 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700"
+                                                                                    >
+                                                Archive
+                                            </button>
                                         @else
                                             <span class="text-xs text-slate-500">—</span>
                                         @endif
@@ -172,7 +182,58 @@
                 </a>
             @endcan
         </div>
+
+        <!-- Archive Confirmation Modal -->
+        <div
+            x-show="confirmArchive.open"
+            x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        >
+            <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+                <h2 class="text-lg font-semibold text-slate-900">
+                    Archive Product
+                </h2>
+
+                <p class="mt-2 text-sm text-slate-600">
+                    Are you sure that you want to archive this product?
+                </p>
+
+                <div class="mt-4 space-y-1 rounded bg-slate-50 p-3 text-sm">
+                    <p><span class="font-medium">Product:</span> <span x-text="confirmArchive.product?.name"></span></p>
+                    <p><span class="font-medium">Unit:</span> <span x-text="confirmArchive.product?.unit"></span></p>
+                    <p><span class="font-medium">Current Stock:</span> <span x-text="confirmArchive.product?.quantity"></span></p>
+                    <p><span class="font-medium">Branch:</span> <span x-text="confirmArchive.product?.branch"></span></p>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button
+                        type="button"
+                        @click="confirmArchive.open = false"
+                        class="rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                        Cancel
+                    </button>
+
+                    <form
+                        :action="confirmArchive.product ? `/inventory/products/${confirmArchive.product.id}/archive` : '#'"
+                        method="POST"
+                    >
+                        @csrf
+                        @method('PATCH')
+
+                        <button
+                            type="submit"
+                            class="rounded bg-gray-700 px-4 py-2 text-sm text-white hover:bg-gray-800"
+                        >
+                            Confirm Archive
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </x-card>
+
 </x-app-layout>
 
 <script>
@@ -190,6 +251,11 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
         searchUrl: searchUrl,
         baseRoute: baseRoute,
         selectedBranch: selectedBranch,
+
+        confirmArchive: {
+            open: false,
+            product: null,
+        },
 
         onTypeaheadInput() {
             if (this.typeahead.debounceHandle) {
