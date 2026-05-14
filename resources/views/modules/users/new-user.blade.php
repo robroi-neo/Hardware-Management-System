@@ -3,27 +3,71 @@
         <h2 class="text-3xl font-medium leading-tight text-slate-900">New User</h2>
     </x-slot>
 
-    <!-- Removed h-full constraints. Added mb-8 to ensure a gap at the very bottom of the page -->
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+
     <div class="w-full pb-8">
         <x-card title="Add New User" class="w-full">
             @can('users.create')
-                <!-- Form flows naturally without internal scrolling -->
                 <form method="POST" action="{{ route('users.store') }}"
+                    x-ref="userForm"
+                    novalidate
                     x-data="{
+                      // Initialize form with old data if a server validation fails
                       form: {
-                          phone: '{{ old('phone') }}'
+                          name: @js(old('name', '')),
+                          address: @js(old('address', '')),
+                          phone: @js(old('phone', '')),
+                          role: @js(old('role', '')),
+                          branch_id: @js(old('branch_id', '')),
+                          pin: '',
+                          pin_confirmation: ''
                       },
-                      errors: @js($errors->getMessages())
+                      // Seed with Laravel's backend errors automatically
+                      errors: @js($errors->getMessages()),
+                      showConfirmModal: false,
+                      
+                      handleFormSubmit() {
+                          this.errors = {};
+                          let isValid = true;
+
+                          // Validate fields and wrap messages in arrays to match Laravel's format for your component
+                          if (!this.form.name.trim()) { this.errors.name = ['Full name is required.']; isValid = false; }
+                          if (!this.form.address.trim()) { this.errors.address = ['Address is required.']; isValid = false; }
+                          if (!this.form.phone.trim()) { this.errors.phone = ['Contact number is required.']; isValid = false; }
+                          if (!this.form.role) { this.errors.role = ['Role is required.']; isValid = false; }
+                          if (!this.form.branch_id) { this.errors.branch_id = ['Branch is required.']; isValid = false; }
+                          
+                          if (!this.form.pin) { 
+                              this.errors.pin = ['PIN is required.']; 
+                              isValid = false; 
+                          }
+                          
+                          if (!this.form.pin_confirmation) { 
+                              this.errors.pin_confirmation = ['Please confirm your PIN.']; 
+                              isValid = false; 
+                          } else if (this.form.pin !== this.form.pin_confirmation) {
+                              this.errors.pin_confirmation = ['PINs do not match.']; 
+                              isValid = false;
+                          }
+
+                          // Show modal only if no errors were found
+                          if (isValid) {
+                              this.showConfirmModal = true;
+                          }
+                      },
+
+                      confirmAndSubmit() {
+                          this.$refs.userForm.submit();
+                      }
                   }"
-                  novalidate
                 >
                     @csrf
 
-                    <!-- Main spacing wrapper -->
                     <div class="space-y-6">
 
                         {{-- Basic Info (Full Width) --}}
-                        {{-- TODO: Refactor to x-forms.input with :errors="$errors" for consistency --}}
                         <div class="rounded border border-slate-200 p-6 space-y-5 bg-white">
                             <div class="flex items-center gap-2 border-b border-slate-100">
                                 <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Basic info</span>
@@ -31,31 +75,21 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div class="sm:col-span-2">
-                                    <x-input-label for="name" :value="__('Full name')"/>
-                                    <x-text-input id="name" class="block mt-1 w-full text-sm" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-                                    <x-input-error :messages="$errors->get('name')" class="mt-2" />
+                                    <x-forms.input name="name" label="Full name" model="form.name" :required="true" />
                                 </div>
 
                                 <div class="sm:col-span-2">
-                                    <x-input-label for="address" :value="__('Address')" />
-                                    <x-text-input id="address" class="block mt-1 w-full text-sm" type="text" name="address" :value="old('address')" required autocomplete="address" />
-                                    <x-input-error :messages="$errors->get('address')" class="mt-2" />
+                                    <x-forms.input name="address" label="Address" model="form.address" :required="true" />
                                 </div>
 
                                 <div class="sm:col-span-1">
-                                    <x-forms.phone-input
-                                        name="phone"
-                                        label="Contact number"
-                                        model="form.phone"
-                                        required
-                                        :required="true"
-                                    />
+                                    <!-- Assuming phone-input accepts the same props as your standard input -->
+                                    <x-forms.phone-input name="phone" label="Contact number" model="form.phone" :required="true" />
                                 </div>
                             </div>
                         </div>
 
                         {{-- Two-Column Layout for Role & PIN --}}
-                        <!-- This grid puts them side-by-side on desktop (lg:grid-cols-2) and stacked on mobile (grid-cols-1) -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                             {{-- Role & Access (Left Column) --}}
@@ -65,30 +99,37 @@
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <!-- Select tags styled manually to match your component's reactive design -->
                                     <div>
-                                        <x-input-label for="role" :value="__('Role')" />
-                                        <select id="role" name="role" required class="block mt-1 w-full rounded border border-slate-300 py-2 pl-4 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm">
+                                        <label class="block text-sm font-medium text-slate-700">Role <span class="text-red-500">*</span></label>
+                                        <select name="role" x-model="form.role"
+                                            :class="errors?.role ? 'border-red-500 text-red-900 focus:border-red-600 focus:ring-1 focus:ring-red-600' : 'border-slate-300 bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'"
+                                            class="mt-1 block w-full rounded border py-2 pl-4 pr-10 text-sm focus:outline-none shadow-sm transition-colors"
+                                        >
                                             <option value="">-- Select role --</option>
                                             @foreach($roles as $role)
-                                                <option value="{{ $role->name }}" {{ old('role') == $role->name ? 'selected' : '' }}>
-                                                    {{ $role->name }}
-                                                </option>
+                                                <option value="{{ $role->name }}">{{ $role->name }}</option>
                                             @endforeach
                                         </select>
-                                        <x-input-error :messages="$errors->get('role')" class="mt-2" />
+                                        <template x-if="errors?.role">
+                                            <p class="mt-1 text-sm text-red-600" x-text="errors.role[0]"></p>
+                                        </template>
                                     </div>
 
                                     <div>
-                                        <x-input-label for="branch" :value="__('Branch')" />
-                                        <select id="branch" name="branch_id" required class="block mt-1 w-full rounded border border-slate-300 py-2 pl-4 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm">
+                                        <label class="block text-sm font-medium text-slate-700">Branch <span class="text-red-500">*</span></label>
+                                        <select name="branch_id" x-model="form.branch_id"
+                                            :class="errors?.branch_id ? 'border-red-500 text-red-900 focus:border-red-600 focus:ring-1 focus:ring-red-600' : 'border-slate-300 bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'"
+                                            class="mt-1 block w-full rounded border py-2 pl-4 pr-10 text-sm focus:outline-none shadow-sm transition-colors"
+                                        >
                                             <option value="">-- Select branch --</option>
                                             @foreach($branches as $branch)
-                                                <option value="{{ $branch->id }}" {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
-                                                    {{ $branch->name }}
-                                                </option>
+                                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                                             @endforeach
                                         </select>
-                                        <x-input-error :messages="$errors->get('branch')" class="mt-2" />
+                                        <template x-if="errors?.branch_id">
+                                            <p class="mt-1 text-sm text-red-600" x-text="errors.branch_id[0]"></p>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -101,22 +142,18 @@
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 flex-1">
                                     <div>
-                                        <x-input-label for="pin" :value="__('PIN')" />
-                                        <x-text-input id="pin" class="block mt-1 w-full text-sm" type="password" name="pin" required autocomplete="new-password" />
-                                        <x-input-error :messages="$errors->get('pin')" class="mt-2" />
+                                        <x-forms.input name="pin" type="password" label="PIN" model="form.pin" :required="true" />
                                     </div>
 
                                     <div>
-                                        <x-input-label for="pin_confirmation" :value="__('Confirm PIN')" />
-                                        <x-text-input id="pin_confirmation" class="block mt-1 w-full text-sm" type="password" name="pin_confirmation" required autocomplete="new-password" />
-                                        <x-input-error :messages="$errors->get('pin_confirmation')" class="mt-2" />
+                                        <x-forms.input name="pin_confirmation" type="password" label="Confirm PIN" model="form.pin_confirmation" :required="true" />
                                     </div>
                                 </div>
 
                                 <p class="text-xs text-slate-500 pt-1 mt-auto">The user will use this PIN to log in to the system.</p>
                             </div>
 
-                        </div> <!-- End of Two-Column Grid -->
+                        </div> 
 
                         {{-- Action Buttons --}}
                         <div class="flex items-center justify-end gap-3 pt-2">
@@ -127,12 +164,45 @@
                                 {{ __('Cancel') }}
                             </a>
 
-                            <x-primary-button class="px-4 py-2">
+                            <x-primary-button type="button" @click="handleFormSubmit()" class="px-4 py-2">
                                 {{ __('Create user') }}
                             </x-primary-button>
                         </div>
 
-                    </div> <!-- End of space-y-6 wrapper -->
+                    </div>
+
+                    <!-- Confirmation Modal -->
+                    <div
+                        x-show="showConfirmModal"
+                        x-transition
+                        x-cloak
+                        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                        @click.self="showConfirmModal = false"
+                    >
+                        <div class="w-full max-w-sm rounded bg-white p-6 shadow-lg">
+                            <h3 class="mb-2 text-lg font-semibold text-slate-900">Confirm New User</h3>
+                            <p class="mb-6 text-sm text-slate-600">
+                                Are you sure you want to create this user? Ensure the assigned role and branch are correct.
+                            </p>
+                            <div class="flex gap-3">
+                                <button
+                                    type="button"
+                                    @click="showConfirmModal = false"
+                                    class="flex-1 rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                >
+                                    Review Form
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="confirmAndSubmit()"
+                                    class="flex-1 rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                                >
+                                    Yes, Create User
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                 </form>
             @else
                 <div class="p-4 bg-red-50 border border-red-200 rounded text-sm text-red-700">

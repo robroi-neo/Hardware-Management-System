@@ -8,74 +8,88 @@
         <div class="mb-6">
             <h3 class="mb-4 text-lg font-semibold text-slate-900">Filters</h3>
 
-            <form method="GET" action="{{ route('inventory.stock-movements') }}" class="space-y-4">
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                    <!-- Search -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700">Search Product</label>
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ $search }}"
-                            placeholder="Product name or ID..."
-                            class="mt-1 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        />
-                    </div>
+            <!-- Filters Section -->
+            <div class="mb-6">
+                <form method="GET" action="{{ route('inventory.stock-movements') }}">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-end">
+                        
+                        <!-- Search Input -->
+                        <div class="w-full flex-1">
+                            <div class="relative">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                </div>
+                                <input
+                                    type="text"
+                                    name="search"
+                                    value="{{ $search }}"
+                                    placeholder="Search Product name or ID..."
+                                    class="placeholder-gray-400 bg-white-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                                />
+                            </div>
+                        </div>
 
-                    <!-- Movement Type -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700">Movement Type</label>
-                        <select
-                            onchange="this.form.submit()"
-                            name="type"
-                            class="mt-1 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        >
-                            <option value="">All Types</option>
-                            <option value="in" {{ $filterType === 'in' ? 'selected' : '' }}>Stock In</option>
-                            <option value="out" {{ $filterType === 'out' ? 'selected' : '' }}>Stock Out</option>
-                            <option value="adjustment" {{ $filterType === 'adjustment' ? 'selected' : '' }}>Adjustment</option>
-                        </select>
-                    </div>
-                    <!-- Date From -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700">From Date</label>
-                        <input
-                            type="date"
-                            name="date_from"
-                            value="{{ $dateFrom }}"
-                            class="mt-1 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        />
-                    </div>
-
-                    <!-- Date To -->
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700">To Date</label>
-                        <input
-                            type="date"
-                            name="date_to"
-                            value="{{ $dateTo }}"
-                            class="mt-1 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        />
-                    </div>
-                    <!-- Branch Filter (Admin Only) -->
-                    @if($isAdmin)
-                        <div class="pt-2">
-                            <x-filters.dropdown-filter
-                                :items="$branches"
-                                :selected="$filterBranchId"
-                                name="branch_id"
-                                label="Filter by Branch"
-                                placeholder="All Branches"
-                                valueField="id"
-                                displayField="name"
-                                :autoSubmit="true"
+                        <!-- Date From -->
+                        <div class="w-full flex-shrink-0 lg:w-40">
+                            <label class="mb-1 block text-xs font-medium text-slate-500">Date From</label>
+                            <input
+                                type="date"
+                                name="date_from"
+                                value="{{ $dateFrom }}"
+                                class="block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                             />
                         </div>
-                    @endif
-                </div>
 
+                        <!-- Date To -->
+                        <div class="w-full flex-shrink-0 lg:w-40">
+                            <label class="mb-1 block text-xs font-medium text-slate-500">Date To</label>
+                            <input
+                                type="date"
+                                name="date_to"
+                                value="{{ $dateTo }}"
+                                class="block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                            />
+                        </div>
 
-            </form>
+                        <!-- Movement Type -->
+                        <div class="w-full flex-shrink-0 lg:w-44">
+                            <label class="mb-1 block text-xs font-medium text-slate-500">Movement Type</label>
+                            <select
+                                name="type"
+                                class="block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                            >
+                                <option value="">All Types</option>
+                                <option value="in" {{ $filterType === 'in' ? 'selected' : '' }}>Stock In</option>
+                                <option value="out" {{ $filterType === 'out' ? 'selected' : '' }}>Stock Out</option>
+                                <option value="adjustment" {{ $filterType === 'adjustment' ? 'selected' : '' }}>Adjustment</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter by Branch (Admin Only) -->
+                        @if($isAdmin)
+                            <div class="w-full flex-shrink-0 lg:w-44">
+                                <label class="mb-1 block text-xs font-medium text-slate-500">Filter by Branch</label>
+                                <select
+                                    name="branch_id"
+                                    class="block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                                >
+                                    <option value="">All Branches</option>
+                                    @foreach($branches as $branch)
+                                        <option value="{{ $branch->id }}" {{ $filterBranchId == $branch->id ? 'selected' : '' }}>{{ $branch->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+
+                        <!-- Filter Button -->
+                        <div class="w-full flex-shrink-0 lg:w-auto">
+                            <button type="submit" class="w-full rounded bg-indigo-600 px-6 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                                Filter
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- Movements Table -->
