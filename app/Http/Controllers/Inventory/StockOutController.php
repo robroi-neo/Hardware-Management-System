@@ -15,13 +15,9 @@ class StockOutController extends Controller
      */
     public function create(Request $request)
     {
-        // Get user's terminal branch (if assigned)
-        $terminalId = $request->session()->get('pos_terminal_id');
-        $userDefaultBranchId = null;
-        if ($terminalId) {
-            $terminal = PosTerminal::find($terminalId);
-            $userDefaultBranchId = $terminal?->branch_id;
-        }
+        // Get selected branch from session (if assigned)
+        $sessionBranch = $request->session()->get('branch');
+        $userDefaultBranchId = $sessionBranch['id'] ?? null;
         $isAdmin = auth()->user()->hasRole('admin');
         $branches = $isAdmin ? Branch::all() : collect();
         return view('modules.inventory.stock-out', [
@@ -65,9 +61,10 @@ class StockOutController extends Controller
 
         // ---- branch permission check ----
         if (!$isAdmin) {
-            $terminal = PosTerminal::find($request->session()->get('pos_terminal_id'));
+            $sessionBranch = $request->session()->get('branch');
+            $sessionBranchId = $sessionBranch['id'] ?? null;
 
-            if (!$terminal || $terminal->branch_id != $data['branch_id']) {
+            if (!$sessionBranchId || $sessionBranchId != $data['branch_id']) {
                 return response()->json(['message' => 'Unauthorized branch access'], 403);
             }
         }

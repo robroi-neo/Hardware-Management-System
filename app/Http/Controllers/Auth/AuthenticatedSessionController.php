@@ -16,8 +16,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request): View|RedirectResponse
     {
-        if (! $request->session()->has('pos_terminal')) {
-            return redirect()->route('terminal.select');
+        if (! $request->session()->has('branch')) {
+            return redirect()->route('branch.select');
         }
 
         return view('auth.login');
@@ -42,7 +42,7 @@ class AuthenticatedSessionController extends Controller
     {
         Auth::guard('web')->logout();
 
-        $request->session()->forget('pos_terminal');
+        $request->session()->forget('branch');
 
         $request->session()->invalidate();
 

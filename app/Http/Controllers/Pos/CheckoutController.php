@@ -15,10 +15,11 @@ class CheckoutController extends Controller
 {
     protected function resolveTerminalBranchId(Request $request): int
     {
-        $branchId = (int) $request->session()->get('pos_terminal.branch_id');
+        $branch = $request->session()->get('branch', []);
+        $branchId = (int) ($branch['id'] ?? 0);
 
         if ($branchId < 1) {
-            abort(422, 'Terminal is not selected. Please select terminal again.');
+            abort(422, 'Branch is not selected. Please select a branch first.');
         }
 
         return $branchId;
@@ -77,7 +78,7 @@ class CheckoutController extends Controller
         ]);
 
         $branchId = $this->resolveTerminalBranchId($request);
-        $terminal = $request->session()->get('pos_terminal', []);
+        $terminal = $request->session()->get('branch', []);
 
         $cart = $request->session()->get('pos_cart', []);
         if (empty($cart)) {
@@ -167,9 +168,9 @@ class CheckoutController extends Controller
                     'date'           => optional($sale->date)->format('Y-m-d H:i:s'),
                     'cashier'        => $request->user()->name,
                     'branch_id'      => $branchId,
-                    'branch_name'    => $terminal['branch_name'] ?? null,
-                    'terminal_id'    => $terminal['terminal_id'] ?? null,
-                    'terminal_name'  => $terminal['terminal_name'] ?? null,
+                    'branch_name'    => $terminal['name'] ?? null,
+                    'terminal_id'    => null,
+                    'terminal_name'  => null,
                     'payment_method' => $sale->payment_method,
                     'items'          => $receiptItems,
                     'total'          => (float) $total,

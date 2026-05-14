@@ -80,6 +80,9 @@ class UserController extends Controller
     {
         $before = $user->only(['name', 'phone', 'branch_id', 'status']);
         $beforeRole = $user->roles->first()?->name;
+
+
+
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
             'phone'     => 'required|regex:/^09\d{9}$/',
@@ -135,7 +138,8 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required',
-            'phone' => 'required',
+            // Enforce Philippine mobile format: starts with 09 followed by 9 digits (total 11 digits)
+            'phone' => ['required', 'regex:/^09\\d{9}$/'],
             'address' => 'required',
             'role' => 'required',
             'pin' => 'required|string|min:4|max:10|confirmed',

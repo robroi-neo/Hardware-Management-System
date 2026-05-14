@@ -213,7 +213,7 @@
                     </clipPath>
                 </defs>
             </svg>
-            
+
              <span>Audit Logs</span>
         </x-sidebar.item>
             <!--
@@ -270,7 +270,7 @@
     </nav>
 
     <div class="mt-auto pt-6">
-        <form method="POST" action="{{ route('logout') }}" onsubmit="sessionStorage.removeItem('pos_terminal_id')">
+        <form method="POST" action="{{ route('logout') }}" onsubmit="sessionStorage.removeItem('branch')">
             @csrf
             <button
                 type="submit"

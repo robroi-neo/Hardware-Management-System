@@ -110,7 +110,7 @@ class SupplierController extends Controller
             'supplier_name' => 'required|string|max:255|unique:suppliers,supplier_name,' . $supplier->id,
             'contact_person' => 'nullable|string|max:255',
             'company_address' => 'nullable|string|max:500',
-            'contact_number' => 'nullable|string|max:20',
+            'contact_number' => 'required|regex:/^09\d{9}$/',
             'contact_email' => 'nullable|email|max:255',
             'status' => 'required|in:active,inactive',
         ]);

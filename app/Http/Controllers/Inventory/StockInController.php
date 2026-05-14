@@ -7,7 +7,6 @@ use App\Models\BranchInventory;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\Branch;
-use App\Models\PosTerminal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -18,14 +17,9 @@ class StockInController extends Controller
      */
     public function create(Request $request)
     {
-        // Get user's terminal branch (if assigned)
-        $terminalId = $request->session()->get('pos_terminal_id');
-        $userDefaultBranchId = null;
-
-        if ($terminalId) {
-            $terminal = PosTerminal::find($terminalId);
-            $userDefaultBranchId = $terminal?->branch_id;
-        }
+        // Get selected branch from session (if assigned)
+        $sessionBranch = $request->session()->get('branch');
+        $userDefaultBranchId = $sessionBranch['id'] ?? null;
 
         $isAdmin = auth()->user()->hasRole('admin');
         $branches = $isAdmin ? Branch::all() : collect();
@@ -76,9 +70,10 @@ class StockInController extends Controller
         $isAdmin = $user->hasRole('admin');
 
         if (!$isAdmin) {
-            $terminal = PosTerminal::find($request->session()->get('pos_terminal_id'));
+            $sessionBranch = $request->session()->get('branch');
+            $sessionBranchId = $sessionBranch['id'] ?? null;
 
-            if (!$terminal || $terminal->branch_id != $data['branch_id']) {
+            if (!$sessionBranchId || $sessionBranchId != $data['branch_id']) {
                 return response()->json(['message' => 'Unauthorized branch access'], 403);
             }
         }

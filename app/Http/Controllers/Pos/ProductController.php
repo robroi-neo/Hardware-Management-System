@@ -11,10 +11,11 @@ class ProductController extends Controller
 {
     protected function resolveTerminalBranchId(Request $request): int
     {
-        $branchId = (int) $request->session()->get('pos_terminal.branch_id');
+        $branch = $request->session()->get('branch', []);
+        $branchId = (int) ($branch['id'] ?? 0);
 
         if ($branchId < 1) {
-            abort(422, 'Terminal is not selected. Please select terminal again.');
+            abort(422, 'Branch is not selected. Please select a branch first.');
         }
 
         return $branchId;

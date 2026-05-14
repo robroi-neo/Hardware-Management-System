@@ -36,16 +36,16 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:sales.refund')->name('pos.transactions.refund');
 
     Route::get('/purchasing/new-invoice', function () {
-        // Get terminal from session
-        $posTerminal = session('pos_terminal');
-        if (!$posTerminal || !isset($posTerminal['branch_id'])) {
-            return redirect('/')->with('error', 'No terminal selected. Please select a terminal first.');
+        // Get selected branch from session (set in branch selection before login)
+        $branch = session('branch');
+        if (!$branch || !isset($branch['id'])) {
+            return redirect('/')->with('error', 'No branch selected. Please select a branch first.');
         }
 
         $suppliers = \App\Models\Supplier::where('status', 'active')->get();
         $branches = \App\Models\Branch::all();
-        $branchId = $posTerminal['branch_id'];
-        $terminalName = $posTerminal['terminal_name'] ?? 'Unknown Terminal';
+        $branchId = $branch['id'];
+        $terminalName = $branch['name'] ?? 'Selected Branch';
         $selectedBranch = $branches->find($branchId);
         $selectedSupplierId = session('purchasing_supplier_id');
 
