@@ -72,7 +72,7 @@
             </div>
 
             <!-- Suppliers Table -->
-            <div class="overflow-hidden rounded border border-slate-200 bg-white">
+            <div id="suppliers-table-container" class="overflow-hidden rounded border border-slate-200 bg-white">
                 @if ($suppliers->count() > 0)
                     <table class="w-full text-sm">
                         <thead class="border-b border-slate-200 bg-indigo-100">
@@ -212,7 +212,6 @@
         </div>
         @endif
 
-
         <!-- Detail Modal (Read-Only View) -->
         <x-modals.detail-modal
             show="showDetailModal"
@@ -250,7 +249,7 @@
             <form
                 :action="isEditMode ? `/suppliers/${editingId}` : '{{ route('suppliers.store') }}'"
                 method="POST"
-                @submit.prevent="submitForm" novalidate
+                @submit.prevent="handleFormSubmit" novalidate
             >
                 @csrf
                 <template x-if="isEditMode">
@@ -332,14 +331,45 @@
                     </button>
                 </div>
             </form>
-            <!-- Modal Actions -->
-
         </x-modals.modal>
+
+        <!-- Confirm Add Supplier Modal -->
+        <div
+            x-show="showConfirmModal"
+            x-transition
+            style="display: none;"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            @click.self="closeConfirmModal()"
+        >
+            <div class="w-full max-w-sm rounded bg-white p-6 shadow-lg">
+                <h3 class="mb-2 text-lg font-semibold text-slate-900">Confirm New Supplier</h3>
+                <p class="mb-6 text-sm text-slate-600">
+                    Are you sure you want to add <strong x-text="form.supplier_name || 'this supplier'"></strong> to your system?
+                </p>
+                <div class="flex gap-3">
+                    <button
+                        type="button"
+                        @click="closeConfirmModal()"
+                        class="flex-1 rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                        Review Form
+                    </button>
+                    <button
+                        type="button"
+                        @click="executeAdd()"
+                        class="flex-1 rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                    >
+                        Yes, Add Supplier
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Deactivate Modal -->
         <div
             x-show="showDeactivateModal"
             x-transition
+            style="display: none;"
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
             @click.self="closeDeactivateModal()"
         >
@@ -371,6 +401,7 @@
         <div
             x-show="showActivateModal"
             x-transition
+            style="display: none;"
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
             @click.self="closeActivateModal()"
         >
@@ -406,6 +437,7 @@
                 showDetailModal: false,
                 showDeactivateModal: false,
                 showActivateModal: false,
+                showConfirmModal: false,
                 isEditMode: false,
                 editingId: null,
                 deactivateId: null,
@@ -433,6 +465,27 @@
                     contact_number: '',
                     contact_email: '',
                     status: 'active',
+                },
+
+                async refreshTable() {
+                    try {
+                        // Fetch the current page in the background
+                        const response = await fetch(window.location.href, { 
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' } 
+                        });
+                        const html = await response.text();
+                        
+                        // Parse the HTML and grab the updated table
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newTableHTML = doc.querySelector('#suppliers-table-container').innerHTML;
+                        
+                        // Swap it directly onto the screen without blinking
+                        document.querySelector('#suppliers-table-container').innerHTML = newTableHTML;
+                    } catch (error) {
+                        console.error('Seamless refresh failed, falling back to reload.', error);
+                        window.location.reload(); // Safe fallback
+                    }
                 },
 
                 openCreateModal() {
@@ -470,6 +523,10 @@
                     this.isEditMode = false;
                     this.editingId = null;
                     this.errors = {};
+                },
+
+                closeConfirmModal() {
+                    this.showConfirmModal = false;
                 },
 
                 openDeactivateModal(id, name) {
@@ -529,8 +586,9 @@
                         }
 
                         this.closeDeactivateModal();
-
-                        window.location.reload();
+                        
+                        // Delete window.location.reload(); and replace with:
+                        await this.refreshTable();
 
                     } catch (error) {
                         console.error(error);
@@ -555,8 +613,9 @@
                         }
 
                         this.closeActivateModal();
-
-                        window.location.reload();
+                        
+                        // Delete window.location.reload(); and replace with:
+                        await this.refreshTable();
 
                     } catch (error) {
                         console.error(error);
@@ -698,6 +757,31 @@
                     window.location = url;
                 },
 
+                handleFormSubmit() {
+                    this.errors = {};
+                    let hasError = false;
+
+                    // Basic frontend validation to prevent empty submissions
+                    if (!this.form.supplier_name) { this.errors.supplier_name = ['Supplier name is required.']; hasError = true; }
+                    if (!this.form.contact_person) { this.errors.contact_person = ['Contact person is required.']; hasError = true; }
+                    if (!this.form.company_address) { this.errors.company_address = ['Company address is required.']; hasError = true; }
+                    if (!this.form.contact_number) { this.errors.contact_number = ['Contact number is required.']; hasError = true; }
+                    if (!this.form.contact_email) { this.errors.contact_email = ['Contact email is required.']; hasError = true; }
+
+                    if (hasError) return;
+
+                    if (this.isEditMode) {
+                        this.submitForm();
+                    } else {
+                        this.showConfirmModal = true;
+                    }
+                },
+
+                executeAdd() {
+                    this.closeConfirmModal();
+                    this.submitForm();
+                },
+
                 async submitForm() {
                     this.errors = {};
 
@@ -710,7 +794,6 @@
                         : 'POST';
 
                     try {
-
                         const response = await fetch(url, {
                             method: method,
                             headers: {
@@ -727,20 +810,18 @@
 
                         // Validation failed
                         if (!response.ok) {
-
                             if (response.status === 422) {
                                 this.errors = data.errors;
                                 return;
                             }
-
                             throw new Error('Something went wrong');
                         }
 
                         // Success
                         this.closeModal();
-
-                        // Optional:
-                        window.location.reload();
+                        
+                        // Delete window.location.reload(); and replace with:
+                        await this.refreshTable();
 
                     } catch (error) {
                         console.error(error);
