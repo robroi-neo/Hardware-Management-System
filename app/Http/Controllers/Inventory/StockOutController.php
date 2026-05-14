@@ -19,7 +19,7 @@ class StockOutController extends Controller
         $userDefaultBranchId = $sessionBranch['id'] ?? null;
         $isAdmin = auth()->user()->hasRole('admin');
         $branches = $isAdmin ? Branch::all() : collect();
-        return view('modules.inventory.stock-out', [
+        return view('modules.inventory.manual-stock-out', [
             'isAdmin' => $isAdmin,
             'branches' => $branches,
             'userDefaultBranchId' => $userDefaultBranchId,

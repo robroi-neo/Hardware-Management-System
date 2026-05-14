@@ -38,6 +38,7 @@ class StockInController extends Controller
     {
         $q = $request->query('q');
         $limit = min(max((int) $request->query('limit', 20), 1), 50);
+        $branchId = (int) $request->query('branch_id', 0);
 
         $productsQuery = Product::query()
             ->search($q)
@@ -47,7 +48,25 @@ class StockInController extends Controller
             ->limit($limit)
             ->get(['id', 'name', 'unit', 'capital']);
 
-        return response()->json($products);
+        $availableByProductId = collect();
+        if ($branchId > 0 && $products->isNotEmpty()) {
+            $availableByProductId = BranchInventory::query()
+                ->where('branch_id', $branchId)
+                ->whereIn('product_id', $products->pluck('id'))
+                ->pluck('quantity', 'product_id');
+        }
+
+        $payload = $products->map(function ($product) use ($availableByProductId) {
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'unit' => $product->unit,
+                'capital' => $product->capital,
+                'available_quantity' => (float) ($availableByProductId[$product->id] ?? 0),
+            ];
+        });
+
+        return response()->json($payload);
     }
 
     /**
