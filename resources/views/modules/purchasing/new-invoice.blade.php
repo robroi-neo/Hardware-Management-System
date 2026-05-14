@@ -12,7 +12,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Terminal & Branch Info (Read-only) -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Terminal & Branch</label>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Branch</label>
                         <div class="w-full border border-gray-200 rounded shadow-sm px-3 py-2 bg-slate-50 text-slate-700">
                             <div class="font-medium text-sm">{{ $terminalName }}</div>
                             <div class="text-xs text-slate-600">{{ $selectedBranch->name ?? 'Unknown Branch' }}</div>

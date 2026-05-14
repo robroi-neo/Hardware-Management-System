@@ -66,6 +66,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventory/overview', [\App\Http\Controllers\Inventory\OverviewController::class, 'index'])
         ->middleware('permission:inventory.view-overview')->name('inventory.overview');
 
+    // Archive a product (mark as archived)
+    Route::patch('/inventory/products/{product}/archive', [\App\Http\Controllers\Inventory\OverviewController::class, 'archive'])
+        ->middleware('permission:inventory.update')
+        ->name('inventory.products.archive');
+
     Route::get('/inventory/manual-stock-in', [\App\Http\Controllers\Inventory\StockInController::class, 'create'])
         ->middleware('permission:inventory.update')->name('inventory.manual-stock-in');
 
@@ -74,10 +79,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/inventory/stock-movements', [\App\Http\Controllers\Inventory\StockMovementController::class, 'index'])
         ->middleware('permission:inventory.view-movements')->name('inventory.stock-movements');
-
-    Route::get('/inventory/archives', function () {
-        return view('modules.inventory.archives');
-    })->middleware('permission:inventory.archive')->name('inventory.archives');
 
     Route::get('/audit-logs/user-activity', [\App\Http\Controllers\Audit\UserActivityController::class, 'index'])
         ->middleware('permission:audit.user-activity.view')

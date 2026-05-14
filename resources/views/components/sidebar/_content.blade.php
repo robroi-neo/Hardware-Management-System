@@ -166,12 +166,6 @@
             >
                 Stock Movements
             </x-sidebar.item>
-            <x-sidebar.item
-                href="{{ route('inventory.archives') }}"
-                :active="request()->routeIs('inventory.archives')"
-            >
-                Archives
-            </x-sidebar.item>
         </x-sidebar.dropdown>
         @endcanany
 

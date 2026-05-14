@@ -24,6 +24,19 @@
                         />
                     </form>
                 @endif
+                @if($isAdmin)
+                    <form>
+                        <x-filters.dropdown-filter
+                            :items="$statuses"
+                            :selected="$filterStatus"
+                            name="status"
+                            label="Filter by Status"
+                            valueField="value"
+                            displayField="label"
+                            :autoSubmit="true"
+                        />
+                    </form>
+                @endif
             </div>
         </div>
 
@@ -60,7 +73,7 @@
                                 :sortDir="$sortDir"
                                 column="name"
                                 route="inventory.overview"
-                                :params="['search' => $search]"
+                                :params="['search' => $search, 'branch_id' => $filterBranchId, 'status' => $filterStatus]"
                             />
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Unit</th>
                             <x-table.sortable-header
@@ -69,13 +82,14 @@
                                 :sortDir="$sortDir"
                                 column="quantity"
                                 route="inventory.overview"
-                                :params="['search' => $search]"
+                                :params="['search' => $search, 'branch_id' => $filterBranchId, 'status' => $filterStatus]"
                                 align="center"
                             />
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Unit Cost</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Total Value</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Branch</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Status</th>
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -89,24 +103,46 @@
                                 <td class="px-4 py-3 text-slate-700 font-semibold">₱{{ number_format($inventory->quantity * $inventory->product->capital, 2) }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $inventory->branch->name }}</td>
                                 <td class="px-4 py-3">
-                                    @if($inventory->quantity < 5)
-                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
-                                            Low Stock
-                                        </span>
-                                    @elseif($inventory->quantity < 10)
-                                        <span class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
-                                            Warning
+                                    @if($inventory->product->status === 'inactive')
+                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                                            Archived
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                                            In Stock
-                                        </span>
+                                        @if($inventory->quantity < 5)
+                                            <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                                                Low Stock
+                                            </span>
+                                        @elseif($inventory->quantity < 10)
+                                            <span class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
+                                                Warning
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                                                In Stock
+                                            </span>
+                                        @endif
                                     @endif
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    @can('inventory.update')
+                                        @php
+                                            $productQuantity = $inventory->product->branchInventories->sum('quantity');
+                                        @endphp
+                                        @if($inventory->product->status !== 'inactive' && $productQuantity <= 0)
+                                            <form action="{{ route('inventory.products.archive', $inventory->product->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="rounded bg-gray-600 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700">Archive</button>
+                                            </form>
+                                        @else
+                                            <span class="text-xs text-slate-500">—</span>
+                                        @endif
+                                    @endcan
                                 </td>
                             </tr>
                         @empty
                             <x-table.empty-state
-                                :colspan="8"
+                                :colspan="9"
                                 :message="$search ? 'No inventory records found. Try adjusting your search filters.' : 'No inventory records found.'"
                             />
                         @endforelse
@@ -254,8 +290,7 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
                 params.set('branch_id', this.selectedBranch);
             }
 
-            const url = params.toString() ? `${this.baseRoute}?${params.toString()}` : this.baseRoute;
-            window.location.href = url;
+            window.location.href = params.toString() ? `${this.baseRoute}?${params.toString()}` : this.baseRoute;
         },
 
         formatPrice(value) {
