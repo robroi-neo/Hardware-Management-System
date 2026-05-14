@@ -100,23 +100,53 @@
                         <x-table.sortable-header label="Total Amount"   :sortBy="$sortBy" :sortDir="$sortDir" column="total_amount"   route="pos.transactions" />
                         <x-table.sortable-header label="Payment Method" :sortBy="$sortBy" :sortDir="$sortDir" column="payment_method" route="pos.transactions" />
                         <th class="px-4 py-3 font-medium">Processed By</th>
+                        <th class="px-4 py-3 font-medium">Status</th>
+                        <th class="px-4 py-3 font-medium">Action</th>
                     </tr>
                     </thead>
                     <tbody class="divide-y border-t border-slate-200">
                     @forelse($transactions as $transaction)
-                        <tr class="hover:bg-slate-50 cursor-pointer" @click="openDetail({{ $transaction->id }})">
-                            <td class="px-4 py-3 text-slate-900">#{{ $transaction->id }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $transaction->date->format('Y-m-d H:i:s') }}</td>
-                            <td class="px-4 py-3 text-slate-900 font-medium">₱{{ number_format($transaction->total_amount, 2) }}</td>
-                            <td class="px-4 py-3">
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3 text-slate-900 cursor-pointer" @click="openDetail({{ $transaction->id }})">#{{ $transaction->id }}</td>
+                            <td class="px-4 py-3 text-slate-600 cursor-pointer" @click="openDetail({{ $transaction->id }})">{{ $transaction->date->format('Y-m-d H:i:s') }}</td>
+                            <td class="px-4 py-3 text-slate-900 font-medium cursor-pointer" @click="openDetail({{ $transaction->id }})">₱{{ number_format($transaction->total_amount, 2) }}</td>
+                            <td class="px-4 py-3 cursor-pointer" @click="openDetail({{ $transaction->id }})">
                                     <span class="inline-flex items-center rounded bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                                         {{ ucfirst($transaction->payment_method) }}
                                     </span>
                             </td>
-                            <td class="px-4 py-3 text-slate-600">{{ $transaction->user->name ?? 'N/A' }}</td>
+                            <td class="px-4 py-3 text-slate-600 cursor-pointer" @click="openDetail({{ $transaction->id }})">{{ $transaction->user->name ?? 'N/A' }}</td>
+                            <td class="px-4 py-3 cursor-pointer" @click="openDetail({{ $transaction->id }})">
+                                @if($transaction->refunded)
+                                    <span class="inline-flex items-center rounded bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                                        Refunded
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center rounded bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
+                                        Active
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 cursor-pointer" @click="openDetail({{ $transaction->id }})">
+                                @can('sales.refund')
+                                    @if(!$transaction->refunded)
+                                        <button
+                                            type="button"
+                                            @click.stop="openRefund({{ $transaction->id }})"
+                                            class="px-3 py-1.5 rounded bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors"
+                                        >
+                                            Refund
+                                        </button>
+                                    @else
+                                        <span class="text-xs text-slate-400"> Already refunded </span>
+                                    @endif
+                                @else
+                                    <span class="text-xs text-slate-400">—</span>
+                                @endcan
+                            </td>
                         </tr>
                     @empty
-                        <x-table.empty-state :colspan="5" message="No transactions found." />
+                        <x-table.empty-state :colspan="7" message="No transactions found." />
                     @endforelse
                     </tbody>
                 </table>
@@ -193,28 +223,13 @@
 
                         {{-- Modal Footer Actions --}}
                         <div class="border-t pt-4 mt-6 flex items-center justify-end gap-3">
-                            {{-- Cancel / Close Button (Always visible) --}}
                             <button
                                 type="button"
                                 @click="$dispatch('close-modal', 'transaction-detail')"
                                 class="px-4 py-2 rounded border border-gray-300 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                             >
-                                Cancel
+                                Close
                             </button>
-
-                            {{-- Refund Button (Conditionally visible) --}}
-                            @can('sales.refund')
-                            <template x-if="!detail.refunded">
-                                <button
-                                    type="button"
-                                    @click="$dispatch('open-modal', 'refund-confirm')"
-                                    :disabled="refunding"
-                                    class="px-4 py-2 rounded bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    Refund Transaction
-                                </button>
-                            </template>
-                            @endcan
                         </div>
                     </div>
                 </template>
@@ -235,7 +250,7 @@
 
                 <div class="mb-6">
                     <p class="text-sm text-slate-600">
-                        Are you sure you want to refund Transaction #<span x-text="detail.id" class="font-semibold text-slate-900"></span>?
+                        Are you sure you want to refund Transaction #<span x-text="refundId" class="font-semibold text-slate-900"></span>?
                     </p>
                     <p class="text-sm text-red-600 mt-2 font-medium">
                         Warning: This action cannot be undone and will restore the inventory items.
@@ -270,6 +285,7 @@
                 detail: {},
                 loading: false,
                 refunding: false,
+                refundId: null,
 
                 async openDetail(id) {
                     this.detail = {};
@@ -292,10 +308,14 @@
                     }
                 },
 
+                openRefund(id) {
+                    this.refundId = id;
+                    this.$dispatch('open-modal', 'refund-confirm');
+                },
+
                 async processRefund() {
-                    // No more browser confirm() needed!
                     this.refunding = true;
-                    const saleId = this.detail.id; // Gets the ID from the currently open transaction
+                    const saleId = this.refundId;
 
                     try {
                         const res = await fetch(`/pos/transactions/${saleId}/refund`, {
@@ -312,26 +332,15 @@
                         const data = await res.json();
 
                         if (data.success) {
-                            // Show success toast
                             this.$dispatch('show-toast', {
                                 message: data.message,
                                 type: 'success'
                             });
 
-                            // Update detail to show refunded status
-                            this.detail.refunded = true;
-                            this.detail.refunded_at = new Date().toLocaleString();
-                            this.detail.refunded_by = '{{ auth()->user()->name }}';
-
-                            // Close the confirmation modal immediately
                             this.$dispatch('close-modal', 'refund-confirm');
 
-                            // Close the main detail modal after 2 seconds
-                            setTimeout(() => {
-                                this.$dispatch('close-modal', 'transaction-detail');
-                                // Reload the page to show updated transaction list
-                                window.location.reload();
-                            }, 2000);
+                            this.$dispatch('close-modal', 'refund-confirm');
+                            window.location.reload();
                         } else {
                             this.$dispatch('show-toast', {
                                 message: data.message || 'Error processing refund',
