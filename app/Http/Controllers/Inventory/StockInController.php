@@ -41,7 +41,7 @@ class StockInController extends Controller
 
         $productsQuery = Product::query()
             ->search($q)
-            ->where('status', 'active');
+            ->whereRaw('status = ?', ['active']);
 
         $products = $productsQuery
             ->limit($limit)
@@ -96,7 +96,7 @@ class StockInController extends Controller
                 $productIds = $items->pluck('product_id');
 
                 // ---- Preload inventories (1 query instead of N) ----
-                $inventories = BranchInventory::where('branch_id', $branchId)
+                $inventories = BranchInventory::whereRaw('branch_id = ?', [$branchId])
                     ->whereIn('product_id', $productIds)
                     ->get()
                     ->keyBy('product_id');

@@ -5,7 +5,6 @@ use App\Models\BranchInventory;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\Branch;
-use App\Models\PosTerminal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 class StockOutController extends Controller
@@ -35,7 +34,7 @@ class StockOutController extends Controller
         $limit = min(max((int) $request->query('limit', 20), 1), 50);
         $productsQuery = Product::query()
             ->search($q)
-            ->where('status', 'active');
+            ->whereRaw('status = ?', ['active']);
         $products = $productsQuery
             ->limit($limit)
             ->get(['id', 'name', 'unit', 'capital']);
@@ -87,7 +86,7 @@ class StockOutController extends Controller
                 $productIds = $items->pluck('product_id');
 
                 // ---- preload all inventories in 1 query ----
-                $inventories = BranchInventory::where('branch_id', $branchId)
+                $inventories = BranchInventory::whereRaw('branch_id = ?', [$branchId])
                     ->whereIn('product_id', $productIds)
                     ->lockForUpdate()
                     ->get()

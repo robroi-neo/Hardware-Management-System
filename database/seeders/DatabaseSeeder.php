@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
         // call database seeders
         $this->call([
             BranchSeeder::class,
-            PosTerminalSeeder::class,
             ProductSeeder::class,
             ProductFactorySeeder::class,
             BranchInventorySeeder::class,
@@ -45,6 +44,7 @@ class DatabaseSeeder extends Seeder
             // Purchasing
             'purchases.create',
             'purchases.view-history',
+            'purchases.refund',
 
             // Inventory
             'inventory.view-overview',
@@ -95,6 +95,7 @@ class DatabaseSeeder extends Seeder
 
             'purchases.create',
             'purchases.view-history',
+            'purchases.refund',
             'inventory.view-overview',
             'inventory.update',
             'inventory.view-movements',
