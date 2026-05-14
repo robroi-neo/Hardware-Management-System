@@ -3,9 +3,9 @@
         <h2 class="text-3xl font-medium leading-tight text-slate-900">Stock Overview</h2>
     </x-slot>
 
-    <x-card>
+    <x-card x-data="inventorySearch('{{ route('pos.api.products.search') }}', '{{ route('inventory.overview') }}', '{{ $filterBranchId }}')">
         <!-- Search Bar & Branch Filter -->
-        <div class="mb-6 flex flex-col gap-4" x-data="inventorySearch('{{ route('pos.api.products.search') }}', '{{ route('inventory.overview') }}', '{{ $filterBranchId }}')">
+        <div class="mb-6 flex flex-col gap-4">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex-1">
                     <x-product-search-typeahead searchInputRef="inventorySearchInput" />
@@ -76,6 +76,7 @@
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Total Value</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Branch</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Status</th>
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -103,10 +104,30 @@
                                         </span>
                                     @endif
                                 </td>
+                                <td class="px-4 py-3">
+                                    @can('inventory.archive')
+                                        <button
+                                            type="button"
+                                            @click="archiveProduct"
+                                            data-product-id="{{ $inventory->product_id }}"
+                                            data-product-name="{{ $inventory->product->name }}"
+                                            data-product-unit="{{ $inventory->product->unit }}"
+                                            data-quantity="{{ $inventory->quantity }}"
+                                            data-branch-name="{{ $inventory->branch->name }}"
+                                            class="inline-flex items-center rounded bg-red-100 px-3 py-1 text-xs font-medium text-red-800 hover:bg-red-200 transition-colors"
+                                            title="Archive this product"
+                                        >
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                                            </svg>
+                                            Archive
+                                        </button>
+                                    @endcan
+                                </td>
                             </tr>
                         @empty
                             <x-table.empty-state
-                                :colspan="8"
+                                :colspan="9"
                                 :message="$search ? 'No inventory records found. Try adjusting your search filters.' : 'No inventory records found.'"
                             />
                         @endforelse
@@ -133,6 +154,67 @@
                     View Movements
                 </a>
             @endcan
+            @can('inventory.archive')
+                <a href="{{ route('inventory.archives') }}" class="rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    View Archives
+                </a>
+            @endcan
+        </div>
+
+        <!-- Archive Confirmation Modal -->
+        <div :class="archiveModal.open ? 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50' : 'hidden'" x-cloak>
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg font-medium text-gray-900">Archive Product</h3>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <p class="text-sm text-gray-500">
+                        Are you sure you want to archive this product? This action will remove it from active stock and move it to the archive list.
+                    </p>
+                    <div class="mt-4 bg-gray-50 p-4 rounded-md">
+                        <div class="text-sm">
+                            <p><strong>Product:</strong> <span x-text="archiveModal.product?.name || 'Loading...'"></span></p>
+                            <p><strong>Unit:</strong> <span x-text="archiveModal.product?.unit || 'Loading...'"></span></p>
+                            <p><strong>Current Stock:</strong> <span x-text="archiveModal.product?.quantity ? archiveModal.product.quantity + ' ' + archiveModal.product.unit : 'Loading...'"></span></p>
+                            <p><strong>Branch:</strong> <span x-text="archiveModal.product?.branch || 'Loading...'"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button
+                        type="button"
+                        @click="closeArchiveModal()"
+                        :disabled="archiveModal.loading"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        @click="confirmArchive()"
+                        :disabled="archiveModal.loading"
+                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 disabled:opacity-50"
+                    >
+                        <span x-show="!archiveModal.loading">Archive Product</span>
+                        <span x-show="archiveModal.loading" x-cloak>
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Archiving...
+                        </span>
+                    </button>
+                </div>
+            </div>
         </div>
     </x-card>
 </x-app-layout>
@@ -152,6 +234,12 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
         searchUrl: searchUrl,
         baseRoute: baseRoute,
         selectedBranch: selectedBranch,
+        archiveModal: {
+            open: false,
+            loading: false,
+            productId: null,
+            product: null,
+        },
 
         onTypeaheadInput() {
             if (this.typeahead.debounceHandle) {
@@ -286,6 +374,81 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
             }
 
             return response.json();
+        },
+
+        async archiveProduct(event) {
+            const button = event.target.closest('button');
+            const productId = button.dataset.productId;
+            const productName = button.dataset.productName;
+            const productUnit = button.dataset.productUnit;
+            const quantity = button.dataset.quantity;
+            const branchName = button.dataset.branchName;
+            
+            this.archiveModal.productId = productId;
+            this.archiveModal.product = {
+                name: productName,
+                unit: productUnit,
+                quantity: quantity,
+                branch: branchName,
+            };
+            this.archiveModal.open = true;
+        },
+
+        closeArchiveModal() {
+            if (this.archiveModal.loading) return;
+            this.archiveModal.open = false;
+            this.archiveModal.productId = null;
+            this.archiveModal.product = null;
+        },
+
+        async confirmArchive() {
+            if (!this.archiveModal.productId || this.archiveModal.loading) return;
+
+            this.archiveModal.loading = true;
+
+            try {
+                const response = await fetch(`{{ route('inventory.api.archive', ':id') }}`.replace(':id', this.archiveModal.productId), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    this.showToast(data.message || 'Product archived successfully', 'success');
+                    this.closeArchiveModal();
+                    // Reload the page to update the table
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    this.showToast(data.message || 'Failed to archive product', 'error');
+                }
+            } catch (error) {
+                console.error('Archive error:', error);
+                this.showToast('An error occurred while archiving the product', 'error');
+            } finally {
+                this.archiveModal.loading = false;
+            }
+        },
+
+        showToast(message, type = 'info') {
+            // Simple toast implementation - you can enhance this
+            const toast = document.createElement('div');
+            toast.className = `fixed top-4 right-4 px-4 py-2 rounded shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
         },
     };
 }

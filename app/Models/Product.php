@@ -10,9 +10,10 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','capital','unit','status'];
+    protected $fillable = ['name','capital','unit','status','archived_at'];
     protected $casts = [
         'capital' => 'float',
+        'archived_at' => 'datetime',
     ];
 
     public function branchInventories()
@@ -41,5 +42,15 @@ class Product extends Model
                 $inner->orWhere('id', (int) $term);
             }
         });
+    }
+
+    public function scopeActive(Builder $query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeArchived(Builder $query)
+    {
+        return $query->where('status', 'archived');
     }
 }

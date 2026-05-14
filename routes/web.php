@@ -72,9 +72,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventory/stock-movements', [\App\Http\Controllers\Inventory\StockMovementController::class, 'index'])
         ->middleware('permission:inventory.view-movements')->name('inventory.stock-movements');
 
-    Route::get('/inventory/archives', function () {
-        return view('modules.inventory.archives');
-    })->middleware('permission:inventory.archive')->name('inventory.archives');
+    Route::get('/inventory/archives', [\App\Http\Controllers\Inventory\ArchiveController::class, 'index'])
+        ->middleware('permission:inventory.archive')->name('inventory.archives');
 
     Route::get('/audit-logs/user-activity', [\App\Http\Controllers\Audit\UserActivityController::class, 'index'])
         ->middleware('permission:audit.user-activity.view')
@@ -155,6 +154,9 @@ Route::middleware('auth')->group(function () {
         Route::get('products/search', [\App\Http\Controllers\Inventory\StockInController::class, 'searchProducts'])->name('inventory.api.products.search');
         Route::post('stock-in/store', [\App\Http\Controllers\Inventory\StockInController::class, 'store'])->name('inventory.api.stock-in.store');
         Route::post('stock-out/store', [\App\Http\Controllers\Inventory\StockOutController::class, 'store'])->name('inventory.api.stock-out.store');
+        Route::post('archive/{id}', [\App\Http\Controllers\Inventory\ArchiveController::class, 'archiveItem'])->name('inventory.api.archive');
+        Route::post('unarchive/{id}', [\App\Http\Controllers\Inventory\ArchiveController::class, 'unarchiveItem'])->name('inventory.api.unarchive');
+        Route::get('archives', [\App\Http\Controllers\Inventory\ArchiveController::class, 'getArchivedItems'])->name('inventory.api.archives');
     });
 
     // Purchasing API endpoints
