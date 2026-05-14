@@ -8,6 +8,7 @@ use App\Http\Controllers\Pos\RefundController;
 use App\Http\Controllers\Pos\TransactionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Purchasing\InvoiceRefundController;
+use App\Http\Controllers\Purchasing\InvoiceDetailController;
 use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +56,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/purchasing/invoice-history', [\App\Http\Controllers\Purchasing\InvoicesController::class, 'index'])
         ->middleware('permission:purchases.view-history')->name('purchasing.invoice-history');
+
+    Route::get('purchasing/invoices/{invoice}', [InvoiceDetailController::class, 'show'])->name('purchasing.invoices.show');
 
     Route::post('/purchasing/invoices/{invoice}/refund', [InvoiceRefundController::class, 'store'])
         ->middleware('permission:purchases.refund')

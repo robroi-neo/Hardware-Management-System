@@ -41,19 +41,6 @@
                 />
             </div>
 
-            {{-- Payment Method Filter
-            <select
-                name="payment_method"
-                class="rounded border-gray-200 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            >
-                <option value="">All Payment Methods</option>
-                <option value="cash"    {{ request('payment_method') === 'cash'    ? 'selected' : '' }}>Cash</option>
-                <option value="card"    {{ request('payment_method') === 'card'    ? 'selected' : '' }}>Card</option>
-                <option value="gcash"   {{ request('payment_method') === 'gcash'   ? 'selected' : '' }}>GCash</option>
-                <option value="maya"    {{ request('payment_method') === 'maya'    ? 'selected' : '' }}>Maya</option>
-                <option value="other"   {{ request('payment_method') === 'other'   ? 'selected' : '' }}>Other</option>
-            </select>
-            --}}
             {{-- Date From --}}
             <div class="flex flex-col">
                 <span class="text-xs text-gray-500 mb-1">Date From</span>
@@ -149,8 +136,8 @@
                             <p class="text-xs text-amber-600 mt-1">✓ Refunded on <span x-text="detail.refunded_at"></span> by <span x-text="detail.refunded_by"></span></p>
                         </template>
                     </div>
-                    <button 
-                        @click="$dispatch('close-modal', 'transaction-detail')" 
+                    <button
+                        @click="$dispatch('close-modal', 'transaction-detail')"
                         class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors"
                     >
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -233,7 +220,7 @@
                 </template>
             </div>
         </x-modal>
-        
+
         <!-- Refund Confirmation Modal -->
         <x-modal name="refund-confirm" maxWidth="md" focusable>
             <div class="p-6">
@@ -245,7 +232,7 @@
                         </svg>
                     </button>
                 </div>
-                
+
                 <div class="mb-6">
                     <p class="text-sm text-slate-600">
                         Are you sure you want to refund Transaction #<span x-text="detail.id" class="font-semibold text-slate-900"></span>?
@@ -254,7 +241,7 @@
                         Warning: This action cannot be undone and will restore the inventory items.
                     </p>
                 </div>
-                
+
                 <div class="flex items-center justify-end gap-3">
                     <button
                         @click="$dispatch('close-modal', 'refund-confirm')"
