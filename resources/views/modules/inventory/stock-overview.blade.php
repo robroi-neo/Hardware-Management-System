@@ -135,7 +135,7 @@
                                         @if($inventory->product->status !== 'inactive' && $productQuantity <= 0)
                                             <button
                                                 type="button"
-                                                @click="confirmArchive.open = true; confirmArchive.product = {
+                                                @click="confirmArchive.open = true; confirmArchive.action = 'archive'; confirmArchive.product = {
                                                 id: {{ $inventory->product->id }},
                                                 name: '{{ addslashes($inventory->product->name) }}',
                                                 unit: '{{ $inventory->product->unit }}',
@@ -146,9 +146,26 @@
                                                                                     >
                                                 Archive
                                             </button>
+                                        @elseif($inventory->product->status === 'inactive')
+                                            <span class="text-xs text-slate-500">
+                                            <button
+                                                type="button"
+                                                @click="confirmArchive.open = true; confirmArchive.action = 'restore'; confirmArchive.product = {
+                                                id: {{ $inventory->product->id }},
+                                                name: '{{ addslashes($inventory->product->name) }}',
+                                                unit: '{{ $inventory->product->unit }}',
+                                                quantity: {{ $inventory->quantity }},
+                                                branch: '{{ addslashes($inventory->branch->name) }}'
+                                            }"
+                                                class="rounded bg-gray-600 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700"
+                                            >
+                                                Restore
+                                            </button>
+                                            </span>
                                         @else
-                                            <span class="text-xs text-slate-500">—</span>
+                                            <span class="text-xs text-slate-500">No actions available</span>
                                         @endif
+
                                     @endcan
                                 </td>
                             </tr>
@@ -183,20 +200,18 @@
             @endcan
         </div>
 
-        <!-- Archive Confirmation Modal -->
+        <!-- Archive / Restore Confirmation Modal -->
         <div
             x-show="confirmArchive.open"
             x-cloak
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
         >
             <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-                <h2 class="text-lg font-semibold text-slate-900">
+                <h2 class="text-lg font-semibold text-slate-900" x-text="confirmArchive.action === 'restore' ? 'Restore Product' : 'Archive Product'">
                     Archive Product
                 </h2>
 
-                <p class="mt-2 text-sm text-slate-600">
-                    Are you sure that you want to archive this product?
-                </p>
+                <p class="mt-2 text-sm text-slate-600" x-text="confirmArchive.action === 'restore' ? 'Are you sure that you want to restore this product?' : 'Are you sure that you want to archive this product?'"></p>
 
                 <div class="mt-4 space-y-1 rounded bg-slate-50 p-3 text-sm">
                     <p><span class="font-medium">Product:</span> <span x-text="confirmArchive.product?.name"></span></p>
@@ -215,7 +230,7 @@
                     </button>
 
                     <form
-                        :action="confirmArchive.product ? `/inventory/products/${confirmArchive.product.id}/archive` : '#'"
+                        :action="confirmArchive.product ? `/inventory/products/${confirmArchive.product.id}/${confirmArchive.action}` : '#'"
                         method="POST"
                     >
                         @csrf
@@ -224,6 +239,7 @@
                         <button
                             type="submit"
                             class="rounded bg-gray-700 px-4 py-2 text-sm text-white hover:bg-gray-800"
+                            x-text="confirmArchive.action === 'restore' ? 'Confirm Restore' : 'Confirm Archive'"
                         >
                             Confirm Archive
                         </button>
@@ -255,6 +271,7 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
         confirmArchive: {
             open: false,
             product: null,
+            action: 'archive',
         },
 
         onTypeaheadInput() {
