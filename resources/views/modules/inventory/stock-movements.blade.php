@@ -79,86 +79,88 @@
         </div>
 
         <!-- Movements Table -->
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b border-slate-200 bg-indigo-100">
-                        <x-table.sortable-header
-                            label="Date & Time"
-                            :sortBy="$sortBy"
-                            :sortDir="$sortDir"
-                            column="created_at"
-                            route="inventory.stock-movements"
-                            :params="['search' => $search, 'type' => $filterType, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
-                        />
-                        <x-table.sortable-header
-                            label="Product"
-                            :sortBy="$sortBy"
-                            :sortDir="$sortDir"
-                            column="product_id"
-                            route="inventory.stock-movements"
-                            :params="['search' => $search, 'type' => $filterType, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
-                        />
-                        <th class="px-4 py-3 text-left font-medium text-slate-700">Unit</th>
-                        <x-table.sortable-header
-                            label="Type"
-                            :sortBy="$sortBy"
-                            :sortDir="$sortDir"
-                            column="type"
-                            route="inventory.stock-movements"
-                            :params="['search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
-                            align="left"
-                        />
-                        <x-table.sortable-header
-                            label="Quantity Change"
-                            :sortBy="$sortBy"
-                            :sortDir="$sortDir"
-                            column="quantity_change"
-                            route="inventory.stock-movements"
-                            :params="['search' => $search, 'type' => $filterType, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
-                            align="center"
-                        />
-                        <th class="px-4 py-3 text-left font-medium text-slate-700">Branch</th>
-                        <th class="px-4 py-3 text-left font-medium text-slate-700">User</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($movements as $movement)
-                        <tr class="border-b border-slate-100 hover:bg-slate-50">
-                            <td class="px-4 py-3 text-slate-600">{{ $movement->created_at->format('Y-m-d H:i:s') }}</td>
-                            <td class="px-4 py-3 text-slate-900 font-medium">#{{ $movement->product_id }} - {{ $movement->product->name }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $movement->product->unit }}</td>
-                            <td class="px-4 py-3 text-left">
-                                @if($movement->type === 'in')
-                                    <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                                        Stock In
-                                    </span>
-                                @elseif($movement->type === 'out')
-                                    <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
-                                        Stock Out
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
-                                        Adjustment
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3 text-center font-semibold">
-                                <span class="{{ $movement->quantity_change > 0 ? 'text-green-600' : 'text-red-600' }}">
-                                    {{ $movement->quantity_change > 0 ? '+' : '' }}{{ number_format($movement->quantity_change, 2) }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 text-slate-600">{{ $movement->branch->name }}</td>
-                            <td class="px-4 py-3 text-slate-600">{{ $movement->user?->name ?? 'System' }}</td>
+         <div class="border border-gray-200 rounded overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 bg-indigo-100">
+                            <x-table.sortable-header
+                                label="Date & Time"
+                                :sortBy="$sortBy"
+                                :sortDir="$sortDir"
+                                column="created_at"
+                                route="inventory.stock-movements"
+                                :params="['search' => $search, 'type' => $filterType, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
+                            />
+                            <x-table.sortable-header
+                                label="Product"
+                                :sortBy="$sortBy"
+                                :sortDir="$sortDir"
+                                column="product_id"
+                                route="inventory.stock-movements"
+                                :params="['search' => $search, 'type' => $filterType, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
+                            />
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">Unit</th>
+                            <x-table.sortable-header
+                                label="Type"
+                                :sortBy="$sortBy"
+                                :sortDir="$sortDir"
+                                column="type"
+                                route="inventory.stock-movements"
+                                :params="['search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
+                                align="left"
+                            />
+                            <x-table.sortable-header
+                                label="Quantity Change"
+                                :sortBy="$sortBy"
+                                :sortDir="$sortDir"
+                                column="quantity_change"
+                                route="inventory.stock-movements"
+                                :params="['search' => $search, 'type' => $filterType, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'branch_id' => $filterBranchId]"
+                                align="center"
+                            />
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">Branch</th>
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">User</th>
                         </tr>
-                    @empty
-                        <x-table.empty-state
-                            :colspan="7"
-                            message="No movements found. Adjust your filters or start with stock-in operations."
-                        />
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse($movements as $movement)
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="px-4 py-3 text-slate-600">{{ $movement->created_at->format('Y-m-d H:i:s') }}</td>
+                                <td class="px-4 py-3 text-slate-900 font-medium">#{{ $movement->product_id }} - {{ $movement->product->name }}</td>
+                                <td class="px-4 py-3 text-slate-600">{{ $movement->product->unit }}</td>
+                                <td class="px-4 py-3 text-left">
+                                    @if($movement->type === 'in')
+                                        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                                            Stock In
+                                        </span>
+                                    @elseif($movement->type === 'out')
+                                        <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                                            Stock Out
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
+                                            Adjustment
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-center font-semibold">
+                                    <span class="{{ $movement->quantity_change > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                        {{ $movement->quantity_change > 0 ? '+' : '' }}{{ number_format($movement->quantity_change, 2) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600">{{ $movement->branch->name }}</td>
+                                <td class="px-4 py-3 text-slate-600">{{ $movement->user?->name ?? 'System' }}</td>
+                            </tr>
+                        @empty
+                            <x-table.empty-state
+                                :colspan="7"
+                                message="No movements found. Adjust your filters or start with stock-in operations."
+                            />
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Pagination -->

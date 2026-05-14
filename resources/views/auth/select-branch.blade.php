@@ -8,7 +8,6 @@
         @csrf
 
         <div>
-            <x-input-label for="branch_id" :value="__('branch')" />
             <select id="branch_id" name="branch_id" class="mt-1 block w-full rounded border-slate-300" required>
                 <option value="">-- Select branch --</option>
                 @foreach ($branches as $branch)
