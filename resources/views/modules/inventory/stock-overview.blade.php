@@ -3,10 +3,11 @@
         <h2 class="text-3xl font-medium leading-tight text-slate-900">Stock Overview</h2>
     </x-slot>
 
-    <x-card>
+    <x-card x-data="inventorySearch('{{ route('pos.api.products.search') }}', '{{ route('inventory.overview') }}', '{{ $filterBranchId }}')">
         <!-- Search Bar & Branch Filter -->
-        <div class="mb-6 flex flex-col gap-4" x-data="inventorySearch('{{ route('pos.api.products.search') }}', '{{ route('inventory.overview') }}', '{{ $filterBranchId }}')">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="mb-6 flex flex-col gap-4">
+
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div class="flex-1">
                     <x-product-search-typeahead searchInputRef="inventorySearchInput" />
                 </div>
@@ -18,8 +19,23 @@
                             :selected="$filterBranchId"
                             name="branch_id"
                             label="Filter by Branch"
+                            placeholder="All Branches"
                             valueField="id"
                             displayField="name"
+                            :autoSubmit="true"
+                        />
+                    </form>
+                @endif
+                @if($isAdmin)
+                    <form>
+                        <x-filters.dropdown-filter
+                            :items="$statuses"
+                            :selected="$filterStatus"
+                            name="status"
+                            label="Filter by Status"
+                            placeholder="All Statuses"
+                            valueField="value"
+                            displayField="label"
                             :autoSubmit="true"
                         />
                     </form>
@@ -39,7 +55,7 @@
                     ₱{{ number_format($inventories->sum(fn($inv) => $inv->quantity * $inv->product->capital), 2) }}
                 </p>
             </div>
-            <div class="rounded border border-slate-200 bg-slate-50 p-4">
+            <div class="rounded border border-slate-200 bg-slate-50 p-4" >
                 <p class="text-sm text-slate-600">Low Stock Items</p>
                 <p class="mt-1 text-2xl font-semibold text-amber-600">
                     {{ $inventories->filter(fn($inv) => $inv->quantity < 5)->count() }}
@@ -60,7 +76,7 @@
                                 :sortDir="$sortDir"
                                 column="name"
                                 route="inventory.overview"
-                                :params="['search' => $search]"
+                                :params="['search' => $search, 'branch_id' => $filterBranchId, 'status' => $filterStatus]"
                             />
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Unit</th>
                             <x-table.sortable-header
@@ -69,13 +85,14 @@
                                 :sortDir="$sortDir"
                                 column="quantity"
                                 route="inventory.overview"
-                                :params="['search' => $search]"
-                                align="right"
+                                :params="['search' => $search, 'branch_id' => $filterBranchId, 'status' => $filterStatus]"
+                                align="center"
                             />
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Unit Cost</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Total Value</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Branch</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Status</th>
+                            <th class="px-4 py-3 text-left font-medium text-slate-700">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -85,28 +102,59 @@
                                 <td class="px-4 py-3 text-slate-700">{{ $inventory->product->name }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $inventory->product->unit }}</td>
                                 <td class="px-4 py-3 text-center text-slate-700 font-semibold">{{ number_format($inventory->quantity, 2) }}</td>
-                                <td class="px-4 py-3 text-slate-600">₱{{ number_format($inventory->product->capital, 2) }}</td>
+                                <td class="px-6 py-3 text-slate-600">₱{{ number_format($inventory->product->capital, 2) }}</td>
                                 <td class="px-4 py-3 text-slate-700 font-semibold">₱{{ number_format($inventory->quantity * $inventory->product->capital, 2) }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $inventory->branch->name }}</td>
                                 <td class="px-4 py-3">
-                                    @if($inventory->quantity < 5)
-                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
-                                            Low Stock
-                                        </span>
-                                    @elseif($inventory->quantity < 10)
-                                        <span class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
-                                            Warning
+                                    @if($inventory->product->status === 'inactive')
+                                        <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                                            Archived
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-                                            In Stock
-                                        </span>
+                                        @if($inventory->quantity < 5)
+                                            <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                                                Low Stock
+                                            </span>
+                                        @elseif($inventory->quantity < 10)
+                                            <span class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
+                                                Warning
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                                                In Stock
+                                            </span>
+                                        @endif
                                     @endif
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    @can('inventory.update')
+                                        @php
+                                            $productQuantity = $inventory->product->branchInventories->sum('quantity');
+                                        @endphp
+                                    <!--   -->
+                                        @if($inventory->product->status !== 'inactive' && $productQuantity <= 0)
+                                            <button
+                                                type="button"
+                                                @click="confirmArchive.open = true; confirmArchive.product = {
+                                                id: {{ $inventory->product->id }},
+                                                name: '{{ addslashes($inventory->product->name) }}',
+                                                unit: '{{ $inventory->product->unit }}',
+                                                quantity: {{ $inventory->quantity }},
+                                                branch: '{{ addslashes($inventory->branch->name) }}'
+                                            }"
+                                                class="rounded bg-gray-600 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700"
+                                                                                    >
+                                                Archive
+                                            </button>
+                                        @else
+                                            <span class="text-xs text-slate-500">—</span>
+                                        @endif
+                                    @endcan
                                 </td>
                             </tr>
                         @empty
                             <x-table.empty-state
-                                :colspan="8"
+                                :colspan="9"
                                 :message="$search ? 'No inventory records found. Try adjusting your search filters.' : 'No inventory records found.'"
                             />
                         @endforelse
@@ -134,7 +182,58 @@
                 </a>
             @endcan
         </div>
+
+        <!-- Archive Confirmation Modal -->
+        <div
+            x-show="confirmArchive.open"
+            x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        >
+            <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+                <h2 class="text-lg font-semibold text-slate-900">
+                    Archive Product
+                </h2>
+
+                <p class="mt-2 text-sm text-slate-600">
+                    Are you sure that you want to archive this product?
+                </p>
+
+                <div class="mt-4 space-y-1 rounded bg-slate-50 p-3 text-sm">
+                    <p><span class="font-medium">Product:</span> <span x-text="confirmArchive.product?.name"></span></p>
+                    <p><span class="font-medium">Unit:</span> <span x-text="confirmArchive.product?.unit"></span></p>
+                    <p><span class="font-medium">Current Stock:</span> <span x-text="confirmArchive.product?.quantity"></span></p>
+                    <p><span class="font-medium">Branch:</span> <span x-text="confirmArchive.product?.branch"></span></p>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button
+                        type="button"
+                        @click="confirmArchive.open = false"
+                        class="rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                        Cancel
+                    </button>
+
+                    <form
+                        :action="confirmArchive.product ? `/inventory/products/${confirmArchive.product.id}/archive` : '#'"
+                        method="POST"
+                    >
+                        @csrf
+                        @method('PATCH')
+
+                        <button
+                            type="submit"
+                            class="rounded bg-gray-700 px-4 py-2 text-sm text-white hover:bg-gray-800"
+                        >
+                            Confirm Archive
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </x-card>
+
 </x-app-layout>
 
 <script>
@@ -152,6 +251,11 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
         searchUrl: searchUrl,
         baseRoute: baseRoute,
         selectedBranch: selectedBranch,
+
+        confirmArchive: {
+            open: false,
+            product: null,
+        },
 
         onTypeaheadInput() {
             if (this.typeahead.debounceHandle) {
@@ -254,8 +358,7 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
                 params.set('branch_id', this.selectedBranch);
             }
 
-            const url = params.toString() ? `${this.baseRoute}?${params.toString()}` : this.baseRoute;
-            window.location.href = url;
+            window.location.href = params.toString() ? `${this.baseRoute}?${params.toString()}` : this.baseRoute;
         },
 
         formatPrice(value) {

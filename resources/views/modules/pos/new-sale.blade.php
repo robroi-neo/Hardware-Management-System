@@ -102,7 +102,7 @@
                         <div class="grid grid-cols-4 gap-2 items-center text-sm px-1">
                             <div class="text-gray-700 truncate" x-text="item.product_name"></div>
                             <div class="text-gray-700" x-text="formatQty(item.quantity)"></div>
-                            <div class="text-gray-700">₱<span x-text="formatPrice((item.unit_price ?? 0) + (item.markup ?? 0))"></span></div>
+                            <div class="text-gray-700">₱<span x-text="formatPrice((item.unit_price || 0) + (item.markup || 0))"></span></div>
                             <div class="font-medium text-slate-900">₱<span x-text="formatPrice(item.subtotal)"></span></div>
                         </div>
                     </template>
@@ -185,7 +185,8 @@
                                         <div class="text-xs text-slate-500">#<span x-text="item.product_id"></span> · <span x-text="item.unit"></span></div>
                                     </div>
                                     <div class="col-span-2 text-right" x-text="formatQty(item.quantity)"></div>
-                                    <div class="col-span-2 text-right">₱<span x-text="formatPrice((item.unit_price ?? 0) + (item.markup ?? 0))"></span></div>
+                                    <div class="text-gray-700">₱<span x-text="formatPrice((item.unit_price || 0) + (item.markup || 0))"></span></div>
+
                                     <div class="col-span-3 text-right">₱<span x-text="formatPrice(item.subtotal)"></span></div>
                                 </div>
                             </template>
@@ -714,6 +715,8 @@ function posApp() {
             }
         },
 
+
+
         getAvailableStock(product) {
             return Math.max(0, Math.floor(Number(product?.available_quantity ?? 0)));
         },
@@ -841,7 +844,7 @@ function posApp() {
             const item = this.order.find(e => e.product_id === productId);
             if (!item) return;
 
-            item.markup_amount = amount;
+            item.markup = amount;
             item.subtotal = (item.unit_price + amount) * item.quantity;
             this.total = this.order.reduce((sum, i) => sum + i.subtotal, 0);
 

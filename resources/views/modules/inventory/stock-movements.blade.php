@@ -65,6 +65,7 @@
                                 :selected="$filterBranchId"
                                 name="branch_id"
                                 label="Filter by Branch"
+                                placeholder="All Branches"
                                 valueField="id"
                                 displayField="name"
                                 :autoSubmit="true"
