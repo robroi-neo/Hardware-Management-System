@@ -6,7 +6,7 @@
     <x-card>
         <!-- Search Bar & Branch Filter -->
         <div class="mb-6 flex flex-col gap-4" x-data="inventorySearch('{{ route('pos.api.products.search') }}', '{{ route('inventory.overview') }}', '{{ $filterBranchId }}')">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div class="flex-1">
                     <x-product-search-typeahead searchInputRef="inventorySearchInput" />
                 </div>
@@ -18,6 +18,7 @@
                             :selected="$filterBranchId"
                             name="branch_id"
                             label="Filter by Branch"
+                            placeholder="All Branches"
                             valueField="id"
                             displayField="name"
                             :autoSubmit="true"
@@ -31,6 +32,7 @@
                             :selected="$filterStatus"
                             name="status"
                             label="Filter by Status"
+                            placeholder="All Statuses"
                             valueField="value"
                             displayField="label"
                             :autoSubmit="true"
