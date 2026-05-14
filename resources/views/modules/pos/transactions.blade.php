@@ -111,18 +111,18 @@
                             <td class="px-4 py-3 text-slate-600 cursor-pointer" @click="openDetail({{ $transaction->id }})">{{ $transaction->date->format('Y-m-d H:i:s') }}</td>
                             <td class="px-4 py-3 text-slate-900 font-medium cursor-pointer" @click="openDetail({{ $transaction->id }})">₱{{ number_format($transaction->total_amount, 2) }}</td>
                             <td class="px-4 py-3 cursor-pointer" @click="openDetail({{ $transaction->id }})">
-                                    <span class="inline-flex items-center rounded bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                    <span class="rounded-xl inline-flex items-center rounded bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                                         {{ ucfirst($transaction->payment_method) }}
                                     </span>
                             </td>
                             <td class="px-4 py-3 text-slate-600 cursor-pointer" @click="openDetail({{ $transaction->id }})">{{ $transaction->user->name ?? 'N/A' }}</td>
                             <td class="px-4 py-3 cursor-pointer" @click="openDetail({{ $transaction->id }})">
                                 @if($transaction->refunded)
-                                    <span class="inline-flex items-center rounded bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                                    <span class="inline-flex rounded-xl items-center rounded bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
                                         Refunded
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center rounded bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
+                                    <span class="inline-flex rounded-xl items-center rounded bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
                                         Active
                                     </span>
                                 @endif

@@ -39,7 +39,7 @@
                     ₱{{ number_format($inventories->sum(fn($inv) => $inv->quantity * $inv->product->capital), 2) }}
                 </p>
             </div>
-            <div class="rounded border border-slate-200 bg-slate-50 p-4">
+            <div class="rounded border border-slate-200 bg-slate-50 p-4" >
                 <p class="text-sm text-slate-600">Low Stock Items</p>
                 <p class="mt-1 text-2xl font-semibold text-amber-600">
                     {{ $inventories->filter(fn($inv) => $inv->quantity < 5)->count() }}
@@ -70,7 +70,7 @@
                                 column="quantity"
                                 route="inventory.overview"
                                 :params="['search' => $search]"
-                                align="right"
+                                align="center"
                             />
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Unit Cost</th>
                             <th class="px-4 py-3 text-left font-medium text-slate-700">Total Value</th>
@@ -85,7 +85,7 @@
                                 <td class="px-4 py-3 text-slate-700">{{ $inventory->product->name }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $inventory->product->unit }}</td>
                                 <td class="px-4 py-3 text-center text-slate-700 font-semibold">{{ number_format($inventory->quantity, 2) }}</td>
-                                <td class="px-4 py-3 text-slate-600">₱{{ number_format($inventory->product->capital, 2) }}</td>
+                                <td class="px-6 py-3 text-slate-600">₱{{ number_format($inventory->product->capital, 2) }}</td>
                                 <td class="px-4 py-3 text-slate-700 font-semibold">₱{{ number_format($inventory->quantity * $inventory->product->capital, 2) }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $inventory->branch->name }}</td>
                                 <td class="px-4 py-3">

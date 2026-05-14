@@ -30,7 +30,7 @@
                     type="text"
                     name="search"
                     value="{{ request('search') }}"
-                    placeholder="Search by ID or cashier..."
+                    placeholder="Search by ID or Supplier"
                     class="w-full rounded border-gray-200 pl-9 pr-4 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 />
             </div>
@@ -181,7 +181,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-sm">
                                     <span @class([
-                                        'px-2 py-1 rounded text-xs font-medium',
+                                        'px-2 py-1 rounded-xl text-xs font-medium',
                                         'bg-red-100 text-red-800' => $invoice->date_due < now(),
                                         'bg-yellow-100 text-yellow-800' => $invoice->date_due >= now() && $invoice->date_due < now()->addDays(7),
                                         'bg-green-100 text-green-800' => $invoice->date_due >= now()->addDays(7),
@@ -192,17 +192,17 @@
 
                                 <td class="px-4 py-3">
                                     @if($invoice->refunded)
-                                        <span class="inline-flex items-center rounded bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                                        <span class="rounded-xl inline-flex items-center rounded bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
                                             Refunded
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center rounded bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
+                                        <span class="rounded-xl inline-flex items-center rounded bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
                                             Active
                                         </span>
                                     @endif
                                 </td>
 
-                                 <td class="px-4 py-3 text-right">
+                                 <td class="px-4 py-3 text-right ">
                                     @can('purchases.refund')
                                         @if(! $invoice->refunded)
                                             <button
