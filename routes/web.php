@@ -71,6 +71,11 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:inventory.update')
         ->name('inventory.products.archive');
 
+    // Restore a product (un-archive)
+    Route::patch('/inventory/products/{product}/restore', [\App\Http\Controllers\Inventory\OverviewController::class, 'restore'])
+        ->middleware('permission:inventory.update')
+        ->name('inventory.products.restore');
+
     Route::get('/inventory/manual-stock-in', [\App\Http\Controllers\Inventory\StockInController::class, 'create'])
         ->middleware('permission:inventory.update')->name('inventory.manual-stock-in');
 

@@ -11,6 +11,7 @@
                 <label class="block text-sm font-medium text-slate-700">Select Branch</label>
                 <select
                     x-model="form.branch_id"
+                    @change="onBranchChange()"
                     class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 >
                     <option value="">-- Select a Branch --</option>
@@ -120,11 +121,16 @@
                                         <input
                                             type="number"
                                             x-model.number="item.quantity"
-                                            min="0.01"
-                                            step="0.01"
+                                            min="1"
+                                            step="1"
+                                            :max="getItemMax(item)"
                                             @input="calculateTotal(index)"
                                             class="w-24 rounded border border-slate-300 px-2 py-1 text-sm text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                         />
+                                        <div class="mt-1 text-xs text-slate-500" x-show="item.max_quantity > 0">
+                                            Max: <span x-text="formatPrice(getItemMax(item))"></span>
+                                        </div>
+
                                     </td>
                                     <td class="px-4 py-3 text-right font-semibold text-slate-900">₱<span x-text="formatPrice(item.subtotal)"></span></td>
                                     <td class="px-4 py-3 text-center">
@@ -137,8 +143,8 @@
                                             <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
-                                    </button>
-                                    </td>
+                                        </button>
+                                        </td>
                                 </tr>
                             </template>
                         </tbody>
@@ -240,7 +246,7 @@
                             </svg>
                         </button>
                     </div>
-                    
+
                     <div class="mb-6">
                         <p class="text-sm text-slate-600">
                             Are you sure you want to complete this stock-out? You are removing <strong x-text="getTotalQuantity()" class="text-slate-900"></strong> items with a total value of <strong class="text-slate-900">₱<span x-text="formatPrice(getTotalCost())"></span></strong>.
@@ -249,7 +255,7 @@
                             This action will immediately reduce your inventory levels.
                         </p>
                     </div>
-                    
+
                     <div class="flex items-center justify-end gap-3">
                         <button
                             type="button"
@@ -297,6 +303,13 @@
                 messageType: 'success',
 
                 onSearchInput() {
+                    if (!this.form.branch_id) {
+                        this.search.results = [];
+                        this.search.open = false;
+                        this.showMessage('Select a branch first.', 'error');
+                        return;
+                    }
+
                     if (!this.search.q.trim()) {
                         this.search.results = [];
                         this.search.open = false;
@@ -306,12 +319,22 @@
                     this.search.loading = true;
                     this.search.open = true;
 
-                    fetch(`{{ route('inventory.api.products.search') }}?q=${encodeURIComponent(this.search.q)}&limit=10`)
+                    fetch(`{{ route('inventory.api.products.search') }}?q=${encodeURIComponent(this.search.q)}&limit=10&branch_id=${encodeURIComponent(this.form.branch_id)}`)
                         .then(r => r.json())
                         .then(data => {
-                            this.search.results = data;
-                            this.search.loading = false;
-                        });
+                             this.search.results = (data || []).map(product => ({
+                                 ...product,
+                                 available_quantity: Number(product.available_quantity ?? 0),
+                             }));
+                             this.search.loading = false;
+                         });
+                 },
+
+                onBranchChange() {
+                    this.form.items = [];
+                    this.search.q = '';
+                    this.search.results = [];
+                    this.search.open = false;
                 },
 
                 closeSearchDropdown() {
@@ -332,6 +355,12 @@
                         return;
                     }
 
+                    const maxQty = Math.max(0, Number(product.available_quantity ?? 0));
+                    if (maxQty <= 0) {
+                        this.showMessage('No available stock for this product in the selected branch.', 'error');
+                        return;
+                    }
+
                     this.form.items.push({
                         product_id: product.id,
                         product_name: product.name,
@@ -339,12 +368,32 @@
                         unit_cost: product.capital,
                         quantity: 1,
                         subtotal: product.capital,
+                        max_quantity: maxQty,
                     });
                 },
 
                 calculateTotal(index) {
                     const item = this.form.items[index];
+                    item.quantity = this.clampItemQuantity(item);
                     item.subtotal = item.quantity * item.unit_cost;
+                },
+
+                getItemMax(item) {
+                    return Math.max(0, Number(item?.max_quantity ?? 0));
+                },
+
+                clampItemQuantity(item) {
+                    const maxQty = this.getItemMax(item);
+                    if (maxQty <= 0) {
+                        return 0;
+                    }
+
+                    const qty = Number(item?.quantity ?? 1);
+                    if (!Number.isFinite(qty)) {
+                        return 1;
+                    }
+
+                    return Math.max(1, Math.min(maxQty, qty));
                 },
 
                 removeItem(index) {
@@ -369,6 +418,12 @@
 
                 async submitForm() {
                     if (!this.canSubmit()) return;
+
+                    const invalidItem = this.form.items.find(item => Number(item.quantity) > this.getItemMax(item));
+                    if (invalidItem) {
+                        this.showMessage(`Quantity for product #${invalidItem.product_id} exceeds available stock.`, 'error');
+                        return;
+                    }
 
                     this.submitting = true;
                     this.message = '';

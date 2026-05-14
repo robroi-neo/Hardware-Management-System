@@ -124,4 +124,16 @@ class OverviewController extends Controller
 
         return redirect()->route('inventory.overview')->with('success', 'Product archived successfully.');
     }
+
+    public function restore(Product $product)
+    {
+        // Only restore if product is currently inactive
+        if ($product->status === 'active') {
+            return back()->with('info', 'Product is already active.');
+        }
+
+        $product->update(['status' => 'active']);
+
+        return redirect()->route('inventory.overview')->with('success', 'Product restored successfully.');
+    }
 }
