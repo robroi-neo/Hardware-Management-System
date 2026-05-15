@@ -470,16 +470,16 @@
                 async refreshTable() {
                     try {
                         // Fetch the current page in the background
-                        const response = await fetch(window.location.href, { 
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' } 
+                        const response = await fetch(window.location.href, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
                         });
                         const html = await response.text();
-                        
+
                         // Parse the HTML and grab the updated table
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(html, 'text/html');
                         const newTableHTML = doc.querySelector('#suppliers-table-container').innerHTML;
-                        
+
                         // Swap it directly onto the screen without blinking
                         document.querySelector('#suppliers-table-container').innerHTML = newTableHTML;
                     } catch (error) {
@@ -564,8 +564,13 @@
                 },
 
                 switchToEdit() {
-                    this.closeDetailModal();
-                    this.openEditModal(this.detail);
+                    const supplier = this.detail;
+
+                    // close visually only
+                    this.showDetailModal = false;
+
+                    // open edit with preserved data
+                    this.openEditModal(supplier);
                 },
 
                 async deactivateSupplier() {
@@ -586,7 +591,7 @@
                         }
 
                         this.closeDeactivateModal();
-                        
+
                         // Delete window.location.reload(); and replace with:
                         await this.refreshTable();
 
@@ -613,7 +618,7 @@
                         }
 
                         this.closeActivateModal();
-                        
+
                         // Delete window.location.reload(); and replace with:
                         await this.refreshTable();
 
@@ -819,7 +824,7 @@
 
                         // Success
                         this.closeModal();
-                        
+
                         // Delete window.location.reload(); and replace with:
                         await this.refreshTable();
 
