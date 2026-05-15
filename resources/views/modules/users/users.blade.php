@@ -45,6 +45,7 @@
                             :selected="$filterStatus"
                             name="status"
                             label="Filter by Status"
+                            placeholder="All Statuses"
                             valueField="value"
                             displayField="label"
                             :autoSubmit="true"

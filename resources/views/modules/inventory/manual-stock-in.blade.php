@@ -124,7 +124,7 @@
             <!-- Reference Type & Notes -->
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Reference Type</label>
+                    <label class="block text-sm font-medium text-slate-700">Reference Type <span class="text-red-500">*</span></label>
                     <select
                         x-model="form.reference_type"
                         class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -264,7 +264,10 @@
 
                     this.typeahead.debounceTimer = setTimeout(async () => {
                         try {
-                            const response = await fetch(`{{ route('inventory.api.products.search') }}?q=${encodeURIComponent(this.typeahead.q)}&limit=10`);
+                            // Automatically append the branch_id if one is selected!
+                            const branchParam = this.form.branch_id ? `&branch_id=${this.form.branch_id}` : '';
+                            const response = await fetch(`{{ route('inventory.api.products.search') }}?q=${encodeURIComponent(this.typeahead.q)}&limit=10${branchParam}`);
+                            
                             const data = await response.json();
                             this.typeahead.items = data;
                             this.typeahead.activeIndex = -1;
@@ -348,7 +351,7 @@
                 },
 
                 canSubmit() {
-                    return this.form.branch_id && this.form.items.length > 0 && !this.submitting;
+                    return this.form.branch_id && this.form.reference_type && this.form.items.length > 0 && !this.submitting;
                 },
 
                 formatPrice(price) {

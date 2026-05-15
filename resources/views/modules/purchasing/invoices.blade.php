@@ -19,7 +19,7 @@
                     name="search"
                     value="{{ request('search') }}"
                     placeholder="Search by ID or Supplier"
-                    class="placeholder-gray-400 bg-white-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    class="text-sm placeholder-gray-400 bg-white-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
             </div>
 
@@ -68,14 +68,6 @@
                 >
                     Filter
                 </button>
-                @if(request()->hasAny(['search', 'payment_method', 'date_from', 'date_to']))
-                    <a
-                        href="{{ route('purchasing.invoice-history', array_filter(['sort_by' => request('sort_by'), 'sort_dir' => request('sort_dir')])) }}"
-                        class="px-4 py-2 rounded border border-gray-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
-                    >
-                        Clear
-                    </a>
-                @endif
             </div>
         </form>
 

@@ -35,11 +35,10 @@
                             type="text"
                             x-model="search.q"
                             @input="onSearchInput()"
-                            @keydown.enter.prevent="addProductFromSearch()"
                             @keydown.escape="closeSearchDropdown()"
                             @focus="reopenSearchDropdown()"
                             placeholder="Scan or Search Product ID, name, or unit..."
-                            class="placeholder-gray-400 bg-white-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                            class="text-sm placeholder-gray-400 bg-white border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
                         />
                         <button
                             type="button"
@@ -53,7 +52,6 @@
                             </svg>
                         </button>
 
-                        <!-- Search Results Dropdown -->
                         <div
                             x-show="search.open"
                             x-cloak
@@ -72,11 +70,19 @@
                                     <button
                                         type="button"
                                         @click="selectProduct(product); search.q = ''; closeSearchDropdown()"
-                                        class="w-full px-4 py-3 text-left text-sm hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+                                        class="w-full text-left px-3 py-2 border-b border-slate-100 hover:bg-slate-50 last:border-b-0"
                                     >
-                                        <div class="font-medium text-slate-900">#<span x-text="product.id"></span> - <span x-text="product.name"></span></div>
+                                        <div class="font-medium text-slate-900">
+                                            #<span x-text="product.id"></span> - <span x-text="product.name"></span>
+                                        </div>
                                         <div class="text-xs text-slate-600">
-                                            <span x-text="product.unit"></span> | Cost: ₱<span x-text="formatPrice(product.capital)"></span>
+                                            <span x-text="product.unit"></span>
+                                            <span x-show="product.capital !== undefined">
+                                                | ₱<span x-text="formatPrice(product.capital)"></span>
+                                            </span>
+                                            <span x-show="product.available_quantity !== undefined">
+                                                | Stock: <span x-text="formatQty(product.available_quantity)"></span>
+                                            </span>
                                         </div>
                                     </button>
                                 </template>
@@ -169,7 +175,7 @@
             <!-- Reference Type & Notes -->
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Reason for Stock Out</label>
+                    <label class="block text-sm font-medium text-slate-700">Reason for Stock Out <span class="text-red-500">*</span></label>
                     <select
                         x-model="form.reference_type"
                         class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -292,7 +298,7 @@
                     if (!this.form.branch_id) {
                         this.search.results = [];
                         this.search.open = false;
-                        this.showToast('Select a branch first.', 'warning'); // Changed to warning toast
+                        this.showToast('Select a branch first.', 'warning');
                         return;
                     }
 
@@ -308,10 +314,18 @@
                     fetch(`{{ route('inventory.api.products.search') }}?q=${encodeURIComponent(this.search.q)}&limit=10&branch_id=${encodeURIComponent(this.form.branch_id)}`)
                         .then(r => r.json())
                         .then(data => {
-                             this.search.results = (data || []).map(product => ({
+                             // Safely handle both standard arrays and paginated object responses!
+                             const items = Array.isArray(data) ? data : (data.data || []);
+                             
+                             this.search.results = items.map(product => ({
                                  ...product,
                                  available_quantity: Number(product.available_quantity ?? 0),
                              }));
+                             this.search.loading = false;
+                         })
+                         .catch(error => {
+                             console.error('Search failed:', error);
+                             this.search.results = [];
                              this.search.loading = false;
                          });
                  },
@@ -394,7 +408,7 @@
                 },
 
                 canSubmit() {
-                    return this.form.branch_id && this.form.items.length > 0 && !this.submitting;
+                    return this.form.branch_id && this.form.reference_type && this.form.items.length > 0 && !this.submitting;
                 },
 
                 formatPrice(price) {
