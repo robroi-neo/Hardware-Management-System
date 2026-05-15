@@ -401,6 +401,10 @@
                     return parseFloat(price || 0).toFixed(2);
                 },
 
+                formatQty(value) {
+                    return String(Math.max(0, Math.floor(Number(value ?? 0))));
+                },
+
                 async submitForm() {
                     if (!this.canSubmit()) return;
 

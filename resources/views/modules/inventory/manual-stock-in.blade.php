@@ -70,11 +70,22 @@
                                         <input
                                             type="number"
                                             x-model.number="item.quantity"
-                                            min="0.01"
-                                            step="0.01"
-                                            @input="calculateTotal(index)"
+                                            min="1"
+                                            max="10"
+                                            step="1"
+                                            @input="
+                                                    if (item.quantity > 10) item.quantity = 10;
+                                                    calculateTotal(index);
+                                                "
+                                            @paste.prevent
+                                            @drop.prevent
+                                            @wheel.prevent
+                                            @keydown="['e','E','+','-'].includes($event.key) && $event.preventDefault()"
                                             class="w-24 rounded border border-slate-300 px-2 py-1 text-sm text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                         />
+                                        <div class="mt-1 text-xs text-slate-500">
+                                            Max: 10 items
+                                        </div>
                                     </td>
                                     <td class="px-4 py-3 text-right font-semibold text-slate-900">₱<span x-text="formatPrice(item.subtotal)"></span></td>
                                     <td class="px-4 py-3 text-center">
@@ -181,7 +192,7 @@
                             </svg>
                         </button>
                     </div>
-                    
+
                     <div class="mb-6">
                         <p class="text-sm text-slate-600">
                             Are you sure you want to complete this stock-in? You are adding <strong x-text="getTotalQuantity()" class="text-slate-900"></strong> items with a total cost of <strong class="text-slate-900">₱<span x-text="formatPrice(getTotalCost())"></span></strong>.
@@ -190,7 +201,7 @@
                             This action will immediately update your inventory levels.
                         </p>
                     </div>
-                    
+
                     <div class="flex items-center justify-end gap-3">
                         <button
                             type="button"
@@ -342,6 +353,10 @@
 
                 formatPrice(price) {
                     return parseFloat(price || 0).toFixed(2);
+                },
+
+                formatQty(value) {
+                    return String(Math.max(0, Math.floor(Number(value ?? 0))));
                 },
 
                 async submitForm() {

@@ -375,6 +375,16 @@
                     </div>
                 </div>
 
+                <!-- Warnings from prepare (e.g. quantities adjusted to unit precision) -->
+                <div x-show="checkoutWarnings.length > 0" class="mb-4 p-3 bg-amber-50 rounded text-sm text-amber-800">
+                    <div class="font-medium">Warnings</div>
+                    <ul class="list-disc pl-5 mt-2">
+                        <template x-for="(w, i) in checkoutWarnings" :key="i">
+                            <li x-text="w"></li>
+                        </template>
+                    </ul>
+                </div>
+
                 <div class="mb-4 p-3 bg-yellow-50 rounded text-sm text-yellow-700">
                     This will create a Purchase order and Invoice. Inventory will be updated accordingly.
                 </div>
@@ -432,6 +442,15 @@
                     </div>
                 </div>
 
+                <div x-show="successData.warnings && successData.warnings.length > 0" class="mb-4 p-3 bg-amber-50 rounded text-sm text-amber-800">
+                    <div class="font-medium">Warnings</div>
+                    <ul class="list-disc pl-5 mt-2">
+                        <template x-for="(w, i) in successData.warnings" :key="i">
+                            <li x-text="w"></li>
+                        </template>
+                    </ul>
+                </div>
+
                 <div class="flex items-center justify-end gap-3">
                     <button
                         @click="$dispatch('close-modal', 'checkout-success'); newInvoice()"
@@ -472,6 +491,7 @@
                 isCreatingProduct: false,
                 productCreateError: '',
                 checkoutError: '',
+                checkoutWarnings: [],
 
                 successData: {},
                 invoiceDueDate: '',
@@ -529,7 +549,26 @@
                         body: JSON.stringify(payload),
                     });
 
-                    const data = await response.json();
+                    // Some endpoints may return non-JSON (204 No Content or plain text).
+                    // Attempt to parse JSON but fall back gracefully when response body is empty
+                    // or not JSON so callers (like resetCart) don't crash on JSON.parse.
+                    let data = {};
+                    try {
+                        const text = await response.text();
+                        if (text) {
+                            try {
+                                data = JSON.parse(text);
+                            } catch (e) {
+                                // Non-JSON response, wrap it
+                                data = { success: response.ok, message: text };
+                            }
+                        } else {
+                            data = { success: response.ok };
+                        }
+                    } catch (e) {
+                        // If reading body fails, still determine success from response.ok
+                        data = { success: response.ok };
+                    }
 
                     if (!response.ok || !data.success) {
                         throw new Error(data.message || 'Cart update failed');
@@ -788,6 +827,9 @@
                             return;
                         }
 
+                        // Capture any warnings from prepare (e.g. auto-rounded quantities)
+                        this.checkoutWarnings = prepareData.data?.warnings || [];
+
                         // Then finalize
                         const finalizeResponse = await fetch(`{{ route('purchasing.api.checkout.finalize') }}`, {
                             method: 'POST',
@@ -825,44 +867,42 @@
                         await this.postCart(`{{ route('purchasing.api.cart.clear') }}`, {
                             clear_supplier: clearSupplier,
                         });
+
                         if (clearSupplier) {
                             await this.postSupplierSelection(null);
+                            this.selectedSupplier = '';
                         }
+
+                        // Reset local state instead of reloading
+                        this.cartItems = [];
+                        this.cartSubtotal = 0;
+                        this.typeahead.q = '';
+                        this.typeahead.items = [];
+                        this.typeahead.open = false;
+                        this.typeahead.activeIndex = -1;
+
                     } catch (error) {
                         console.error('Failed to clear cart:', error);
                     }
-
-                    if (clearSupplier) {
-                        this.selectedSupplier = '';
-                    }
-                    this.cartItems = [];
-                    this.cartSubtotal = 0;
-                    this.typeahead.q = '';
-                    this.typeahead.items = [];
-                    this.typeahead.open = false;
-                    this.typeahead.activeIndex = -1;
                 },
 
                 async newInvoice() {
+                    // Close the success modal first so the UI doesn't abruptly disappear
                     try {
-                        await this.postCart(`{{ route('purchasing.api.cart.clear') }}`, {
-                            clear_supplier: true,
-                        });
-                        await this.postSupplierSelection(null);
-                    } catch (error) {
-                        console.error('Failed to clear cart:', error);
-                    }
+                        this.$dispatch('close-modal', 'checkout-success');
 
-                    this.selectedSupplier = '';
-                    this.selectedBranch = '';
-                    this.cartItems = [];
-                    this.cartSubtotal = 0;
-                    this.typeahead.q = '';
-                    this.typeahead.items = [];
-                    this.typeahead.open = false;
-                    this.typeahead.activeIndex = -1;
-                    this.successData = {};
-                    this.checkoutError = '';
+                        // Ensure server-side cart is cleared (idempotent). If it's already cleared
+                        // by finalize, this is harmless and guarantees a clean state.
+                        await this.postCart(`{{ route('purchasing.api.cart.clear') }}`, { clear_supplier: true });
+
+                        // Give the modal a moment to close (UI polish) then reload to fully
+                        // re-initialize Alpine state and allow a fresh invoice to be created.
+                        setTimeout(() => window.location.reload(), 120);
+                    } catch (err) {
+                        // If something goes wrong, still attempt a reload as a fallback
+                        console.error('newInvoice fallback after error clearing cart:', err);
+                        window.location.reload();
+                    }
                 },
 
                 formatPrice(amount) {

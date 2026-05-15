@@ -46,7 +46,7 @@ $modalTitle = $title ?: 'Details';
         <!-- Header -->
         <div class="mb-4 flex items-center justify-between gap-3">
             @if ($isClientData)
-                <h3 class="text-lg font-semibold text-slate-900" x-text="{{ $data }}?.supplier_name || '{{ $modalTitle }}'"></h3>
+                <h3 class="text-lg font-semibold text-slate-900">{{ $modalTitle }}</h3>
             @else
                 <h3 class="text-lg font-semibold text-slate-900">{{ $modalTitle }}</h3>
             @endif

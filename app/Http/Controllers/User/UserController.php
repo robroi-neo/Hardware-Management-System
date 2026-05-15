@@ -30,7 +30,7 @@ class UserController extends Controller
         }
         $sortDir = $sortDir === 'desc' ? 'desc' : 'asc';
 
-        $usersQuery = User::with(['branch', 'roles']);
+        $usersQuery = User::with(['branch', 'roles', 'creator']);
 
         if ($search) {
             $usersQuery->where(function ($query) use ($search) {
