@@ -72,11 +72,15 @@ class ProductController extends Controller
             ->limit(10)
             ->get()
             ->map(function ($product) {
+                $unitRule = Product::getUnitRule($product->unit);
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'unit' => $product->unit,
                     'capital' => $product->capital,
+                    'step' => $unitRule['step'],
+                    'precision' => $unitRule['precision'],
+                    'allow_fraction' => $unitRule['allow_fraction'],
                 ];
             });
 
@@ -123,6 +127,9 @@ class ProductController extends Controller
                     'name' => $product->name,
                     'unit' => $product->unit,
                     'capital' => $product->capital,
+                    'step' => Product::getUnitRule($product->unit)['step'],
+                    'precision' => Product::getUnitRule($product->unit)['precision'],
+                    'allow_fraction' => Product::getUnitRule($product->unit)['allow_fraction'],
                 ],
                 'message' => "Product '{$standardized}' created successfully",
             ], 201);

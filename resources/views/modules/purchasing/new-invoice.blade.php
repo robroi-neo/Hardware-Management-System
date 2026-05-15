@@ -375,6 +375,16 @@
                     </div>
                 </div>
 
+                <!-- Warnings from prepare (e.g. quantities adjusted to unit precision) -->
+                <div x-show="checkoutWarnings.length > 0" class="mb-4 p-3 bg-amber-50 rounded text-sm text-amber-800">
+                    <div class="font-medium">Warnings</div>
+                    <ul class="list-disc pl-5 mt-2">
+                        <template x-for="(w, i) in checkoutWarnings" :key="i">
+                            <li x-text="w"></li>
+                        </template>
+                    </ul>
+                </div>
+
                 <div class="mb-4 p-3 bg-yellow-50 rounded text-sm text-yellow-700">
                     This will create a Purchase order and Invoice. Inventory will be updated accordingly.
                 </div>
@@ -432,6 +442,15 @@
                     </div>
                 </div>
 
+                <div x-show="successData.warnings && successData.warnings.length > 0" class="mb-4 p-3 bg-amber-50 rounded text-sm text-amber-800">
+                    <div class="font-medium">Warnings</div>
+                    <ul class="list-disc pl-5 mt-2">
+                        <template x-for="(w, i) in successData.warnings" :key="i">
+                            <li x-text="w"></li>
+                        </template>
+                    </ul>
+                </div>
+
                 <div class="flex items-center justify-end gap-3">
                     <button
                         @click="$dispatch('close-modal', 'checkout-success'); newInvoice()"
@@ -472,6 +491,7 @@
                 isCreatingProduct: false,
                 productCreateError: '',
                 checkoutError: '',
+                checkoutWarnings: [],
 
                 successData: {},
                 invoiceDueDate: '',
@@ -806,6 +826,9 @@
                             this.isProcessing = false;
                             return;
                         }
+
+                        // Capture any warnings from prepare (e.g. auto-rounded quantities)
+                        this.checkoutWarnings = prepareData.data?.warnings || [];
 
                         // Then finalize
                         const finalizeResponse = await fetch(`{{ route('purchasing.api.checkout.finalize') }}`, {

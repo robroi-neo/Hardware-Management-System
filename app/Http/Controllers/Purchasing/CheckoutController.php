@@ -90,6 +90,7 @@ class CheckoutController extends Controller
 
         $items = [];
         $total = 0;
+        $warnings = [];
 
         foreach ($cart as $cartItem) {
             $product = $products->get($cartItem['product_id']);
@@ -109,6 +110,13 @@ class CheckoutController extends Controller
             }
 
             $quantity = (float) $cartItem['quantity'];
+            // Enforce/normalize unit precision: if the provided quantity has invalid precision
+            // round it to allowed precision and emit a warning for the client.
+            if (!Product::hasValidPrecision($quantity, $product->unit)) {
+                $rounded = Product::roundQuantity($quantity, $product->unit);
+                $warnings[] = "Quantity for {$product->name} adjusted from {$quantity} to {$rounded} to match unit precision.";
+                $quantity = $rounded;
+            }
             $unitPrice = (float) $cartItem['unit_price'];
             $subtotal = $quantity * $unitPrice;
 
@@ -131,6 +139,7 @@ class CheckoutController extends Controller
                 'total' => $total,
                 'supplier_id' => $request->session()->get('purchasing_supplier_id'),
                 'branch_id' => $request->session()->get('purchasing_branch_id'),
+                'warnings' => $warnings,
             ],
         ]);
     }
@@ -183,6 +192,7 @@ class CheckoutController extends Controller
                 ]);
 
                 $totalAmount = 0;
+                $warnings = [];
 
                 // Create PurchaseDetail records and handle new products
                 foreach ($cart as $cartItem) {
@@ -192,8 +202,22 @@ class CheckoutController extends Controller
                         throw new \Exception("Product #{$cartItem['product_id']} not found");
                     }
 
-                    $quantity = $cartItem['quantity'];
-                    $unitPrice = $cartItem['unit_price'];
+                    $quantity = (float) $cartItem['quantity'];
+                    $unitPrice = (float) $cartItem['unit_price'];
+
+                    // Normalize quantity according to unit precision. If the client sent
+                    // a quantity with invalid precision, round it server-side and record
+                    // a warning to inform the user.
+                    if (!Product::hasValidPrecision($quantity, $product->unit)) {
+                        $rounded = Product::roundQuantity($quantity, $product->unit);
+                        $warnings[] = "Quantity for {$product->name} adjusted from {$quantity} to {$rounded} to match unit precision.";
+                        $quantity = $rounded;
+                    }
+
+                    if ($quantity <= 0) {
+                        throw new \Exception("Invalid quantity for {$product->name} after rounding");
+                    }
+
                     $subtotal = $unitPrice * $quantity;
 
                     $product->update([
@@ -257,6 +281,7 @@ class CheckoutController extends Controller
                         'items_count' => count($cart),
                         'date_issued' => $today->toDateString(),
                         'date_due' => $dateDue->toDateString(),
+                        'warnings' => $warnings,
                     ],
                     'message' => "Purchase #{$purchase->id} and Invoice #{$invoice->id} created successfully",
                 ]);
