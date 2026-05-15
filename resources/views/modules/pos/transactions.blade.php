@@ -6,15 +6,6 @@
     {{-- x-data moved here so openDetail() is accessible to both the table rows and the modal --}}
     <x-card title="Transaction History" fullHeight x-data="transactionDetail()">
 
-        {{-- Toast Notifications --}}
-        <div x-data="{ show: false, message: '', type: 'success' }"
-             @show-toast.window="show = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => show = false, 3000)"
-             x-show="show"
-             :class="type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'"
-             class="fixed top-4 right-4 border rounded px-4 py-3 shadow-lg z-50">
-            <span x-text="message"></span>
-        </div>
-
         {{-- Search & Filter Bar --}}
         <form method="GET" action="{{ route('pos.transactions') }}" class="mb-4 flex flex-col sm:flex-row gap-3 items-end">
             {{-- Preserve existing sort state --}}
@@ -87,7 +78,7 @@
             :fields="['search', 'payment_method', 'date_from', 'date_to']"
         />
 
-        <div class="border border-gray-200 rounded overflow-hidden">
+        <div id="transactions-table-container" class="border border-gray-200 rounded overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead class="bg-indigo-100 text-left text-slate-700">
@@ -124,18 +115,21 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 cursor-pointer" @click="openDetail({{ $transaction->id }})">
+                            <td class="px-4 py-3 cursor-pointer text-left" @click="openDetail({{ $transaction->id }})">
                                 @can('sales.refund')
                                     @if(!$transaction->refunded)
                                         <button
                                             type="button"
                                             @click.stop="openRefund({{ $transaction->id }})"
-                                            class="px-3 py-1.5 rounded bg-red-600 text-white text-xs font-medium hover:bg-red-700 transition-colors"
+                                            class="text-slate-400 hover:text-red-600 transition-colors"
+                                            title="Refund Transaction"
                                         >
-                                            Refund
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-banknote-arrow-up-icon lucide-banknote-arrow-up"><path d="M12 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5"/><path d="M18 12h.01"/><path d="M19 22v-6"/><path d="m22 19-3-3-3 3"/><path d="M6 12h.01"/><circle cx="12" cy="12" r="2"/></svg>
                                         </button>
                                     @else
-                                        <span class="text-xs text-slate-400"> Already refunded </span>
+                                        <span class="inline-flex items-center text-slate-500">
+                                            —
+                                        </span>
                                     @endif
                                 @else
                                     <span class="text-xs text-slate-400">—</span>
@@ -284,6 +278,49 @@
                 refunding: false,
                 refundId: null,
 
+                // 1. STANDARD VANILLA TOAST
+                showToast(message, type = 'success') {
+                    const toast = document.createElement('div');
+                    
+                    toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded border shadow-2xl z-[99999] font-medium text-sm transition-all duration-300 transform translate-y-0 opacity-100 flex items-center gap-3 ${
+                        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
+                        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 
+                        'bg-red-50 border-red-200 text-red-800'
+                    }`;
+
+                    let icon = '';
+                    if (type === 'success') {
+                        icon = `<svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                    } else if (type === 'warning') {
+                        icon = `<svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" /></svg>`;
+                    } else {
+                        icon = `<svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                    }
+                    
+                    toast.innerHTML = `${icon} <span>${message}</span>`;
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        toast.classList.remove('translate-y-0', 'opacity-100');
+                        toast.classList.add('translate-y-4', 'opacity-0');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
+                },
+
+                // 2. SEAMLESS BACKGROUND REFRESH
+                async refreshTable() {
+                    try {
+                        const response = await fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                        const html = await response.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        document.querySelector('#transactions-table-container').innerHTML = doc.querySelector('#transactions-table-container').innerHTML;
+                    } catch (error) {
+                        console.error('Seamless refresh failed, falling back to hard reload.', error);
+                        window.location.reload();
+                    }
+                },
+
                 async openDetail(id) {
                     this.detail = {};
                     this.loading = true;
@@ -329,27 +366,17 @@
                         const data = await res.json();
 
                         if (data.success) {
-                            this.$dispatch('show-toast', {
-                                message: data.message,
-                                type: 'success'
-                            });
-
                             this.$dispatch('close-modal', 'refund-confirm');
-
-                            this.$dispatch('close-modal', 'refund-confirm');
-                            window.location.reload();
+                            
+                            // CHANGED: Trigger our new JS toast and refresh smoothly!
+                            this.showToast(data.message, 'success');
+                            await this.refreshTable();
                         } else {
-                            this.$dispatch('show-toast', {
-                                message: data.message || 'Error processing refund',
-                                type: 'error'
-                            });
+                            this.showToast(data.message || 'Error processing refund', 'error');
                         }
                     } catch (e) {
                         console.error(e);
-                        this.$dispatch('show-toast', {
-                            message: 'Error processing refund',
-                            type: 'error'
-                        });
+                        this.showToast('Error processing refund', 'error');
                     } finally {
                         this.refunding = false;
                     }

@@ -5,15 +5,6 @@
 
     {{-- x-data moved here so openDetail() is accessible to both the table rows and the modal --}}
     <x-card title="Invoice History" fullHeight x-data="invoiceDetail()">
-        {{-- Toast Notifications --}}
-        <div x-data="{ show: false, message: '', type: 'success' }"
-             @show-toast.window="show = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => show = false, 3000)"
-             x-show="show"
-             x-cloak
-             :class="type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'"
-             class="fixed top-4 right-4 border rounded px-4 py-3 shadow-lg z-50">
-            <span x-text="message"></span>
-        </div>
 
         {{-- Search Form --}}
         <form method="GET" class="mb-4 flex flex-col sm:flex-row gap-3 items-end">
@@ -94,7 +85,7 @@
         />
 
         <!-- Invoices Table -->
-        <div class="border border-gray-200 rounded overflow-hidden">
+        <div id="invoices-table-container" class="border border-gray-200 rounded overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="text-left text-gray-600 bg-indigo-50">
@@ -199,7 +190,7 @@
                                     @endif
                                 </td>
 
-                                 <td class="px-4 py-3 text-right ">
+                                 <td class="px-4 py-3 text-center">
                                     @can('purchases.refund')
                                         @if(! $invoice->refunded)
                                             <button
@@ -214,15 +205,18 @@
                                                     'items_count' => $invoice->purchase->details_count ?? $invoice->purchase->details->count(),
                                                     'refunded' => (bool) $invoice->refunded,
                                                 ]))"
-                                                class="inline-flex items-center rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+                                                title="Refund Invoice"
+                                                class="text-slate-400 hover:text-red-600 transition-colors"
                                             >
-                                                Refund
-                                            </button>
-                                        @else
-                                            <span class="text-xs text-slate-400">Already refunded</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-banknote-arrow-up-icon lucide-banknote-arrow-up"><path d="M12 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5"/><path d="M18 12h.01"/><path d="M19 22v-6"/><path d="m22 19-3-3-3 3"/><path d="M6 12h.01"/><circle cx="12" cy="12" r="2"/></svg>
+                                        </button>
+                                    @else
+                                        <span class="inline-flex items-center text-slate-500">
+                                            —
+                                        </span>
                                         @endif
                                     @else
-                                        <span class="text-xs text-slate-400">No actions</span>
+                                        <span class="text-xs text-slate-400">—</span>
                                     @endcan
                                 </td>
                             </tr>
@@ -394,6 +388,49 @@
                 refundError: '',
                 refundUrlTemplate: @js(route('purchasing.invoices.refund', ['invoice' => '__INVOICE__'])),
 
+                // 1. STANDARD VANILLA TOAST
+                showToast(message, type = 'success') {
+                    const toast = document.createElement('div');
+                    
+                    toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded border shadow-2xl z-[99999] font-medium text-sm transition-all duration-300 transform translate-y-0 opacity-100 flex items-center gap-3 ${
+                        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
+                        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 
+                        'bg-red-50 border-red-200 text-red-800'
+                    }`;
+
+                    let icon = '';
+                    if (type === 'success') {
+                        icon = `<svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                    } else if (type === 'warning') {
+                        icon = `<svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" /></svg>`;
+                    } else {
+                        icon = `<svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                    }
+                    
+                    toast.innerHTML = `${icon} <span>${message}</span>`;
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        toast.classList.remove('translate-y-0', 'opacity-100');
+                        toast.classList.add('translate-y-4', 'opacity-0');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
+                },
+
+                // 2. SEAMLESS BACKGROUND REFRESH
+                async refreshTable() {
+                    try {
+                        const response = await fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                        const html = await response.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        document.querySelector('#invoices-table-container').innerHTML = doc.querySelector('#invoices-table-container').innerHTML;
+                    } catch (error) {
+                        console.error('Seamless refresh failed, falling back to hard reload.', error);
+                        window.location.reload();
+                    }
+                },
+
                 async openDetail(id) {
                     this.detail = {};
                     this.loading = true;
@@ -443,36 +480,30 @@
                         const data = await res.json();
 
                         if (data.success) {
-                            this.$dispatch('show-toast', {
-                                message: data.message,
-                                type: 'success',
-                            });
+                            // Close the confirm modal immediately
+                            this.$dispatch('close-modal', 'invoice-refund-confirm');
+                            
+                            // Show the toast & refresh the background table
+                            this.showToast(data.message, 'success');
+                            await this.refreshTable();
 
-                            // Update detail to show refunded status
+                            // Update detail to show refunded status dynamically without reloading
                             this.detail.refunded = true;
                             this.detail.refunded_at = new Date().toLocaleString();
                             this.detail.refunded_by = '{{ auth()->user()->name }}';
 
-                            this.$dispatch('close-modal', 'invoice-refund-confirm');
-
+                            // Optional: Close the detail modal after a brief delay
                             setTimeout(() => {
                                 this.$dispatch('close-modal', 'invoice-detail');
-                                window.location.reload();
                             }, 1500);
                         } else {
                             this.refundError = data.message || 'Error processing refund';
-                            this.$dispatch('show-toast', {
-                                message: this.refundError,
-                                type: 'error',
-                            });
+                            this.showToast(this.refundError, 'error');
                         }
                     } catch (error) {
                         console.error(error);
                         this.refundError = 'Error processing refund';
-                        this.$dispatch('show-toast', {
-                            message: this.refundError,
-                            type: 'error',
-                        });
+                        this.showToast(this.refundError, 'error');
                     } finally {
                         this.refunding = false;
                     }
