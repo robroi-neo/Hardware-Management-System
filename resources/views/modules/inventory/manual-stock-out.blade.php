@@ -221,20 +221,6 @@
                 </button>
             </div>
 
-            <!-- Success/Error Messages -->
-            <template x-if="message">
-                <div :class="messageType === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'" class="rounded border p-4">
-                    <p class="text-sm font-medium" x-text="message"></p>
-                </div>
-            </template>
-
-            <!-- Success/Error Messages -->
-            <template x-if="message">
-                <div :class="messageType === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'" class="rounded border p-4">
-                    <p class="text-sm font-medium" x-text="message"></p>
-                </div>
-            </template>
-
             <!-- Stock-Out Confirmation Modal MUST be inside the x-data div -->
             <x-modal name="confirm-stock-out" maxWidth="md" focusable>
                 <div class="p-6">
@@ -306,7 +292,7 @@
                     if (!this.form.branch_id) {
                         this.search.results = [];
                         this.search.open = false;
-                        this.showMessage('Select a branch first.', 'error');
+                        this.showToast('Select a branch first.', 'warning'); // Changed to warning toast
                         return;
                     }
 
@@ -348,16 +334,15 @@
                 },
 
                 selectProduct(product) {
-                    // Check if product already in items
                     const exists = this.form.items.some(item => item.product_id === product.id);
                     if (exists) {
-                        this.showMessage('Product already added to list.', 'error');
+                        this.showToast('Product already added to list.', 'warning'); // Changed to warning toast
                         return;
                     }
 
                     const maxQty = Math.max(0, Number(product.available_quantity ?? 0));
                     if (maxQty <= 0) {
-                        this.showMessage('No available stock for this product in the selected branch.', 'error');
+                        this.showToast('No available stock for this product in the selected branch.', 'error'); // Changed to error toast
                         return;
                     }
 
@@ -421,12 +406,12 @@
 
                     const invalidItem = this.form.items.find(item => Number(item.quantity) > this.getItemMax(item));
                     if (invalidItem) {
-                        this.showMessage(`Quantity for product #${invalidItem.product_id} exceeds available stock.`, 'error');
+                        // CHANGED TO TOAST
+                        this.showToast(`Quantity for product #${invalidItem.product_id} exceeds available stock.`, 'error');
                         return;
                     }
 
                     this.submitting = true;
-                    this.message = '';
 
                     try {
                         const response = await fetch('{{ route("inventory.api.stock-out.store") }}', {
@@ -453,24 +438,47 @@
                             // Close the modal
                             this.$dispatch('close-modal', 'confirm-stock-out');
 
-                            this.showMessage(data.message, 'success');
+                            // CHANGED TO TOAST
+                            this.showToast(data.message, 'success');
                             setTimeout(() => this.resetForm(), 2000);
                         } else {
-                            this.showMessage(data.message || 'Error processing stock-out', 'error');
+                            // CHANGED TO TOAST
+                            this.showToast(data.message || 'Error processing stock-out', 'error');
                         }
                     } catch (error) {
-                        this.showMessage('Error: ' + error.message, 'error');
+                        // CHANGED TO TOAST
+                        this.showToast('Error: ' + error.message, 'error');
                     } finally {
                         this.submitting = false;
                     }
                 },
 
-                showMessage(msg, type) {
-                    this.message = msg;
-                    this.messageType = type;
+                showToast(message, type = 'success') {
+                    const toast = document.createElement('div');
+                    
+                    toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded border shadow-2xl z-[99999] font-medium text-sm transition-all duration-300 transform translate-y-0 opacity-100 flex items-center gap-3 ${
+                        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
+                        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 
+                        'bg-red-50 border-red-200 text-red-800'
+                    }`;
+
+                    let icon = '';
                     if (type === 'success') {
-                        setTimeout(() => this.message = '', 3000);
+                        icon = `<svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                    } else if (type === 'warning') {
+                        icon = `<svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" /></svg>`;
+                    } else {
+                        icon = `<svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
                     }
+                    
+                    toast.innerHTML = `${icon} <span>${message}</span>`;
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        toast.classList.remove('translate-y-0', 'opacity-100');
+                        toast.classList.add('translate-y-4', 'opacity-0');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
                 },
 
                 resetForm() {

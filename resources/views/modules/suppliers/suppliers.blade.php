@@ -437,7 +437,6 @@
                 showDetailModal: false,
                 showDeactivateModal: false,
                 showActivateModal: false,
-                showConfirmModal: false,
                 isEditMode: false,
                 editingId: null,
                 deactivateId: null,
@@ -449,56 +448,59 @@
                 sortBy: @json($sortBy),
                 sortDir: @json($sortDir),
                 filterStatus: @json($status),
-                typeahead: {
-                    q: @json($search ?? ''),
-                    items: [],
-                    open: false,
-                    loading: false,
-                    activeIndex: -1,
-                    debounceHandle: null,
-                    limit: 8,
-                },
-                form: {
-                    supplier_name: '',
-                    contact_person: '',
-                    company_address: '',
-                    contact_number: '',
-                    contact_email: '',
-                    status: 'active',
+                typeahead: { q: @json($search ?? ''), items: [], open: false, loading: false, activeIndex: -1, debounceHandle: null, limit: 8 },
+                form: { supplier_name: '', contact_person: '', company_address: '', contact_number: '', contact_email: '', status: 'active' },
+
+                // 1. THE BULLETPROOF VANILLA JS TOAST
+                showToast(message, type = 'success') {
+                    const toast = document.createElement('div');
+                    
+                    // Added a 'warning' type with Amber colors!
+                    toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded border shadow-2xl z-[99999] font-medium text-sm transition-all duration-300 transform translate-y-0 opacity-100 flex items-center gap-3 ${
+                        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
+                        type === 'error' ? 'bg-red-50 border-red-200 text-red-800' : 
+                        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 
+                        'bg-blue-50 border-blue-200 text-blue-800'
+                    }`;
+
+                    // Added a dynamic icon for the warning state
+                    let icon = '';
+                    if (type === 'success') {
+                        icon = `<svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                    } else if (type === 'error') {
+                        icon = `<svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                    } else if (type === 'warning') {
+                        icon = `<svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" /></svg>`;
+                    }
+                    
+                    toast.innerHTML = `${icon} <span>${message}</span>`;
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        toast.classList.remove('translate-y-0', 'opacity-100');
+                        toast.classList.add('translate-y-4', 'opacity-0');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
                 },
 
+                // Background HTML swapping for SPA feel (No Page Reloads!)
                 async refreshTable() {
                     try {
-                        // Fetch the current page in the background
-                        const response = await fetch(window.location.href, { 
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' } 
-                        });
+                        const response = await fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                         const html = await response.text();
-                        
-                        // Parse the HTML and grab the updated table
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(html, 'text/html');
-                        const newTableHTML = doc.querySelector('#suppliers-table-container').innerHTML;
-                        
-                        // Swap it directly onto the screen without blinking
-                        document.querySelector('#suppliers-table-container').innerHTML = newTableHTML;
+                        document.querySelector('#suppliers-table-container').innerHTML = doc.querySelector('#suppliers-table-container').innerHTML;
                     } catch (error) {
-                        console.error('Seamless refresh failed, falling back to reload.', error);
-                        window.location.reload(); // Safe fallback
+                        console.error('Seamless refresh failed, falling back to hard reload.', error);
+                        window.location.reload();
                     }
                 },
 
                 openCreateModal() {
                     this.isEditMode = false;
                     this.editingId = null;
-                    this.form = {
-                        supplier_name: '',
-                        contact_person: '',
-                        company_address: '',
-                        contact_number: '',
-                        contact_email: '',
-                        status: 'active',
-                    };
+                    this.form = { supplier_name: '', contact_person: '', company_address: '', contact_number: '', contact_email: '', status: 'active' };
                     this.errors = {};
                     this.showModal = true;
                 },
@@ -506,292 +508,113 @@
                 openEditModal(supplier) {
                     this.isEditMode = true;
                     this.editingId = supplier.id;
-                    this.form = {
-                        supplier_name: supplier.supplier_name,
-                        contact_person: supplier.contact_person || '',
-                        company_address: supplier.company_address || '',
-                        contact_number: supplier.contact_number || '',
-                        contact_email: supplier.contact_email || '',
-                        status: supplier.status,
-                    };
+                    this.form = { supplier_name: supplier.supplier_name, contact_person: supplier.contact_person || '', company_address: supplier.company_address || '', contact_number: supplier.contact_number || '', contact_email: supplier.contact_email || '', status: supplier.status };
                     this.errors = {};
                     this.showModal = true;
                 },
 
-                closeModal() {
-                    this.showModal = false;
-                    this.isEditMode = false;
-                    this.editingId = null;
-                    this.errors = {};
-                },
+                closeModal() { this.showModal = false; this.isEditMode = false; this.editingId = null; this.errors = {}; },
+                openDeactivateModal(id, name) { this.deactivateId = id; this.deactivateSupplierName = name; this.showDeactivateModal = true; },
+                closeDeactivateModal() { this.showDeactivateModal = false; this.deactivateId = null; this.deactivateSupplierName = ''; },
+                openActivateModal(id, name) { this.activateId = id; this.activateSupplierName = name; this.showActivateModal = true; },
+                closeActivateModal() { this.showActivateModal = false; this.activateId = null; this.activateSupplierName = ''; },
+                openDetailModal(supplier) { this.detail = supplier; this.showDetailModal = true; },
+                closeDetailModal() { this.showDetailModal = false; this.detail = {}; },
+                switchToEdit() { this.closeDetailModal(); this.openEditModal(this.detail); },
 
-                closeConfirmModal() {
-                    this.showConfirmModal = false;
-                },
-
-                openDeactivateModal(id, name) {
-                    this.deactivateId = id;
-                    this.deactivateSupplierName = name;
-                    this.showDeactivateModal = true;
-                },
-
-                closeDeactivateModal() {
-                    this.showDeactivateModal = false;
-                    this.deactivateId = null;
-                    this.deactivateSupplierName = '';
-                },
-
-                openActivateModal(id, name) {
-                    this.activateId = id;
-                    this.activateSupplierName = name;
-                    this.showActivateModal = true;
-                },
-
-                closeActivateModal() {
-                    this.showActivateModal = false;
-                    this.activateId = null;
-                    this.activateSupplierName = '';
-                },
-
-                openDetailModal(supplier) {
-                    this.detail = supplier;
-                    this.showDetailModal = true;
-                },
-
-                closeDetailModal() {
-                    this.showDetailModal = false;
-                    this.detail = {};
-                },
-
-                switchToEdit() {
-                    this.closeDetailModal();
-                    this.openEditModal(this.detail);
-                },
-
-                async deactivateSupplier() {
-                    try {
-                        const response = await fetch(`/suppliers/${this.deactivateId}/deactivate`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document
-                                    .querySelector('meta[name="csrf-token"]')
-                                    .getAttribute('content'),
-                            },
-                        });
-
-                        if (!response.ok) {
-                            throw new Error('Failed to deactivate supplier');
-                        }
-
-                        this.closeDeactivateModal();
-                        
-                        // Delete window.location.reload(); and replace with:
-                        await this.refreshTable();
-
-                    } catch (error) {
-                        console.error(error);
-                    }
-                },
-
-                async activateSupplier() {
-                    try {
-                        const response = await fetch(`/suppliers/${this.activateId}/activate`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document
-                                    .querySelector('meta[name="csrf-token"]')
-                                    .getAttribute('content'),
-                            },
-                        });
-
-                        if (!response.ok) {
-                            throw new Error('Failed to activate supplier');
-                        }
-
-                        this.closeActivateModal();
-                        
-                        // Delete window.location.reload(); and replace with:
-                        await this.refreshTable();
-
-                    } catch (error) {
-                        console.error(error);
-                    }
-                },
-
+                // TYPEAHEAD FUNCTIONS
                 onTypeaheadInput() {
-                    if (this.typeahead.debounceHandle) {
-                        clearTimeout(this.typeahead.debounceHandle);
-                    }
-
+                    if (this.typeahead.debounceHandle) clearTimeout(this.typeahead.debounceHandle);
                     const query = this.typeahead.q.trim();
-                    if (!query) {
-                        this.typeahead.items = [];
-                        this.typeahead.open = false;
-                        this.typeahead.activeIndex = -1;
-                        return;
-                    }
-
-                    this.typeahead.debounceHandle = setTimeout(() => {
-                        this.fetchTypeahead(query);
-                    }, 250);
+                    if (!query) { this.typeahead.items = []; this.typeahead.open = false; this.typeahead.activeIndex = -1; return; }
+                    this.typeahead.debounceHandle = setTimeout(() => { this.fetchTypeahead(query); }, 250);
                 },
-
                 async fetchTypeahead(query) {
-                    this.typeahead.loading = true;
-                    this.typeahead.open = true;
-
-                    const params = new URLSearchParams({
-                        q: query,
-                        limit: String(this.typeahead.limit),
-                    });
-
-                    if (this.filterStatus) {
-                        params.set('status', this.filterStatus);
-                    }
-
+                    this.typeahead.loading = true; this.typeahead.open = true;
+                    const params = new URLSearchParams({ q: query, limit: String(this.typeahead.limit) });
+                    if (this.filterStatus) params.set('status', this.filterStatus);
                     try {
                         const response = await fetch(`{{ route('suppliers.api.search') }}?${params.toString()}`);
                         const data = await response.json();
-
                         this.typeahead.items = Array.isArray(data) ? data : [];
                         this.typeahead.activeIndex = this.typeahead.items.length > 0 ? 0 : -1;
                     } catch (error) {
-                        this.typeahead.items = [];
-                        this.typeahead.activeIndex = -1;
-                        console.error(error);
-                    } finally {
-                        this.typeahead.loading = false;
-                    }
+                        this.typeahead.items = []; this.typeahead.activeIndex = -1; console.error(error);
+                    } finally { this.typeahead.loading = false; }
                 },
-
-                reopenTypeahead() {
-                    if (this.typeahead.items.length > 0 || this.typeahead.loading) {
-                        this.typeahead.open = true;
-                    }
-                },
-
-                closeTypeahead() {
-                    this.typeahead.open = false;
-                    this.typeahead.activeIndex = -1;
-                },
-
+                reopenTypeahead() { if (this.typeahead.items.length > 0 || this.typeahead.loading) this.typeahead.open = true; },
+                closeTypeahead() { this.typeahead.open = false; this.typeahead.activeIndex = -1; },
                 moveTypeahead(step) {
-                    if (!this.typeahead.open || this.typeahead.items.length === 0) {
-                        return;
-                    }
-
+                    if (!this.typeahead.open || this.typeahead.items.length === 0) return;
                     const count = this.typeahead.items.length;
                     const current = this.typeahead.activeIndex < 0 ? 0 : this.typeahead.activeIndex;
                     this.typeahead.activeIndex = (current + step + count) % count;
                 },
-
                 onTypeaheadEnter() {
                     if (this.typeahead.open && this.typeahead.items.length > 0) {
-                        const index = this.typeahead.activeIndex >= 0 ? this.typeahead.activeIndex : 0;
-                        this.selectTypeaheadItem(index);
+                        this.selectTypeaheadItem(this.typeahead.activeIndex >= 0 ? this.typeahead.activeIndex : 0);
                         return;
                     }
-
                     this.applySearch();
                 },
-
                 selectTypeaheadItem(index) {
                     const supplier = this.typeahead.items[index];
-                    if (!supplier) {
-                        return;
-                    }
-
+                    if (!supplier) return;
                     this.typeahead.q = supplier.supplier_name || String(supplier.id ?? '');
-                    this.typeahead.items = [];
-                    this.closeTypeahead();
-
-                    this.applySearch();
+                    this.typeahead.items = []; this.closeTypeahead(); this.applySearch();
                 },
-
                 applySearch() {
-                    const query = this.typeahead.q.trim();
-                    const params = new URLSearchParams();
-
-                    if (query) {
-                        params.set('search', query);
-                    }
-                    if (this.filterStatus) {
-                        params.set('status', this.filterStatus);
-                    }
-                    if (this.sortBy) {
-                        params.set('sort_by', this.sortBy);
-                    }
-                    if (this.sortDir) {
-                        params.set('sort_dir', this.sortDir);
-                    }
-
-                    const url = params.toString()
-                        ? `{{ route('suppliers.index') }}?${params.toString()}`
-                        : `{{ route('suppliers.index') }}`;
-
-                    window.location = url;
+                    const query = this.typeahead.q.trim(); const params = new URLSearchParams();
+                    if (query) params.set('search', query);
+                    if (this.filterStatus) params.set('status', this.filterStatus);
+                    if (this.sortBy) params.set('sort_by', this.sortBy);
+                    if (this.sortDir) params.set('sort_dir', this.sortDir);
+                    window.location = params.toString() ? `{{ route('suppliers.index') }}?${params.toString()}` : `{{ route('suppliers.index') }}`;
                 },
-
                 clearSearch() {
-                    this.typeahead.q = '';
-                    const params = new URLSearchParams();
-
-                    if (this.filterStatus) {
-                        params.set('status', this.filterStatus);
-                    }
-                    if (this.sortBy) {
-                        params.set('sort_by', this.sortBy);
-                    }
-                    if (this.sortDir) {
-                        params.set('sort_dir', this.sortDir);
-                    }
-
-                    const url = params.toString()
-                        ? `{{ route('suppliers.index') }}?${params.toString()}`
-                        : `{{ route('suppliers.index') }}`;
-
-                    window.location = url;
+                    this.typeahead.q = ''; const params = new URLSearchParams();
+                    if (this.filterStatus) params.set('status', this.filterStatus);
+                    if (this.sortBy) params.set('sort_by', this.sortBy);
+                    if (this.sortDir) params.set('sort_dir', this.sortDir);
+                    window.location = params.toString() ? `{{ route('suppliers.index') }}?${params.toString()}` : `{{ route('suppliers.index') }}`;
                 },
 
+                // FORM SUBMIT INTERCEPTOR & VALIDATION
                 handleFormSubmit() {
                     this.errors = {};
                     let hasError = false;
 
-                    // Basic frontend validation to prevent empty submissions
                     if (!this.form.supplier_name) { this.errors.supplier_name = ['Supplier name is required.']; hasError = true; }
                     if (!this.form.contact_person) { this.errors.contact_person = ['Contact person is required.']; hasError = true; }
                     if (!this.form.company_address) { this.errors.company_address = ['Company address is required.']; hasError = true; }
                     if (!this.form.contact_number) { this.errors.contact_number = ['Contact number is required.']; hasError = true; }
                     if (!this.form.contact_email) { this.errors.contact_email = ['Contact email is required.']; hasError = true; }
 
-                    if (hasError) return;
+                    if (hasError) {
+                        this.showToast('Please fill out all required fields.', 'error');
+                        return; 
+                    }
 
                     if (this.isEditMode) {
                         this.submitForm();
                     } else {
-                        this.showConfirmModal = true;
+                        this.$dispatch('open-modal', 'confirm-add-supplier');
                     }
                 },
 
                 executeAdd() {
-                    this.closeConfirmModal();
+                    this.$dispatch('close-modal', 'confirm-add-supplier');
                     this.submitForm();
                 },
 
+                // 2. SUBMIT FORM WITH TOAST
                 async submitForm() {
                     this.errors = {};
+                    const url = this.isEditMode ? `/suppliers/${this.editingId}` : `/suppliers`;
+                    const method = this.isEditMode ? 'PUT' : 'POST';
 
-                    const url = this.isEditMode
-                        ? `/suppliers/${this.editingId}`
-                        : `/suppliers`;
-
-                    const method = this.isEditMode
-                        ? 'PUT'
-                        : 'POST';
+                    // Determine the message BEFORE closing the modal!
+                    const successMessage = this.isEditMode ? 'Supplier successfully updated!' : 'Supplier successfully added!';
 
                     try {
                         const response = await fetch(url, {
@@ -799,34 +622,86 @@
                             headers: {
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document
-                                    .querySelector('meta[name="csrf-token"]')
-                                    .getAttribute('content'),
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                             },
                             body: JSON.stringify(this.form),
                         });
 
-                        const data = await response.json();
-
-                        // Validation failed
-                        if (!response.ok) {
-                            if (response.status === 422) {
-                                this.errors = data.errors;
-                                return;
+                        const contentType = response.headers.get("content-type");
+                        if (contentType && contentType.indexOf("application/json") !== -1) {
+                            const data = await response.json();
+                            if (!response.ok) {
+                                if (response.status === 422) {
+                                    this.errors = data.errors;
+                                    return;
+                                }
+                                throw new Error('Something went wrong');
                             }
-                            throw new Error('Something went wrong');
+                        } else if (!response.ok) {
+                            throw new Error('Server returned an error');
                         }
 
-                        // Success
+                        // Close modal and show the pre-determined message
                         this.closeModal();
+                        this.showToast(successMessage, 'success'); 
                         
-                        // Delete window.location.reload(); and replace with:
                         await this.refreshTable();
 
                     } catch (error) {
                         console.error(error);
+                        this.showToast('An error occurred while saving the supplier.', 'error');
                     }
-                }
+                },
+
+                // 3. DEACTIVATE WITH TOAST
+                async deactivateSupplier() {
+                    try {
+                        const response = await fetch(`/suppliers/${this.deactivateId}/deactivate`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            },
+                        });
+
+                        if (!response.ok) throw new Error('Failed to deactivate');
+
+                        this.closeDeactivateModal();
+                        
+                        this.showToast('Supplier deactivated successfully.', 'warning'); // Call our new toast!
+                        await this.refreshTable();
+
+                    } catch (error) {
+                        console.error(error);
+                        this.showToast('Failed to deactivate supplier.', 'error');
+                    }
+                },
+
+                // 4. ACTIVATE WITH TOAST
+                async activateSupplier() {
+                    try {
+                        const response = await fetch(`/suppliers/${this.activateId}/activate`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            },
+                        });
+
+                        if (!response.ok) throw new Error('Failed to activate');
+
+                        this.closeActivateModal();
+
+                        this.showToast('Supplier activated successfully.', 'success'); // Call our new toast!
+                        await this.refreshTable();
+
+                    } catch (error) {
+                        console.error(error);
+                        this.showToast('Failed to activate supplier.', 'error');
+                    }
+                },
             };
         }
     </script>
