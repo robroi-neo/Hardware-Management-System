@@ -52,13 +52,13 @@
             <div class="rounded border border-slate-200 bg-slate-50 p-4">
                 <p class="text-sm text-slate-600">Total Value</p>
                 <p class="mt-1 text-2xl font-semibold text-slate-900">
-                    ₱{{ number_format($inventories->sum(fn($inv) => $inv->quantity * $inv->product->capital), 2) }}
+                    ₱{{ number_format($totalValue, 2) }}
                 </p>
             </div>
             <div class="rounded border border-slate-200 bg-slate-50 p-4" >
                 <p class="text-sm text-slate-600">Low Stock Items</p>
                 <p class="mt-1 text-2xl font-semibold text-amber-600">
-                    {{ $inventories->filter(fn($inv) => $inv->quantity < 5)->count() }}
+                    {{ $lowStockCount }}
                 </p>
             </div>
         </div>
@@ -111,13 +111,13 @@
                                             Archived
                                         </span>
                                     @else
-                                        @if($inventory->quantity < 5)
-                                            <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
-                                                Low Stock
+                                        @if($inventory->quantity <= 0)
+                                            <span class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                                                Out of Stock
                                             </span>
                                         @elseif($inventory->quantity < 10)
-                                            <span class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
-                                                Warning
+                                            <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                                                Low Stock
                                             </span>
                                         @else
                                             <span class="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
@@ -126,46 +126,47 @@
                                         @endif
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-right">
+                                <td class="px-4 py-3">
                                     @can('inventory.update')
                                         @php
                                             $productQuantity = $inventory->product->branchInventories->sum('quantity');
                                         @endphp
-                                    <!--   -->
-                                        @if($inventory->product->status !== 'inactive' && $productQuantity <= 0)
-                                            <button
-                                                type="button"
-                                                @click="confirmArchive.open = true; confirmArchive.action = 'archive'; confirmArchive.product = {
-                                                id: {{ $inventory->product->id }},
-                                                name: '{{ addslashes($inventory->product->name) }}',
-                                                unit: '{{ $inventory->product->unit }}',
-                                                quantity: {{ $inventory->quantity }},
-                                                branch: '{{ addslashes($inventory->branch->name) }}'
-                                            }"
-                                                class="rounded bg-gray-600 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700"
-                                                                                    >
-                                                Archive
-                                            </button>
-                                        @elseif($inventory->product->status === 'inactive')
-                                            <span class="text-xs text-slate-500">
-                                            <button
-                                                type="button"
-                                                @click="confirmArchive.open = true; confirmArchive.action = 'restore'; confirmArchive.product = {
-                                                id: {{ $inventory->product->id }},
-                                                name: '{{ addslashes($inventory->product->name) }}',
-                                                unit: '{{ $inventory->product->unit }}',
-                                                quantity: {{ $inventory->quantity }},
-                                                branch: '{{ addslashes($inventory->branch->name) }}'
-                                            }"
-                                                class="rounded bg-gray-600 px-3 py-1 text-xs font-medium text-white hover:bg-gray-700"
-                                            >
-                                                Restore
-                                            </button>
-                                            </span>
-                                        @else
-                                            <span class="text-xs text-slate-500">No actions available</span>
-                                        @endif
-
+                                        
+                                        <div class="flex justify-center gap-2">
+                                            @if($inventory->product->status !== 'inactive' && $productQuantity <= 0)
+                                                <button
+                                                    type="button"
+                                                    @click="confirmArchive.open = true; confirmArchive.action = 'archive'; confirmArchive.product = {
+                                                        id: {{ $inventory->product->id }},
+                                                        name: '{{ addslashes($inventory->product->name) }}',
+                                                        unit: '{{ $inventory->product->unit }}',
+                                                        quantity: {{ $inventory->quantity }},
+                                                        branch: '{{ addslashes($inventory->branch->name) }}'
+                                                    }"
+                                                    class="text-slate-400 hover:text-red-600 transition-colors"
+                                                    title="Archive Product"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-archive-icon lucide-archive"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+                                                </button>
+                                            @elseif($inventory->product->status === 'inactive')
+                                                <button
+                                                    type="button"
+                                                    @click="confirmArchive.open = true; confirmArchive.action = 'restore'; confirmArchive.product = {
+                                                        id: {{ $inventory->product->id }},
+                                                        name: '{{ addslashes($inventory->product->name) }}',
+                                                        unit: '{{ $inventory->product->unit }}',
+                                                        quantity: {{ $inventory->quantity }},
+                                                        branch: '{{ addslashes($inventory->branch->name) }}'
+                                                    }"
+                                                    class="text-slate-400 hover:text-emerald-600 transition-colors"
+                                                    title="Restore Product"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-archive-restore-icon lucide-archive-restore"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h2"/><path d="M20 8v11a2 2 0 0 1-2 2h-2"/><path d="m9 15 3-3 3 3"/><path d="M12 12v9"/></svg>
+                                                </button>
+                                            @else
+                                                <span class="text-xs text-slate-400">—</span>
+                                            @endif
+                                        </div>
                                     @endcan
                                 </td>
                             </tr>
@@ -225,25 +226,21 @@
                         type="button"
                         @click="confirmArchive.open = false"
                         class="rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                        :disabled="submitting"
                     >
                         Cancel
                     </button>
 
-                    <form
-                        :action="confirmArchive.product ? `/inventory/products/${confirmArchive.product.id}/${confirmArchive.action}` : '#'"
-                        method="POST"
+                    <button
+                        type="button"
+                        @click="executeArchive()"
+                        class="rounded px-4 py-2 text-sm text-white disabled:opacity-50"
+                        :class="confirmArchive.action === 'restore' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'"
+                        x-text="confirmArchive.action === 'restore' ? 'Confirm Restore' : 'Confirm Archive'"
+                        :disabled="submitting"
                     >
-                        @csrf
-                        @method('PATCH')
-
-                        <button
-                            type="submit"
-                            class="rounded bg-gray-700 px-4 py-2 text-sm text-white hover:bg-gray-800"
-                            x-text="confirmArchive.action === 'restore' ? 'Confirm Restore' : 'Confirm Archive'"
-                        >
-                            Confirm Archive
-                        </button>
-                    </form>
+                        Confirm Archive
+                    </button>
                 </div>
             </div>
         </div>
@@ -267,11 +264,92 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
         searchUrl: searchUrl,
         baseRoute: baseRoute,
         selectedBranch: selectedBranch,
-
+        submitting: false,
         confirmArchive: {
             open: false,
             product: null,
             action: 'archive',
+        },
+
+        // NEW: Standard Toast Function
+        showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            
+            toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded border shadow-2xl z-[99999] font-medium text-sm transition-all duration-300 transform translate-y-0 opacity-100 flex items-center gap-3 ${
+                type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
+                type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 
+                'bg-red-50 border-red-200 text-red-800'
+            }`;
+
+            let icon = '';
+            if (type === 'success') {
+                icon = `<svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            } else if (type === 'warning') {
+                icon = `<svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" /></svg>`;
+            } else {
+                icon = `<svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            }
+            
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        },
+
+        // NEW: Seamless Table Background Refresh
+        async refreshTable() {
+            try {
+                const response = await fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                document.querySelector('#inventory-table-container').innerHTML = doc.querySelector('#inventory-table-container').innerHTML;
+            } catch (error) {
+                console.error('Seamless refresh failed, falling back to hard reload.', error);
+                window.location.reload();
+            }
+        },
+
+        // NEW: Background Execution for Archive/Restore
+        async executeArchive() {
+            if (!this.confirmArchive.product) return;
+            this.submitting = true;
+
+            try {
+                const url = `/inventory/products/${this.confirmArchive.product.id}/${this.confirmArchive.action}`;
+                const response = await fetch(url, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    this.confirmArchive.open = false;
+                    
+                    // Show specific toast based on action!
+                    const toastType = this.confirmArchive.action === 'restore' ? 'success' : 'warning';
+                    this.showToast(data.message, toastType);
+                    
+                    await this.refreshTable();
+                } else {
+                    this.confirmArchive.open = false;
+                    this.showToast(data.message || 'Error processing request', 'error');
+                }
+            } catch (error) {
+                this.confirmArchive.open = false;
+                this.showToast('Error: ' + error.message, 'error');
+            } finally {
+                this.submitting = false;
+            }
         },
 
         onTypeaheadInput() {
@@ -361,6 +439,10 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
             this.typeahead.q = '';
             this.typeahead.items = [];
             this.closeTypeahead();
+
+            const params = new URLSearchParams(window.location.search);
+            params.delete('search');
+            window.location.href = params.toString() ? `${this.baseRoute}?${params.toString()}` : this.baseRoute;
         },
 
         applySearch() {

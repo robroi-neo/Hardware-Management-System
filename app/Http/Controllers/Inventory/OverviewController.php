@@ -55,7 +55,6 @@ class OverviewController extends Controller
         }
 
         // Filter by status (product.status)
-        // DB enum allows: active, inactive. We treat 'inactive' as Archived in the UI.
         $allowedStatuses = ['active', 'inactive'];
         if ($filterStatus && in_array($filterStatus, $allowedStatuses)) {
             $query->whereHas('product', function ($q) use ($filterStatus) {
@@ -82,12 +81,20 @@ class OverviewController extends Controller
             $query->orderBy('branch_inventory.created_at', $sortDir);
         }
 
+        // 1. CALCULATE TRUE TOTAL VALUE BEFORE PAGINATING
+        $totalValue = (clone $query)->get()->sum(function ($inv) {
+            return $inv->quantity * ($inv->product->capital ?? 0);
+        });
+
+        $lowStockCount = (clone $query)->where('quantity', '<', 5)->count();
+
+        // 2. NOW PAGINATE
         $inventories = $query->paginate(10);
 
         // Get all branches for dropdown (only used if admin)
         $allBranches = $isAdmin ? Branch::all() : collect();
 
-        // Status options for filter. Map UI label 'Archived' to DB value 'inactive'.
+        // Status options for filter
         $statuses = collect([
             (object)['value' => 'active', 'label' => 'Active'],
             (object)['value' => 'inactive', 'label' => 'Archived'],
@@ -95,6 +102,8 @@ class OverviewController extends Controller
 
         return view('modules.inventory.stock-overview', [
             'inventories' => $inventories,
+            'totalValue' => $totalValue, // PASS IT TO THE VIEW
+            'lowStockCount' => $lowStockCount,
             'sortBy' => $sortBy,
             'sortDir' => $sortDir,
             'search' => $search,
@@ -107,33 +116,48 @@ class OverviewController extends Controller
         ]);
     }
 
-    public function archive(Product $product)
+    public function archive(Request $request, Product $product)
     {
         // Do not archive if any inventory still has stock.
         $totalQuantity = (float) $product->branchInventories()->sum('quantity');
         if ($totalQuantity > 0) {
-            return back()->with('error', 'Cannot archive a product while stock quantity is above zero.');
+            $msg = 'Cannot archive a product while stock quantity is above zero.';
+            return $request->wantsJson() 
+                ? response()->json(['success' => false, 'message' => $msg], 400) 
+                : back()->with('error', $msg);
         }
 
         // Mark product as archived by setting DB-allowed status 'inactive'.
         if ($product->status === 'inactive') {
-            return back()->with('info', 'Product is already archived.');
+            $msg = 'Product is already archived.';
+            return $request->wantsJson() 
+                ? response()->json(['success' => false, 'message' => $msg], 400) 
+                : back()->with('info', $msg);
         }
 
         $product->update(['status' => 'inactive']);
-
-        return redirect()->route('inventory.overview')->with('success', 'Product archived successfully.');
+        $msg = 'Product archived successfully.';
+        
+        return $request->wantsJson() 
+            ? response()->json(['success' => true, 'message' => $msg]) 
+            : redirect()->route('inventory.overview')->with('success', $msg);
     }
 
-    public function restore(Product $product)
+    public function restore(Request $request, Product $product)
     {
         // Only restore if product is currently inactive
         if ($product->status === 'active') {
-            return back()->with('info', 'Product is already active.');
+            $msg = 'Product is already active.';
+            return $request->wantsJson() 
+                ? response()->json(['success' => false, 'message' => $msg], 400) 
+                : back()->with('info', $msg);
         }
 
         $product->update(['status' => 'active']);
+        $msg = 'Product restored successfully.';
 
-        return redirect()->route('inventory.overview')->with('success', 'Product restored successfully.');
+        return $request->wantsJson() 
+            ? response()->json(['success' => true, 'message' => $msg]) 
+            : redirect()->route('inventory.overview')->with('success', $msg);
     }
 }

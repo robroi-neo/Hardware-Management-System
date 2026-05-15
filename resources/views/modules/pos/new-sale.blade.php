@@ -29,7 +29,7 @@
                                     <th class="px-4 py-3 font-medium">Unit</th>
                                     <th class="px-4 py-3 font-medium">Capital</th>
                                     <th class="px-4 py-3 font-medium">Markup</th>
-                                    <th class="px-4 py-3 font-medium">Quantity</th>
+                                    <th class="px-4 py-3 font-medium ">Quantity</th>
                                     <th class="px-4 py-3 font-medium">Subtotal</th>
                                     <th class="px-4 py-3 font-medium"></th>
                                 </tr>
@@ -37,13 +37,13 @@
                             <tbody class="divide-y">
                                 <template x-for="item in order" :key="item.product_id">
                                     <tr>
-                                        <td class="px-4 py-3" x-text="item.product_id"></td>
-                                        <td class="px-4 py-3" x-text="item.product_name"></td>
-                                        <td class="px-4 py-3" x-text="item.unit"></td>
-                                        <td class="px-4 py-3">₱<span x-text="formatPrice(item.unit_price)"></span></td>
-                                        <td class="px-4 py-3">
+                                        <td class="px-4 py-3 align-center" x-text="item.product_id"></td>
+                                        <td class="px-4 py-3 align-center" x-text="item.product_name"></td>
+                                        <td class="px-4 py-3 align-center" x-text="item.unit"></td>
+                                        <td class="px-4 py-3 align-center">₱<span x-text="formatPrice(item.unit_price)"></span></td>
+                                        <td class="px-4 py-3 align-top">
                                             <div class="flex items-center gap-1">
-                                                <span class="text-gray-500">₱</span>
+                                                <span class="text-gray-500 align-top">₱</span>
                                                 <input
                                                     type="number"
                                                     :value="item.markup"
@@ -52,7 +52,7 @@
                                                 />
                                             </div>
                                         </td>
-                                        <td class="px-4 py-3">
+                                        <td class="px-4 py-3 align-top">
                                             <input
                                                 type="number"
                                                 min="1"
@@ -67,8 +67,8 @@
                                                 Max: <span x-text="formatQty(getOrderMaxQty(item))"></span>
                                             </div>
                                         </td>
-                                        <td class="px-4 py-3">₱<span x-text="formatPrice(item.subtotal)"></span></td>
-                                        <td class="px-4 py-3 text-right">
+                                        <td class="px-4 py-3 align-center">₱<span x-text="formatPrice(item.subtotal)"></span></td>
+                                        <td class="px-4 py-3 text-right align-center">
                                             <button @click="removeOrderItem(item.product_id)" class="text-xs text-red-500">Remove</button>
                                         </td>
                                     </tr>
@@ -179,15 +179,17 @@
                                 <div class="col-span-3 text-right">Subtotal</div>
                             </div>
                             <template x-for="item in (receipt.items || [])" :key="item.product_id">
-                                <div class="grid grid-cols-12 gap-2 py-1 border-t border-slate-100">
+                                <div class="grid grid-cols-12 gap-2 py-2 border-t border-slate-100">
                                     <div class="col-span-5">
-                                        <div class="font-medium" x-text="item.product_name"></div>
+                                        <div class="font-medium text-slate-900" x-text="item.product_name"></div>
                                         <div class="text-xs text-slate-500">#<span x-text="item.product_id"></span> · <span x-text="item.unit"></span></div>
                                     </div>
-                                    <div class="col-span-2 text-right" x-text="formatQty(item.quantity)"></div>
-                                    <div class="text-gray-700">₱<span x-text="formatPrice((item.unit_price || 0) + (item.markup || 0))"></span></div>
+                                    
+                                    <div class="col-span-2 text-right text-slate-700" x-text="formatQty(item.quantity)"></div>
+                                    
+                                    <div class="col-span-2 text-right text-slate-700">₱<span x-text="formatPrice((item.unit_price || 0) + (item.markup || 0))"></span></div>
 
-                                    <div class="col-span-3 text-right">₱<span x-text="formatPrice(item.subtotal)"></span></div>
+                                    <div class="col-span-3 text-right font-medium text-slate-900">₱<span x-text="formatPrice(item.subtotal)"></span></div>
                                 </div>
                             </template>
                         </div>
