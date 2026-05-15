@@ -38,6 +38,7 @@
                 valueField="value"
                 displayField="label"
                 label="Filter by Entity"
+                placeholder="All Entities"
                 onchange="this.form.submit()"
             />
         </form>

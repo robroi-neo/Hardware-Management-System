@@ -64,6 +64,7 @@
                             name="status"
                             label="Filter by Status"
                             valueField="value"
+                            placeholder="All Statuses"
                             displayField="label"
                             :autoSubmit="true"
                         />

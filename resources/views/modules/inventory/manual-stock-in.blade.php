@@ -264,7 +264,10 @@
 
                     this.typeahead.debounceTimer = setTimeout(async () => {
                         try {
-                            const response = await fetch(`{{ route('inventory.api.products.search') }}?q=${encodeURIComponent(this.typeahead.q)}&limit=10`);
+                            // Automatically append the branch_id if one is selected!
+                            const branchParam = this.form.branch_id ? `&branch_id=${this.form.branch_id}` : '';
+                            const response = await fetch(`{{ route('inventory.api.products.search') }}?q=${encodeURIComponent(this.typeahead.q)}&limit=10${branchParam}`);
+                            
                             const data = await response.json();
                             this.typeahead.items = data;
                             this.typeahead.activeIndex = -1;
