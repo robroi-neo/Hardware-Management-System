@@ -228,13 +228,6 @@
                 </div>
             </template>
 
-            <!-- Success/Error Messages -->
-            <template x-if="message">
-                <div :class="messageType === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'" class="rounded border p-4">
-                    <p class="text-sm font-medium" x-text="message"></p>
-                </div>
-            </template>
-
             <!-- Stock-Out Confirmation Modal MUST be inside the x-data div -->
             <x-modal name="confirm-stock-out" maxWidth="md" focusable>
                 <div class="p-6">
