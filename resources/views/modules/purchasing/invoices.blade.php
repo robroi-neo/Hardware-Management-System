@@ -19,7 +19,7 @@
                     name="search"
                     value="{{ request('search') }}"
                     placeholder="Search by ID or Supplier"
-                    class="placeholder-gray-400 bg-white-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    class="text-sm placeholder-gray-400 bg-white-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 />
             </div>
 

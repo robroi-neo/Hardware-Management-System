@@ -124,7 +124,7 @@
             <!-- Reference Type & Notes -->
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Reference Type</label>
+                    <label class="block text-sm font-medium text-slate-700">Reference Type <span class="text-red-500">*</span></label>
                     <select
                         x-model="form.reference_type"
                         class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -348,7 +348,7 @@
                 },
 
                 canSubmit() {
-                    return this.form.branch_id && this.form.items.length > 0 && !this.submitting;
+                    return this.form.branch_id && this.form.reference_type && this.form.items.length > 0 && !this.submitting;
                 },
 
                 formatPrice(price) {
