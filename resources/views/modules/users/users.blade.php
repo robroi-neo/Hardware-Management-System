@@ -3,6 +3,10 @@
         <h2 class="text-3xl font-medium leading-tight text-slate-900">User</h2>
     </x-slot>
 
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+
     <div x-data="userManager()">
         <x-card title="User Management" fullHeight>
             <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -48,7 +52,8 @@
                     </div>
                 </form>
             </div>
-            <div class="overflow-hidden rounded border border-slate-200 bg-white">
+
+            <div id="users-table-container" class="overflow-hidden rounded border border-slate-200 bg-white">
                 <table class="min-w-full text-sm">
                     <thead class="bg-indigo-100 text-left text-slate-700">
                         <tr>
@@ -168,9 +173,9 @@
             <x-table.pagination :paginator="$users" />
         </x-card>
 
-        <!-- Detail Modal (Read-Only View) -->
         <x-modals.detail-modal
             show="showDetailModal"
+            x-cloak
             data="detail"
             title="User Details"
             :fields="[
@@ -191,9 +196,9 @@
             onClose="closeDetailModal()"
         />
 
-        <!-- Create / Edit Modal -->
         <x-modals.modal
             show="showModal"
+            x-cloak
             close="closeModal()"
         >
             <x-slot:header>
@@ -213,7 +218,6 @@
                     <input type="hidden" name="_method" value="PUT" />
                 </template>
 
-                <!-- Name -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-slate-700">
                         Name <span class="text-red-500">*</span>
@@ -231,7 +235,6 @@
                     </template>
                 </div>
 
-                <!-- Phone -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-slate-700">Phone</label>
                     <input
@@ -246,7 +249,6 @@
                     </template>
                 </div>
 
-                <!-- Role -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-slate-700">
                         Role <span class="text-red-500">*</span>
@@ -267,7 +269,6 @@
                     </template>
                 </div>
 
-                <!-- Branch -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-slate-700">Branch</label>
                     <select
@@ -285,7 +286,6 @@
                     </template>
                 </div>
 
-                <!-- Status -->
                 <template x-if="!isEditMode">
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-slate-700">
@@ -320,10 +320,10 @@
             </form>
         </x-modals.modal>
 
-        <!-- Deactivate Modal -->
         <div
             x-show="showDeactivateModal"
             x-transition
+            x-cloak
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
             @click.self="closeDeactivateModal()"
         >
@@ -351,10 +351,10 @@
             </div>
         </div>
 
-        <!-- Activate Modal -->
         <div
             x-show="showActivateModal"
             x-transition
+            x-cloak
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
             @click.self="closeActivateModal()"
         >
@@ -424,6 +424,49 @@
                         status: 'active',
                     },
 
+                    // 1. ADDED TOAST FUNCTION
+                    showToast(message, type = 'success') {
+                        const toast = document.createElement('div');
+                        
+                        toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded border shadow-2xl z-[99999] font-medium text-sm transition-all duration-300 transform translate-y-0 opacity-100 flex items-center gap-3 ${
+                            type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
+                            type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 
+                            'bg-red-50 border-red-200 text-red-800'
+                        }`;
+
+                        let icon = '';
+                        if (type === 'success') {
+                            icon = `<svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                        } else if (type === 'warning') {
+                            icon = `<svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" /></svg>`;
+                        } else {
+                            icon = `<svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                        }
+                        
+                        toast.innerHTML = `${icon} <span>${message}</span>`;
+                        document.body.appendChild(toast);
+                        
+                        setTimeout(() => {
+                            toast.classList.remove('translate-y-0', 'opacity-100');
+                            toast.classList.add('translate-y-4', 'opacity-0');
+                            setTimeout(() => toast.remove(), 300);
+                        }, 3000);
+                    },
+
+                    // 2. ADDED BACKGROUND REFRESH FUNCTION
+                    async refreshTable() {
+                        try {
+                            const response = await fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                            const html = await response.text();
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            document.querySelector('#users-table-container').innerHTML = doc.querySelector('#users-table-container').innerHTML;
+                        } catch (error) {
+                            console.error('Seamless refresh failed, falling back to hard reload.', error);
+                            window.location.reload();
+                        }
+                    },
+
                     openCreateModal() {
                         this.isEditMode = false;
                         this.editingId = null;
@@ -487,6 +530,7 @@
                         this.activateUserName = '';
                     },
 
+                    // 3. UPDATED DEACTIVATE FUNCTION
                     async deactivateUser() {
                         try {
                             const response = await fetch(`/users/${this.deactivateId}/deactivate`, {
@@ -505,14 +549,16 @@
                             }
 
                             this.closeDeactivateModal();
-
-                            window.location.reload();
+                            this.showToast('User deactivated successfully.', 'warning');
+                            await this.refreshTable();
 
                         } catch (error) {
                             console.error(error);
+                            this.showToast('Failed to deactivate user.', 'error');
                         }
                     },
 
+                    // 4. UPDATED ACTIVATE FUNCTION
                     async activateUser() {
                         try {
                             const response = await fetch(`/users/${this.activateId}/activate`, {
@@ -531,11 +577,12 @@
                             }
 
                             this.closeActivateModal();
-
-                            window.location.reload();
+                            this.showToast('User activated successfully.', 'success');
+                            await this.refreshTable();
 
                         } catch (error) {
                             console.error(error);
+                            this.showToast('Failed to activate user.', 'error');
                         }
                     },
 
@@ -691,6 +738,7 @@
                         window.location = url;
                     },
 
+                    // 5. UPDATED SUBMIT FORM FUNCTION
                     async submitForm() {
                         this.errors = {};
 
@@ -701,6 +749,8 @@
                         const method = this.isEditMode
                             ? 'PUT'
                             : 'POST';
+
+                        const successMessage = this.isEditMode ? 'User successfully updated!' : 'User successfully added!';
 
                         try {
                             const response = await fetch(url, {
@@ -715,23 +765,27 @@
                                 body: JSON.stringify(this.form),
                             });
 
-                            const data = await response.json();
-
-                            if (!response.ok) {
-                                if (response.status === 422) {
-                                    this.errors = data.errors;
-                                    return;
+                            const contentType = response.headers.get("content-type");
+                            if (contentType && contentType.indexOf("application/json") !== -1) {
+                                const data = await response.json();
+                                if (!response.ok) {
+                                    if (response.status === 422) {
+                                        this.errors = data.errors;
+                                        return;
+                                    }
+                                    throw new Error('Something went wrong');
                                 }
-
-                                throw new Error('Something went wrong');
+                            } else if (!response.ok) {
+                                throw new Error('Server returned an error');
                             }
 
                             this.closeModal();
-
-                            window.location.reload();
+                            this.showToast(successMessage, 'success');
+                            await this.refreshTable();
 
                         } catch (error) {
                             console.error(error);
+                            this.showToast('An error occurred while saving the user.', 'error');
                         }
                     },
                 };
