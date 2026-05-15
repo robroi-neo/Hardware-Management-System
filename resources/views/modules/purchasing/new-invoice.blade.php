@@ -864,33 +864,26 @@
 
                 async resetCart(clearSupplier = true) {
                     try {
-                        // Clear server-side cart first
                         await this.postCart(`{{ route('purchasing.api.cart.clear') }}`, {
                             clear_supplier: clearSupplier,
                         });
 
                         if (clearSupplier) {
                             await this.postSupplierSelection(null);
+                            this.selectedSupplier = '';
                         }
 
-                        // Full page reload to ensure the UI and Alpine state are reinitialized
-                        window.location.reload();
-                        return;
+                        // Reset local state instead of reloading
+                        this.cartItems = [];
+                        this.cartSubtotal = 0;
+                        this.typeahead.q = '';
+                        this.typeahead.items = [];
+                        this.typeahead.open = false;
+                        this.typeahead.activeIndex = -1;
+
                     } catch (error) {
                         console.error('Failed to clear cart:', error);
-                        // Fallback: try to reset local state so user can continue
                     }
-
-                    // Fallback local reset when reload isn't possible
-                    if (clearSupplier) {
-                        this.selectedSupplier = '';
-                    }
-                    this.cartItems = [];
-                    this.cartSubtotal = 0;
-                    this.typeahead.q = '';
-                    this.typeahead.items = [];
-                    this.typeahead.open = false;
-                    this.typeahead.activeIndex = -1;
                 },
 
                 async newInvoice() {
