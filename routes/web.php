@@ -64,12 +64,12 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:inventory.view-overview')->name('inventory.overview');
 
     // Archive a product (mark as archived)
-    Route::patch('/inventory/products/{product}/archive', [\App\Http\Controllers\Inventory\OverviewController::class, 'archive'])
+    Route::patch('/inventory/products/{inventory}/archive', [\App\Http\Controllers\Inventory\OverviewController::class, 'archive'])
         ->middleware('permission:inventory.update')
         ->name('inventory.products.archive');
 
     // Restore a product (un-archive)
-    Route::patch('/inventory/products/{product}/restore', [\App\Http\Controllers\Inventory\OverviewController::class, 'restore'])
+    Route::patch('/inventory/products/{inventory}/restore', [\App\Http\Controllers\Inventory\OverviewController::class, 'restore'])
         ->middleware('permission:inventory.update')
         ->name('inventory.products.restore');
 

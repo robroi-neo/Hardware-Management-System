@@ -29,6 +29,7 @@ class BranchInventorySeeder extends Seeder
                     'quantity' => rand(10, 100),
                     'created_at' => now(),
                     'updated_at' => now(),
+                    'status'=> "active",
                 ];
             }
         }

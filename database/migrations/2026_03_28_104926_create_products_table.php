@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('name');
             $table->double('capital')->default(0);
             $table->string('unit')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
     }

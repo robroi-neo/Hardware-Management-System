@@ -10,7 +10,7 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','capital','unit','status'];
+    protected $fillable = ['name','capital','unit'];
     protected $casts = [
         'capital' => 'float',
     ];

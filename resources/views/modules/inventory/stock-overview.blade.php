@@ -96,6 +96,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                    foreac
                         @forelse($inventories as $inventory)
                             <tr class="border-b border-slate-100 hover:bg-slate-50">
                                 <td class="px-4 py-3 font-medium text-slate-900">{{ $inventory->product_id }}</td>
@@ -106,7 +107,7 @@
                                 <td class="px-4 py-3 text-slate-700 font-semibold">₱{{ number_format($inventory->quantity * $inventory->product->capital, 2) }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $inventory->branch->name }}</td>
                                 <td class="px-4 py-3">
-                                    @if($inventory->product->status === 'inactive')
+                                    @if($inventory->status === 'inactive')
                                         <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
                                             Archived
                                         </span>
@@ -129,15 +130,15 @@
                                 <td class="px-4 py-3">
                                     @can('inventory.update')
                                         @php
-                                            $productQuantity = $inventory->product->branchInventories->sum('quantity');
+                                            $productQuantity = $inventory->quantity;
                                         @endphp
-                                        
+
                                         <div class="flex justify-center gap-2">
-                                            @if($inventory->product->status !== 'inactive' && $productQuantity <= 0)
+                                            @if($inventory->status !== 'inactive' && $productQuantity == 0)
                                                 <button
                                                     type="button"
                                                     @click="confirmArchive.open = true; confirmArchive.action = 'archive'; confirmArchive.product = {
-                                                        id: {{ $inventory->product->id }},
+                                                        id: {{ $inventory->id }},
                                                         name: '{{ addslashes($inventory->product->name) }}',
                                                         unit: '{{ $inventory->product->unit }}',
                                                         quantity: {{ $inventory->quantity }},
@@ -148,11 +149,11 @@
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-archive-icon lucide-archive"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
                                                 </button>
-                                            @elseif($inventory->product->status === 'inactive')
+                                            @elseif($inventory->status === 'inactive')
                                                 <button
                                                     type="button"
                                                     @click="confirmArchive.open = true; confirmArchive.action = 'restore'; confirmArchive.product = {
-                                                        id: {{ $inventory->product->id }},
+                                                        id: {{ $inventory->id }},
                                                         name: '{{ addslashes($inventory->product->name) }}',
                                                         unit: '{{ $inventory->product->unit }}',
                                                         quantity: {{ $inventory->quantity }},
@@ -274,10 +275,10 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
         // NEW: Standard Toast Function
         showToast(message, type = 'success') {
             const toast = document.createElement('div');
-            
+
             toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded border shadow-2xl z-[99999] font-medium text-sm transition-all duration-300 transform translate-y-0 opacity-100 flex items-center gap-3 ${
-                type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
-                type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 
+                type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
+                type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' :
                 'bg-red-50 border-red-200 text-red-800'
             }`;
 
@@ -289,10 +290,10 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
             } else {
                 icon = `<svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
             }
-            
+
             toast.innerHTML = `${icon} <span>${message}</span>`;
             document.body.appendChild(toast);
-            
+
             setTimeout(() => {
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-4', 'opacity-0');
@@ -334,11 +335,11 @@ function inventorySearch(searchUrl, baseRoute, selectedBranch) {
 
                 if (response.ok && data.success) {
                     this.confirmArchive.open = false;
-                    
+
                     // Show specific toast based on action!
                     const toastType = this.confirmArchive.action === 'restore' ? 'success' : 'warning';
                     this.showToast(data.message, toastType);
-                    
+
                     await this.refreshTable();
                 } else {
                     this.confirmArchive.open = false;
