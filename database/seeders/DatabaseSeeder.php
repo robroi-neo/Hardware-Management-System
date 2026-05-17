@@ -26,7 +26,6 @@ class DatabaseSeeder extends Seeder
             ProductFactorySeeder::class,
             BranchInventorySeeder::class,
             SupplierSeeder::class,
-            CashierUserSeeder::class,
         ]);
 
         // create permission for spatie (dot-separated resource.action format)
@@ -121,6 +120,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Admin',
                 'pin' => Hash::make('1234'),
                 'status' => 'active',
+                'branch_id' => 1, // assign to first branch by default
             ]
         );
 
@@ -131,6 +131,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Cashier',
                 'pin' => Hash::make('1234'),
                 'status' => 'active',
+                'branch_id' => 1,
             ]
         );
 
@@ -141,6 +142,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Manager',
                 'pin' => Hash::make('1234'),
                 'status' => 'active',
+                'branch_id' => 1,
             ]
         );
 
