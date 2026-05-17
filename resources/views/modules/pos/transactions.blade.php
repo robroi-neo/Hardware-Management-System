@@ -53,7 +53,16 @@
                 />
             </div>
 
-
+            <x-filters.dropdown-filter
+                :items="$allBranches"
+                :selected="$filterBranchId"
+                name="branch_id"
+                label="Filter by Branch"
+                placeholder="All Branches"
+                valueField="id"
+                displayField="name"
+                :autoSubmit="true"
+            />
             {{-- Actions --}}
             <div class="flex gap-2">
                 <button
@@ -273,10 +282,10 @@
                 // 1. STANDARD VANILLA TOAST
                 showToast(message, type = 'success') {
                     const toast = document.createElement('div');
-                    
+
                     toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded border shadow-2xl z-[99999] font-medium text-sm transition-all duration-300 transform translate-y-0 opacity-100 flex items-center gap-3 ${
-                        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
-                        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 
+                        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
+                        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' :
                         'bg-red-50 border-red-200 text-red-800'
                     }`;
 
@@ -288,10 +297,10 @@
                     } else {
                         icon = `<svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
                     }
-                    
+
                     toast.innerHTML = `${icon} <span>${message}</span>`;
                     document.body.appendChild(toast);
-                    
+
                     setTimeout(() => {
                         toast.classList.remove('translate-y-0', 'opacity-100');
                         toast.classList.add('translate-y-4', 'opacity-0');
@@ -359,7 +368,7 @@
 
                         if (data.success) {
                             this.$dispatch('close-modal', 'refund-confirm');
-                            
+
                             // CHANGED: Trigger our new JS toast and refresh smoothly!
                             this.showToast(data.message, 'success');
                             await this.refreshTable();

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use Illuminate\Http\Request;
@@ -21,6 +22,8 @@ class TransactionController extends Controller
         $sortDir = in_array($request->query('sort_dir'), ['asc', 'desc'])
             ? $request->query('sort_dir')
             : 'desc';
+
+        $filterBranchId = $request->query('branch_id', null);
 
         $query = Sale::with(['user']);
 
@@ -50,16 +53,25 @@ class TransactionController extends Controller
             $query->whereDate('date', '<=', $dateTo);
         }
 
+        if ($filterBranchId) {
+            $query->where('branch_id', $filterBranchId);
+        }
+
         // Apply sorting and paginate
         $transactions = $query
             ->orderBy($sortBy, $sortDir)
             ->paginate(8)
             ->withQueryString(); // preserves all filters + sort in pagination links
 
+        // Get all branches for dropdown (only used if admin)
+        $allBranches = Branch::all();
+
         return view('modules.pos.transactions', [
             'transactions' => $transactions,
             'sortBy'       => $sortBy,
             'sortDir'      => $sortDir,
+            'allBranches' => $allBranches,
+            'filterBranchId' => $filterBranchId,
         ]);
     }
 

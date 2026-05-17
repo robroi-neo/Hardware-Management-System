@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Purchasing;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Invoice;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
@@ -21,6 +22,8 @@ class InvoicesController extends Controller
         $sortDir = in_array($request->query('sort_dir'), ['asc', 'desc'])
             ? $request->query('sort_dir')
             : 'desc';
+
+        $filterBranchId = $request->query('branch_id', null);
 
         // Build query
         $query = Invoice::with(['purchase.supplier', 'purchase.details', 'refundedBy']);
@@ -63,6 +66,12 @@ class InvoicesController extends Controller
             $query->whereDate('date', '<=', $dateTo);
         }
 
+        if ($filterBranchId) {
+            $query->whereHas('purchase', function ($q) use ($filterBranchId) {
+                $q->where('branch_id', $filterBranchId);
+            });
+        }
+
         // Apply sorting and pagination
         $invoices = $query->orderBy($sortBy, $sortDir)
             ->paginate(15)
@@ -71,6 +80,8 @@ class InvoicesController extends Controller
         // Get all suppliers for filter dropdown
         $suppliers = Supplier::where('status', '=', 'active')->orderBy('supplier_name')->get();
 
+        $allBranches = Branch::all();
+
         return view('modules.purchasing.invoices', [
             'invoices' => $invoices,
             'suppliers' => $suppliers,
@@ -78,6 +89,8 @@ class InvoicesController extends Controller
             'sortDir' => $sortDir,
             'search' => $search,
             'filterSupplierId' => $filterSupplierId,
+            'allBranches' => $allBranches,
+            'filterBranchId' => $filterBranchId,
         ]);
     }
 }
