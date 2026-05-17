@@ -11,7 +11,7 @@
             <!-- Filters Section -->
             <div class="mb-6">
                 <form method="GET" action="{{ route('inventory.stock-movements') }}">
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-end">
+                    <div class="mb-4 flex flex-row flex-wrap gap-4 items-end">
                         
                         <!-- Search Input -->
                         <div class="w-full flex-1">
@@ -51,7 +51,7 @@
                         </div>
 
                         <!-- Movement Type -->
-                        <div class="w-full flex-shrink-0 lg:w-44">
+                        <div class="w-full flex-shrink-0 lg:w-36">
                             <label class="mb-1 block text-xs font-medium text-slate-500">Movement Type</label>
                             <select
                                 name="type"
@@ -66,11 +66,11 @@
 
                         <!-- Filter by Branch (Admin Only) -->
                         @if($isAdmin)
-                            <div class="w-full flex-shrink-0 lg:w-44">
+                            <div class="w-full flex-shrink-0 lg:w-48">
                                 <label class="mb-1 block text-xs font-medium text-slate-500">Filter by Branch</label>
                                 <select
                                     name="branch_id"
-                                    class="block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                                    class="block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 truncate"
                                 >
                                     <option value="">All Branches</option>
                                     @foreach($branches as $branch)
