@@ -15,33 +15,35 @@ class ProductsInventorySeeder extends Seeder
     {
         $faker = Faker::create();
 
-        // Ensure at least one branch exists
-        $mainBranch = DB::table('branches')->where('name', 'Main Branch')->first();
-        if (! $mainBranch) {
-            $mainBranchId = DB::table('branches')->insertGetId([
-                'name' => 'Main Branch',
-                'address' => 'Head Office',
+            // Ensure branches exist and use the canonical branch names defined in BranchSeeder
+        $primaryName = "Milaran's Hardware and Motor Parts";
+        $secondaryName = "Milaran's Tiles and Flooring Division";
+
+        $primary = DB::table('branches')->where('name', $primaryName)->first();
+        if (! $primary) {
+            $primaryId = DB::table('branches')->insertGetId([
+                'name' => $primaryName,
+                'address' => 'Provincial Rd, Mawab, Davao de Oro',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         } else {
-            $mainBranchId = $mainBranch->id;
+            $primaryId = $primary->id;
         }
 
-        // Optionally create a second branch
-        $storeBranch = DB::table('branches')->where('name', 'Store')->first();
-        if (! $storeBranch) {
-            $storeBranchId = DB::table('branches')->insertGetId([
-                'name' => 'Store',
-                'address' => 'Retail Outlet',
+        $secondary = DB::table('branches')->where('name', $secondaryName)->first();
+        if (! $secondary) {
+            $secondaryId = DB::table('branches')->insertGetId([
+                'name' => $secondaryName,
+                'address' => 'Provincial Rd, Mawab, Davao de Oro',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         } else {
-            $storeBranchId = $storeBranch->id;
+            $secondaryId = $secondary->id;
         }
 
-        $branchIds = [$mainBranchId, $storeBranchId];
+        $branchIds = [$primaryId, $secondaryId];
 
         // Create sample products
         $count = 50;
@@ -69,6 +71,38 @@ class ProductsInventorySeeder extends Seeder
                     'updated_at' => now(),
                 ]);
             }
+        }
+
+        // Also create a few tile/flooring-specific products and add inventory only to the Tiles branch
+        $tileProducts = [
+            'CERAMIC_TILE_30X30',
+            'PORCELAIN_TILE_60X60',
+            'GROUT_SAND',
+            'ADHESIVE_CEMENT',
+            'VINYL_TILE_STANDARD',
+        ];
+
+        foreach ($tileProducts as $slug) {
+            $name = str_replace('_', ' ', ucfirst(strtolower($slug)));
+            $capital = $faker->randomFloat(2, 20, 200);
+
+            $productId = DB::table('products')->insertGetId([
+                'name' => $name,
+                'capital' => $capital,
+                'unit' => 'pcs',
+                'status' => 'active',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Only add inventory for the Tiles & Flooring Division (secondary branch)
+            DB::table('branch_inventory')->insertOrIgnore([
+                'branch_id' => $secondaryId,
+                'product_id' => $productId,
+                'quantity' => rand(10, 150),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
     }
 }
