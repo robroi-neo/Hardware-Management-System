@@ -74,13 +74,17 @@
                                             max="10"
                                             step="1"
                                             @input="
+                                                    item.quantity = Math.floor(item.quantity);
+
                                                     if (item.quantity > 10) item.quantity = 10;
+                                                    if (item.quantity < 1) item.quantity = 1;
+
                                                     calculateTotal(index);
                                                 "
                                             @paste.prevent
                                             @drop.prevent
                                             @wheel.prevent
-                                            @keydown="['e','E','+','-'].includes($event.key) && $event.preventDefault()"
+                                            @keydown="['e','E','+','-','.'].includes($event.key) && $event.preventDefault()"
                                             class="w-24 rounded border border-slate-300 px-2 py-1 text-sm text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                         />
                                         <div class="mt-1 text-xs text-slate-500">
@@ -267,7 +271,7 @@
                             // Automatically append the branch_id if one is selected!
                             const branchParam = this.form.branch_id ? `&branch_id=${this.form.branch_id}` : '';
                             const response = await fetch(`{{ route('inventory.api.products.search') }}?q=${encodeURIComponent(this.typeahead.q)}&limit=10${branchParam}`);
-                            
+
                             const data = await response.json();
                             this.typeahead.items = data;
                             this.typeahead.activeIndex = -1;
@@ -392,7 +396,7 @@
                         if (response.ok && data.success) {
                             // Close the modal
                             this.$dispatch('close-modal', 'confirm-stock-in');
-                            
+
                             // CALL THE TOAST HERE!
                             this.showToast(data.message, 'success');
                             setTimeout(() => this.resetForm(), 2000);
@@ -410,10 +414,10 @@
 
                 showToast(message, type = 'success') {
                     const toast = document.createElement('div');
-                    
+
                     toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded border shadow-2xl z-[99999] font-medium text-sm transition-all duration-300 transform translate-y-0 opacity-100 flex items-center gap-3 ${
-                        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
-                        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 
+                        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
+                        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' :
                         'bg-red-50 border-red-200 text-red-800'
                     }`;
 
@@ -425,10 +429,10 @@
                     } else {
                         icon = `<svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
                     }
-                    
+
                     toast.innerHTML = `${icon} <span>${message}</span>`;
                     document.body.appendChild(toast);
-                    
+
                     setTimeout(() => {
                         toast.classList.remove('translate-y-0', 'opacity-100');
                         toast.classList.add('translate-y-4', 'opacity-0');

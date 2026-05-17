@@ -130,7 +130,20 @@
                                             min="1"
                                             step="1"
                                             :max="getItemMax(item)"
-                                            @input="calculateTotal(index)"
+                                            @input="
+                                                    item.quantity = Math.floor(item.quantity);
+
+                                                    if (item.quantity < 1) item.quantity = 1;
+
+                                                    const max = getItemMax(item);
+                                                    if (item.quantity > max) item.quantity = max;
+
+                                                    calculateTotal(index);
+                                                "
+                                            @paste.prevent
+                                            @drop.prevent
+                                            @wheel.prevent
+                                            @keydown="['e','E','+','-','.'].includes($event.key) && $event.preventDefault()"
                                             class="w-24 rounded border border-slate-300 px-2 py-1 text-sm text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                         />
                                         <div class="mt-1 text-xs text-slate-500" x-show="item.max_quantity > 0">
@@ -316,7 +329,7 @@
                         .then(data => {
                              // Safely handle both standard arrays and paginated object responses!
                              const items = Array.isArray(data) ? data : (data.data || []);
-                             
+
                              this.search.results = items.map(product => ({
                                  ...product,
                                  available_quantity: Number(product.available_quantity ?? 0),
@@ -473,10 +486,10 @@
 
                 showToast(message, type = 'success') {
                     const toast = document.createElement('div');
-                    
+
                     toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded border shadow-2xl z-[99999] font-medium text-sm transition-all duration-300 transform translate-y-0 opacity-100 flex items-center gap-3 ${
-                        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 
-                        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 
+                        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
+                        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' :
                         'bg-red-50 border-red-200 text-red-800'
                     }`;
 
@@ -488,10 +501,10 @@
                     } else {
                         icon = `<svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
                     }
-                    
+
                     toast.innerHTML = `${icon} <span>${message}</span>`;
                     document.body.appendChild(toast);
-                    
+
                     setTimeout(() => {
                         toast.classList.remove('translate-y-0', 'opacity-100');
                         toast.classList.add('translate-y-4', 'opacity-0');
