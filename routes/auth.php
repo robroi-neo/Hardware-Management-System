@@ -13,11 +13,14 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('branch/select', [BranchSelectionController::class, 'create'])
+    Route::get('/', [BranchSelectionController::class, 'create'])
         ->name('branch.select');
 
-    Route::post('branch/select', [BranchSelectionController::class, 'store'])
+    Route::post('/', [BranchSelectionController::class, 'store'])
         ->name('branch.store');
+
+    Route::delete('/', [BranchSelectionController::class, 'destroy'])
+        ->name('branch.destroy');
 
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');

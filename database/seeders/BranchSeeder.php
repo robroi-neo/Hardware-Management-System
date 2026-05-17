@@ -14,26 +14,14 @@ class BranchSeeder extends Seeder
     {
         DB::table('branches')->insert([
             [
-                'name' => 'Main Branch - Manila',
-                'address' => '123 Business Street, Makati, Metro Manila',
+                'name' => "Milaran's Hardware and Motor Parts",
+                'address' => 'Provincial Rd, Mawab, Davao de Oro',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Cebu Branch',
-                'address' => '456 Commerce Avenue, Cebu City',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Davao Branch',
-                'address' => '789 Trading Plaza, Davao City',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Quezon City Branch',
-                'address' => '321 Shopping District, Quezon City',
+                'name' => "Milaran's Tiles and Flooring Division",
+                'address' => 'Provincial Rd, Mawab, Davao de Oro',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

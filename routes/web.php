@@ -13,12 +13,9 @@ use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.select-branch');
 });
 
-Route::get('/dashboard', function () {
-    return view('modules.dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 # Routes for logged in users
 Route::middleware('auth')->group(function () {

@@ -13,25 +13,24 @@ class BranchInventorySeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed inventory for branch ID 1 only with all products
-        $branchId = 1;
+        // Branches to seed
+        $branchIds = [1, 2];
 
-        // Get all products from database
+        // Get all products
         $products = Product::all();
 
         $inventory = [];
 
-        foreach ($products as $product) {
-            // Generate random quantity for variety (between 10 and 100)
-            $quantity = rand(10, 100);
-
-            $inventory[] = [
-                'branch_id' => $branchId,
-                'product_id' => $product->id,
-                'quantity' => $quantity,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+        foreach ($branchIds as $branchId) {
+            foreach ($products as $product) {
+                $inventory[] = [
+                    'branch_id' => $branchId,
+                    'product_id' => $product->id,
+                    'quantity' => rand(10, 100),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
         }
 
         DB::table('branch_inventory')->insert($inventory);

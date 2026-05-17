@@ -111,11 +111,17 @@
                                         <td class="px-4 py-3">
                                             <input
                                                 type="number"
-                                                min="0.01"
-                                                step="0.01"
                                                 x-model.number="item.quantity"
-                                                @input.debounce.300ms="updateCartItem(item.product_id, 'quantity', item.quantity)"
-                                                class="w-20 border-gray-300 rounded px-2 py-1 text-sm"
+                                                min="1"
+                                                max="100000"
+                                                step="1"
+                                                @input="
+                                                    if (item.quantity > 100000) item.quantity = 100000;
+                                                "
+                                                @paste.prevent
+                                                @drop.prevent
+                                                @keydown="['e','E','+','-'].includes($event.key) && $event.preventDefault()"
+                                                class="w-24 rounded border border-slate-300 px-2 py-1 text-sm text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                             />
                                         </td>
                                         <td class="px-4 py-3">

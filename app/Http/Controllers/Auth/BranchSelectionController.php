@@ -44,5 +44,12 @@ class BranchSelectionController extends Controller
 
         return redirect()->route('login');
     }
+
+    public function destroy(Request $request): RedirectResponse
+    {
+        $request->session()->forget('branch');
+
+        return redirect()->route('branch.select');
+    }
 }
 
