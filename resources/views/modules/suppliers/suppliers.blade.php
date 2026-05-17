@@ -435,6 +435,7 @@
         function supplierManager() {
             return {
                 showModal: false,
+                showConfirmModal: false,
                 showDetailModal: false,
                 showDeactivateModal: false,
                 showActivateModal: false,
@@ -515,6 +516,8 @@
                 },
 
                 closeModal() { this.showModal = false; this.isEditMode = false; this.editingId = null; this.errors = {}; },
+                openConfirmModal() { this.showConfirmModal = true; },
+                closeConfirmModal() { this.showConfirmModal = false; },
                 openDeactivateModal(id, name) { this.deactivateId = id; this.deactivateSupplierName = name; this.showDeactivateModal = true; },
                 closeDeactivateModal() { this.showDeactivateModal = false; this.deactivateId = null; this.deactivateSupplierName = ''; },
                 openActivateModal(id, name) { this.activateId = id; this.activateSupplierName = name; this.showActivateModal = true; },
@@ -599,12 +602,12 @@
                     if (this.isEditMode) {
                         this.submitForm();
                     } else {
-                        this.$dispatch('open-modal', 'confirm-add-supplier');
+                        this.openConfirmModal();
                     }
                 },
 
                 executeAdd() {
-                    this.$dispatch('close-modal', 'confirm-add-supplier');
+                    this.closeConfirmModal();
                     this.submitForm();
                 },
 
