@@ -67,7 +67,9 @@ class InvoicesController extends Controller
         }
 
         if ($filterBranchId) {
-            $query->where('branch_id', $filterBranchId);
+            $query->whereHas('purchase', function ($q) use ($filterBranchId) {
+                $q->where('branch_id', $filterBranchId);
+            });
         }
 
         // Apply sorting and pagination
