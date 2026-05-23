@@ -240,13 +240,34 @@
                     </button>
                 </div>
 
-                <div class="mb-6">
+                <div class="mb-4">
                     <p class="text-sm text-slate-600">
-                        Are you sure you want to refund Transaction #<span x-text="refundId" class="font-semibold text-slate-900"></span>?
+                        Refunding Transaction #<span x-text="refundId" class="font-semibold text-slate-900"></span>
                     </p>
                     <p class="text-sm text-red-600 mt-2 font-medium">
                         Warning: This action cannot be undone and will restore the inventory items.
                     </p>
+                </div>
+
+                <div class="space-y-3 mb-4">
+                    <div>
+                        <label class="text-xs text-slate-600">Reason</label>
+                        <select x-model="selectedReason" class="w-full rounded border-gray-200 text-sm py-2 px-3">
+                            <option value="">-- Select reason --</option>
+                            @foreach($refundReasons as $r)
+                                <option value="{{ $r->id }}">{{ $r->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-600">Note (optional)</label>
+                        <textarea x-model="refundNote" rows="3" class="w-full rounded border-gray-200 text-sm py-2 px-3" placeholder="Additional note for the refund"></textarea>
+                    </div>
+
+                    <template x-if="refundError">
+                        <p class="text-sm text-red-600" x-text="refundError"></p>
+                    </template>
                 </div>
 
                 <div class="flex items-center justify-end gap-3">
@@ -278,6 +299,10 @@
                 loading: false,
                 refunding: false,
                 refundId: null,
+                // Refund modal state
+                selectedReason: '',
+                refundNote: '',
+                refundError: '',
 
                 // 1. STANDARD VANILLA TOAST
                 showToast(message, type = 'success') {
@@ -344,6 +369,9 @@
                 },
 
                 openRefund(id) {
+                    this.refundError = '';
+                    this.selectedReason = '';
+                    this.refundNote = '';
                     this.refundId = id;
                     this.$dispatch('open-modal', 'refund-confirm');
                 },
@@ -351,6 +379,13 @@
                 async processRefund() {
                     this.refunding = true;
                     const saleId = this.refundId;
+
+                    // Require a refund reason
+                    if (!this.selectedReason) {
+                        this.refundError = 'Please select a refund reason.';
+                        this.refunding = false;
+                        return;
+                    }
 
                     try {
                         const res = await fetch(`/pos/transactions/${saleId}/refund`, {
@@ -362,6 +397,7 @@
                                 'X-Requested-With': 'XMLHttpRequest',
                             },
                             credentials: 'same-origin',
+                            body: JSON.stringify({ reason_id: this.selectedReason || null, note: this.refundNote || null }),
                         });
 
                         const data = await res.json();
@@ -373,7 +409,8 @@
                             this.showToast(data.message, 'success');
                             await this.refreshTable();
                         } else {
-                            this.showToast(data.message || 'Error processing refund', 'error');
+                            this.refundError = data.message || 'Error processing refund';
+                            this.showToast(this.refundError, 'error');
                         }
                     } catch (e) {
                         console.error(e);

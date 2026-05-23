@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             ProductFactorySeeder::class,
             BranchInventorySeeder::class,
             SupplierSeeder::class,
+            RefundReasonSeeder::class,
         ]);
 
         // create permission for spatie (dot-separated resource.action format)

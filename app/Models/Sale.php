@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sale extends Model
 {
-    protected $fillable = ['date','user_id','total_amount','branch_id','payment_method','refunded','refunded_by','refunded_at'];
+    protected $fillable = ['date','user_id','total_amount','branch_id','payment_method','refunded','refunded_by','refunded_at','refund_reason_id','refund_note'];
     protected $casts = [
         'total_amount' => 'float',
         'date' => 'datetime',

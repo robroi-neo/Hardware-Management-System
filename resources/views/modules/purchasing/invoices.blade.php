@@ -359,6 +359,23 @@
 
                 <p x-show="refundError" class="mb-4 text-sm text-red-600" x-text="refundError"></p>
 
+                <div class="space-y-3 mb-4">
+                    <div>
+                        <label class="text-xs text-slate-600">Reason</label>
+                        <select x-model="selectedReason" class="w-full rounded border-gray-200 text-sm py-2 px-3">
+                            <option value="">-- Select reason --</option>
+                            @foreach($refundReasons as $r)
+                                <option value="{{ $r->id }}">{{ $r->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-600">Note (optional)</label>
+                        <textarea x-model="refundNote" rows="3" class="w-full rounded border-gray-200 text-sm py-2 px-3" placeholder="Additional note for the refund"></textarea>
+                    </div>
+                </div>
+
                 <div class="flex items-center justify-end gap-3">
                     <button
                         @click="$dispatch('close-modal', 'invoice-refund-confirm')"
@@ -388,6 +405,9 @@
                 refunding: false,
                 selectedInvoice: null,
                 refundError: '',
+                // Refund modal state
+                selectedReason: '',
+                refundNote: '',
                 refundUrlTemplate: @js(route('purchasing.invoices.refund', ['invoice' => '__INVOICE__'])),
 
                 // 1. STANDARD VANILLA TOAST
@@ -466,6 +486,13 @@
                     this.refunding = true;
                     this.refundError = '';
 
+                    // Require a refund reason
+                    if (!this.selectedReason) {
+                        this.refundError = 'Please select a refund reason.';
+                        this.refunding = false;
+                        return;
+                    }
+
                     try {
                         const url = this.refundUrlTemplate.replace('__INVOICE__', this.selectedInvoice.id);
                         const res = await fetch(url, {
@@ -477,6 +504,7 @@
                                 'X-Requested-With': 'XMLHttpRequest',
                             },
                             credentials: 'same-origin',
+                            body: JSON.stringify({ reason_id: this.selectedReason || null, note: this.refundNote || null }),
                         });
 
                         const data = await res.json();
