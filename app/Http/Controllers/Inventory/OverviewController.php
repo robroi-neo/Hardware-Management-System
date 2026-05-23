@@ -116,48 +116,74 @@ class OverviewController extends Controller
         ]);
     }
 
-    public function archive(Request $request, Product $product)
+    public function archive(Request $request, BranchInventory $inventory)
     {
-        // Do not archive if any inventory still has stock.
-        $totalQuantity = (float) $product->branchInventories()->sum('quantity');
-        if ($totalQuantity > 0) {
+        // Only check THIS branch inventory quantity
+        if ((float) $inventory->quantity > 0) {
             $msg = 'Cannot archive a product while stock quantity is above zero.';
-            return $request->wantsJson() 
-                ? response()->json(['success' => false, 'message' => $msg], 400) 
+
+            return $request->wantsJson()
+                ? response()->json([
+                    'success' => false,
+                    'message' => $msg
+                ], 400)
                 : back()->with('error', $msg);
         }
 
-        // Mark product as archived by setting DB-allowed status 'inactive'.
-        if ($product->status === 'inactive') {
-            $msg = 'Product is already archived.';
-            return $request->wantsJson() 
-                ? response()->json(['success' => false, 'message' => $msg], 400) 
+        // Already archived?
+        if ($inventory->status === 'inactive') {
+            $msg = 'Product is already archived for this branch.';
+
+            return $request->wantsJson()
+                ? response()->json([
+                    'success' => false,
+                    'message' => $msg
+                ], 400)
                 : back()->with('info', $msg);
         }
 
-        $product->update(['status' => 'inactive']);
-        $msg = 'Product archived successfully.';
-        
-        return $request->wantsJson() 
-            ? response()->json(['success' => true, 'message' => $msg]) 
-            : redirect()->route('inventory.overview')->with('success', $msg);
+        $inventory->update([
+            'status' => 'inactive'
+        ]);
+
+        $msg = 'Product archived successfully for this branch.';
+
+        return $request->wantsJson()
+            ? response()->json([
+                'success' => true,
+                'message' => $msg
+            ])
+            : redirect()
+                ->route('inventory.overview')
+                ->with('success', $msg);
     }
 
-    public function restore(Request $request, Product $product)
+    public function restore(Request $request, BranchInventory $inventory)
     {
-        // Only restore if product is currently inactive
-        if ($product->status === 'active') {
-            $msg = 'Product is already active.';
-            return $request->wantsJson() 
-                ? response()->json(['success' => false, 'message' => $msg], 400) 
+        if ($inventory->status === 'active') {
+            $msg = 'Product is already active for this branch.';
+
+            return $request->wantsJson()
+                ? response()->json([
+                    'success' => false,
+                    'message' => $msg
+                ], 400)
                 : back()->with('info', $msg);
         }
 
-        $product->update(['status' => 'active']);
-        $msg = 'Product restored successfully.';
+        $inventory->update([
+            'status' => 'active'
+        ]);
 
-        return $request->wantsJson() 
-            ? response()->json(['success' => true, 'message' => $msg]) 
-            : redirect()->route('inventory.overview')->with('success', $msg);
+        $msg = 'Product restored successfully for this branch.';
+
+        return $request->wantsJson()
+            ? response()->json([
+                'success' => true,
+                'message' => $msg
+            ])
+            : redirect()
+                ->route('inventory.overview')
+                ->with('success', $msg);
     }
 }

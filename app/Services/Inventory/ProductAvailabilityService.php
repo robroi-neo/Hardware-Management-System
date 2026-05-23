@@ -9,11 +9,14 @@ use Illuminate\Support\Collection;
 
 class ProductAvailabilityService
 {
-    public function searchActiveProducts(?string $query, int $limit, ?int $branchId = null): Collection
+    public function searchActiveProducts(?string $query, int $limit, int $branchId): Collection
     {
         $products = Product::query()
             ->search($query)
-            ->whereRaw('status = ?', ['active'])
+            ->whereHas('branchInventories', function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId)
+                    ->where('status', 'active');
+            })
             ->limit($limit)
             ->get(['id', 'name', 'unit', 'capital']);
 
@@ -24,7 +27,9 @@ class ProductAvailabilityService
     {
         $products = Product::query()
             ->search($query)
-            ->whereRaw('status = ?', ['active'])
+            ->whereHas('branchInventories', function ($q) {
+                $q->where('status', 'active');
+            })
             ->paginate($perPage, ['id', 'name', 'unit', 'capital']);
 
         $products->setCollection($this->hydrateAvailableQuantity($products->getCollection(), $branchId));

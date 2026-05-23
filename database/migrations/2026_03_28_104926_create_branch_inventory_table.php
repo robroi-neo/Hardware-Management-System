@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('branch_id')->constrained('branches')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->double('quantity')->default(0);
             $table->timestamps();
             $table->unique(['branch_id','product_id']);

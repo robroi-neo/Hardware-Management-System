@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Purchasing;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\RefundReason;
 use App\Models\Invoice;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
@@ -91,6 +92,7 @@ class InvoicesController extends Controller
             'filterSupplierId' => $filterSupplierId,
             'allBranches' => $allBranches,
             'filterBranchId' => $filterBranchId,
+            'refundReasons' => RefundReason::where('is_active', true)->get(),
         ]);
     }
 }

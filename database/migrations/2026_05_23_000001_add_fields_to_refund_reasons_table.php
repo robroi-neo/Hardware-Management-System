@@ -11,12 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->double('capital')->default(0);
-            $table->string('unit')->nullable();
-            $table->timestamps();
+        Schema::table('refund_reasons', function (Blueprint $table) {
+            $table->string('name')->after('id');
+            $table->boolean('is_active')->default(true)->after('name');
         });
     }
 
@@ -25,6 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('products');
+        Schema::table('refund_reasons', function (Blueprint $table) {
+            $table->dropColumn(['name', 'is_active']);
+        });
     }
 };
+

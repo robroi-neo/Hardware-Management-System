@@ -23,7 +23,6 @@ class ProductFactory extends Factory
             'name' => fake()->word() . ' ' . fake()->randomElement(['Tool', 'Hardware', 'Equipment', 'Item', 'Part']),
             'capital' => fake()->numberBetween(50, 2000) + fake()->numberBetween(0, 99) / 100,
             'unit' => fake()->randomElement($units),
-            'status' => 'active',
         ];
     }
 }

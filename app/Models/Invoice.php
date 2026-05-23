@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
-    protected $fillable = ['purchase_id','date_issued','total_amount','date_due','refunded','refunded_by','refunded_at'];
+    protected $fillable = ['purchase_id','date_issued','total_amount','date_due','refunded','refunded_by','refunded_at','refund_reason_id','refund_note'];
     protected $casts = [
         'total_amount' => 'float',
         'date_issued' => 'datetime',

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\RefundReason;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use Illuminate\Http\Request;
@@ -72,6 +73,7 @@ class TransactionController extends Controller
             'sortDir'      => $sortDir,
             'allBranches' => $allBranches,
             'filterBranchId' => $filterBranchId,
+            'refundReasons' => RefundReason::where('is_active', true)->get(),
         ]);
     }
 

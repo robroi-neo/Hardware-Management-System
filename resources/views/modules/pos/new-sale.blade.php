@@ -4,6 +4,23 @@
     </x-slot>
 
     <x-two-column-grid x-data="posApp()" x-init="initPos()" class="h-full min-h-0">
+        <div
+            x-show="requestError"
+            x-transition
+            x-cloak
+            class="fixed top-4 right-4 z-50 max-w-sm rounded-lg bg-red-600 text-white px-4 py-3 shadow-lg"
+        >
+            <div class="flex items-start justify-between gap-4">
+                <div class="text-sm" x-text="requestError"></div>
+
+                <button
+                    @click="requestError = ''"
+                    class="text-white/80 hover:text-white text-lg leading-none"
+                >
+                    &times;
+                </button>
+            </div>
+        </div>
         <x-card title="New Sale" class="lg:col-span-2 flex flex-col h-full min-h-0">
             <div class="flex flex-col h-full min-h-0">
 
@@ -184,9 +201,9 @@
                                         <div class="font-medium text-slate-900" x-text="item.product_name"></div>
                                         <div class="text-xs text-slate-500">#<span x-text="item.product_id"></span> · <span x-text="item.unit"></span></div>
                                     </div>
-                                    
+
                                     <div class="col-span-2 text-right text-slate-700" x-text="formatQty(item.quantity)"></div>
-                                    
+
                                     <div class="col-span-2 text-right text-slate-700">₱<span x-text="formatPrice((item.unit_price || 0) + (item.markup || 0))"></span></div>
 
                                     <div class="col-span-3 text-right font-medium text-slate-900">₱<span x-text="formatPrice(item.subtotal)"></span></div>
@@ -818,8 +835,17 @@ function posApp() {
         },
 
         setRequestError(error) {
-            this.requestError = error instanceof Error ? error.message : 'Something went wrong.';
+            this.requestError = error instanceof Error
+                ? error.message
+                : 'Something went wrong.';
+
             console.error(this.requestError);
+
+            clearTimeout(this._errorTimeout);
+
+            this._errorTimeout = setTimeout(() => {
+                this.requestError = '';
+            }, 3000);
         },
 
         async postJson(url, payload) {
