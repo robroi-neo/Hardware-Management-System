@@ -117,8 +117,10 @@
                                                 min="1"
                                                 max="100000"
                                                 step="1"
-                                                @input="
+                                                @input.debounce.300ms="
                                                     if (item.quantity > 100000) item.quantity = 100000;
+                                                    if (item.quantity < 1) item.quantity = 1;
+                                                    updateCartItem(item.product_id, 'quantity', item.quantity);
                                                 "
                                                 @paste.prevent
                                                 @drop.prevent

@@ -67,7 +67,6 @@ class ProductController extends Controller
         }
 
         $products = Product::search($term)
-            ->where('status', 'active')
             ->select('id', 'name', 'unit', 'capital')
             ->limit(10)
             ->get()

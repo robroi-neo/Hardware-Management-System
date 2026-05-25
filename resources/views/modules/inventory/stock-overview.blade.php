@@ -96,7 +96,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                    foreac
                         @forelse($inventories as $inventory)
                             <tr class="border-b border-slate-100 hover:bg-slate-50">
                                 <td class="px-4 py-3 font-medium text-slate-900">{{ $inventory->product_id }}</td>

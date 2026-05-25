@@ -12,7 +12,7 @@
     'showClearX' => true,
 ])
 
-<div class="w-full relative" @click.outside="() => closeTypeahead()">
+<div class="w-full relative" @click.outside="closeTypeahead()">
     <label class="relative block">
         <span class="sr-only">Search</span>
         <input
@@ -22,7 +22,7 @@
             @keydown.enter.prevent="onTypeaheadEnter()"
             @keydown.arrow-down.prevent="moveTypeahead(1)"
             @keydown.arrow-up.prevent="moveTypeahead(-1)"
-            @keydown.escape.prevent="() => closeTypeahead()"
+            @keydown.escape.prevent="closeTypeahead()"
             @focus="reopenTypeahead()"
             placeholder="{{ $placeholder }}"
             class="text-sm placeholder-gray-400 bg-white-100 border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
