@@ -15,7 +15,7 @@
         <!-- Supplier ID (read-only) -->
         <div class="grid grid-cols-2 gap-1 items-center">
             <label class="font-semibold text-gray-700">Supplier ID:</label>
-            <input id="id" name="id" type="text" readonly class="p-2 bg-white text-neutral-700" required
+            <input id="id" name="id" type="text" readonly class="p-2 bg-white text-neutral-700"
                 disabled />
         </div>
 
@@ -91,11 +91,10 @@
     }
 
     function confirmEdit() {
-
-        let validity = document.getElementById("editSupplierForm").checkValidity();
-        if (!validity) {
-            document.getElementById("editSupplierForm").requestSubmit();
-            return
+        const form = document.getElementById("editSupplierForm");
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
         }
         const confirmation = confirm(
             "Editing this supplier will permanently modify their details in the system. This cannot be undone.\n\nDo you wish to continue?"

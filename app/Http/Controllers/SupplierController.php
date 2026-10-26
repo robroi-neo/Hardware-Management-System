@@ -28,11 +28,10 @@ class SupplierController extends Controller
                 $suppliers->orderBy('id', 'asc');
                 break;
             case 'company_asc':
-                $suppliers->orderBy('UPPER(supplier_name)', 'asc');
+                $suppliers->orderByRaw('UPPER(supplier_name) ASC');
                 break;
             case 'company_desc':
                 $suppliers->orderByRaw('UPPER(supplier_name) DESC');
-
                 break;
             default: // 'id_desc'
                 $suppliers->orderBy('id', 'desc');
