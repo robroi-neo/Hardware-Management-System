@@ -1,0 +1,529 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="text-3xl font-medium leading-tight text-slate-900">Manual Stock Out</h2>
+    </x-slot>
+
+    <x-card>
+
+        <div x-data="stockOutApp()" class="space-y-6">
+            <!-- Branch Selection -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700">Select Branch</label>
+                <select
+                    x-model="form.branch_id"
+                    @change="onBranchChange()"
+                    class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                >
+                    <option value="">-- Select a Branch --</option>
+                    @if($isAdmin)
+                        @foreach($branches as $branch)
+                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                        @endforeach
+                    @else
+                        <option value="{{ $userDefaultBranchId }}" selected>{{ \App\Models\Branch::find($userDefaultBranchId)?->name }}</option>
+                    @endif
+                </select>
+            </div>
+
+            <!-- Product Search -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700">Search & Add Products</label>
+                <div class="mt-2 flex gap-2">
+                    <div class="relative flex-1">
+                        <input
+                            x-ref="searchInput"
+                            type="text"
+                            x-model="search.q"
+                            @input="onSearchInput()"
+                            @keydown.escape="closeSearchDropdown()"
+                            @focus="reopenSearchDropdown()"
+                            placeholder="Scan or Search Product ID, name, or unit..."
+                            class="text-sm placeholder-gray-400 bg-white border border-gray-200 rounded px-3 py-2 pr-8 w-full focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        />
+                        <button
+                            type="button"
+                            @click="search.q = ''; closeSearchDropdown(); search.results = []; $refs.searchInput.focus()"
+                            x-show="search.q.trim().length > 0"
+                            class="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+                            aria-label="Clear search"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+
+                        <div
+                            x-show="search.open"
+                            x-cloak
+                            class="absolute left-0 right-0 z-50 mt-1 rounded border border-slate-200 bg-white shadow-lg"
+                        >
+                            <div class="max-h-64 overflow-y-auto">
+                                <template x-if="search.loading">
+                                    <div class="px-4 py-3 text-sm text-slate-500">Searching...</div>
+                                </template>
+
+                                <template x-if="!search.loading && search.results.length === 0">
+                                    <div class="px-4 py-3 text-sm text-slate-500">No products found.</div>
+                                </template>
+
+                                <template x-for="product in search.results" :key="product.id">
+                                    <button
+                                        type="button"
+                                        @click="selectProduct(product); search.q = ''; closeSearchDropdown()"
+                                        class="w-full text-left px-3 py-2 border-b border-slate-100 hover:bg-slate-50 last:border-b-0"
+                                    >
+                                        <div class="font-medium text-slate-900">
+                                            #<span x-text="product.id"></span> - <span x-text="product.name"></span>
+                                        </div>
+                                        <div class="text-xs text-slate-600">
+                                            <span x-text="product.unit"></span>
+                                            <span x-show="product.capital !== undefined">
+                                                | ₱<span x-text="formatPrice(product.capital)"></span>
+                                            </span>
+                                            <span x-show="product.available_quantity !== undefined">
+                                                | Stock: <span x-text="formatQty(product.available_quantity)"></span>
+                                            </span>
+                                        </div>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="border border-slate-200 rounded overflow-hidden">
+                <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 font-medium text-sm text-slate-700">
+                    Stock-Out Items
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-indigo-100 border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-medium text-slate-700">Product ID</th>
+                                <th class="px-4 py-3 text-left font-medium text-slate-700">Product Name</th>
+                                <th class="px-4 py-3 text-left font-medium text-slate-700">Unit</th>
+                                <th class="px-4 py-3 text-right font-medium text-slate-700">Quantity</th>
+                                <th class="px-4 py-3 text-right font-medium text-slate-700">Total Cost</th>
+                                <th class="px-4 py-3 text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-if="form.items.length === 0">
+                                <tr>
+                                    <td colspan="6" class="px-4 py-8 text-center text-slate-500">
+                                        No items added yet. Search and select products above.
+                                    </td>
+                                </tr>
+                            </template>
+
+                            <template x-for="(item, index) in form.items" :key="index">
+                                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                    <td class="px-4 py-3" x-text="item.product_id"></td>
+                                    <td class="px-4 py-3 text-slate-700" x-text="item.product_name"></td>
+                                    <td class="px-4 py-3 text-slate-600" x-text="item.unit"></td>
+                                    <td class="px-4 py-3 text-right">
+                                        <input
+                                            type="number"
+                                            x-model.number="item.quantity"
+                                            min="1"
+                                            step="1"
+                                            :max="getItemMax(item)"
+                                            @input="
+                                                    item.quantity = Math.floor(item.quantity);
+
+                                                    if (item.quantity < 1) item.quantity = 1;
+
+                                                    const max = getItemMax(item);
+                                                    if (item.quantity > max) item.quantity = max;
+
+                                                    calculateTotal(index);
+                                                "
+                                            @paste.prevent
+                                            @drop.prevent
+                                            @wheel.prevent
+                                            @keydown="['e','E','+','-','.'].includes($event.key) && $event.preventDefault()"
+                                            class="w-24 rounded border border-slate-300 px-2 py-1 text-sm text-right focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                        />
+                                        <div class="mt-1 text-xs text-slate-500" x-show="item.max_quantity > 0">
+                                            Max: <span x-text="formatPrice(getItemMax(item))"></span>
+                                        </div>
+
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-semibold text-slate-900">₱<span x-text="formatPrice(item.subtotal)"></span></td>
+                                    <td class="px-4 py-3 text-center">
+                                        <button
+                                            type="button"
+                                            @click="removeItem(index)"
+                                            class="text-red-600 hover:text-red-800 transition-colors"
+                                            title="Remove item"
+                                        >
+                                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                                        </button>
+                                        </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Summary -->
+                <div class="px-4 py-3 bg-slate-50 border-t border-slate-200">
+                    <div class="flex justify-end gap-8">
+                        <div>
+                            <p class="text-sm text-slate-600">Total Items:</p>
+                            <p class="text-2xl font-semibold text-slate-900"><span x-text="getTotalQuantity()"></span></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-slate-600">Total Cost:</p>
+                            <p class="text-2xl font-semibold text-slate-900">₱<span x-text="formatPrice(getTotalCost())"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reference Type & Notes -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Reason for Stock Out <span class="text-red-500">*</span></label>
+                    <select
+                        x-model="form.reference_type"
+                        class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    >
+                        <option value="">-- Select --</option>
+                        <option value="sale">Sale/POS</option>
+                        <option value="transfer">Transfer to Branch</option>
+                        <option value="adjustment">Adjustment/Damage</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Reference ID (Optional)</label>
+                    <input
+                        type="number"
+                        x-model="form.reference_id"
+                        placeholder="Sale ID / Document ID"
+                        class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    />
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700">Notes (Optional)</label>
+                <textarea
+                    x-model="form.notes"
+                    placeholder="Add any additional notes about this stock-out..."
+                    rows="3"
+                    class="mt-2 block w-full rounded border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                ></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 justify-end">
+                <button
+                    type="button"
+                    @click="resetForm()"
+                    class="rounded border border-slate-300 px-6 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                    Clear
+                </button>
+                <button
+                    type="button"
+                    @click="$dispatch('open-modal', 'confirm-stock-out')"
+                    :disabled="!canSubmit()"
+                    class="rounded bg-red-600 px-6 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Stock-Out
+                </button>
+            </div>
+
+            <!-- Stock-Out Confirmation Modal MUST be inside the x-data div -->
+            <x-modal name="confirm-stock-out" maxWidth="md" focusable>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-slate-900">Confirm Stock-Out</h3>
+                        <button type="button" @click="$dispatch('close-modal', 'confirm-stock-out')" class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="mb-6">
+                        <p class="text-sm text-slate-600">
+                            Are you sure you want to complete this stock-out? You are removing <strong x-text="getTotalQuantity()" class="text-slate-900"></strong> items with a total value of <strong class="text-slate-900">₱<span x-text="formatPrice(getTotalCost())"></span></strong>.
+                        </p>
+                        <p class="text-sm text-amber-600 mt-2 font-medium">
+                            This action will immediately reduce your inventory levels.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3">
+                        <button
+                            type="button"
+                            @click="$dispatch('close-modal', 'confirm-stock-out')"
+                            class="px-4 py-2 rounded border border-gray-300 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                            :disabled="submitting"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            @click="submitForm()"
+                            :disabled="submitting"
+                            class="px-4 py-2 rounded bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            <span x-show="!submitting">Confirm Stock-Out</span>
+                            <span x-show="submitting">Processing...</span>
+                        </button>
+                    </div>
+                </div>
+            </x-modal>
+
+        </div>
+    </x-card>
+
+    @push('scripts')
+    <script>
+        function stockOutApp() {
+            return {
+                form: {
+                    branch_id: {{ $userDefaultBranchId ?? 'null' }},
+                    items: [],
+                    reference_type: '',
+                    reference_id: null,
+                    notes: '',
+                },
+                search: {
+                    q: '',
+                    open: false,
+                    loading: false,
+                    results: [],
+                },
+                submitting: false,
+                message: '',
+                messageType: 'success',
+
+                onSearchInput() {
+                    if (!this.form.branch_id) {
+                        this.search.results = [];
+                        this.search.open = false;
+                        this.showToast('Select a branch first.', 'warning');
+                        return;
+                    }
+
+                    if (!this.search.q.trim()) {
+                        this.search.results = [];
+                        this.search.open = false;
+                        return;
+                    }
+
+                    this.search.loading = true;
+                    this.search.open = true;
+
+                    fetch(`{{ route('inventory.api.products.search') }}?q=${encodeURIComponent(this.search.q)}&limit=10&branch_id=${encodeURIComponent(this.form.branch_id)}`)
+                        .then(r => r.json())
+                        .then(data => {
+                             // Safely handle both standard arrays and paginated object responses!
+                             const items = Array.isArray(data) ? data : (data.data || []);
+
+                             this.search.results = items.map(product => ({
+                                 ...product,
+                                 available_quantity: Number(product.available_quantity ?? 0),
+                             }));
+                             this.search.loading = false;
+                         })
+                         .catch(error => {
+                             console.error('Search failed:', error);
+                             this.search.results = [];
+                             this.search.loading = false;
+                         });
+                 },
+
+                onBranchChange() {
+                    this.form.items = [];
+                    this.search.q = '';
+                    this.search.results = [];
+                    this.search.open = false;
+                },
+
+                closeSearchDropdown() {
+                    this.search.open = false;
+                },
+
+                reopenSearchDropdown() {
+                    if (this.search.q.trim()) {
+                        this.search.open = true;
+                    }
+                },
+
+                selectProduct(product) {
+                    const exists = this.form.items.some(item => item.product_id === product.id);
+                    if (exists) {
+                        this.showToast('Product already added to list.', 'warning'); // Changed to warning toast
+                        return;
+                    }
+
+                    const maxQty = Math.max(0, Number(product.available_quantity ?? 0));
+                    if (maxQty <= 0) {
+                        this.showToast('No available stock for this product in the selected branch.', 'error'); // Changed to error toast
+                        return;
+                    }
+
+                    this.form.items.push({
+                        product_id: product.id,
+                        product_name: product.name,
+                        unit: product.unit,
+                        unit_cost: product.capital,
+                        quantity: 1,
+                        subtotal: product.capital,
+                        max_quantity: maxQty,
+                    });
+                },
+
+                calculateTotal(index) {
+                    const item = this.form.items[index];
+                    item.quantity = this.clampItemQuantity(item);
+                    item.subtotal = item.quantity * item.unit_cost;
+                },
+
+                getItemMax(item) {
+                    return Math.max(0, Number(item?.max_quantity ?? 0));
+                },
+
+                clampItemQuantity(item) {
+                    const maxQty = this.getItemMax(item);
+                    if (maxQty <= 0) {
+                        return 0;
+                    }
+
+                    const qty = Number(item?.quantity ?? 1);
+                    if (!Number.isFinite(qty)) {
+                        return 1;
+                    }
+
+                    return Math.max(1, Math.min(maxQty, qty));
+                },
+
+                removeItem(index) {
+                    this.form.items.splice(index, 1);
+                },
+
+                getTotalQuantity() {
+                    return this.form.items.reduce((sum, item) => sum + parseFloat(item.quantity || 0), 0).toFixed(2);
+                },
+
+                getTotalCost() {
+                    return this.form.items.reduce((sum, item) => sum + parseFloat(item.subtotal || 0), 0).toFixed(2);
+                },
+
+                canSubmit() {
+                    return this.form.branch_id && this.form.reference_type && this.form.items.length > 0 && !this.submitting;
+                },
+
+                formatPrice(price) {
+                    return parseFloat(price || 0).toFixed(2);
+                },
+
+                formatQty(value) {
+                    return String(Math.max(0, Math.floor(Number(value ?? 0))));
+                },
+
+                async submitForm() {
+                    if (!this.canSubmit()) return;
+
+                    const invalidItem = this.form.items.find(item => Number(item.quantity) > this.getItemMax(item));
+                    if (invalidItem) {
+                        // CHANGED TO TOAST
+                        this.showToast(`Quantity for product #${invalidItem.product_id} exceeds available stock.`, 'error');
+                        return;
+                    }
+
+                    this.submitting = true;
+
+                    try {
+                        const response = await fetch('{{ route("inventory.api.stock-out.store") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify({
+                                branch_id: parseInt(this.form.branch_id),
+                                items: this.form.items.map(item => ({
+                                    product_id: item.product_id,
+                                    quantity: parseFloat(item.quantity),
+                                })),
+                                reference_type: this.form.reference_type || null,
+                                reference_id: this.form.reference_id || null,
+                                notes: this.form.notes || null,
+                            }),
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok && data.success) {
+                            // Close the modal
+                            this.$dispatch('close-modal', 'confirm-stock-out');
+
+                            // CHANGED TO TOAST
+                            this.showToast(data.message, 'success');
+                            setTimeout(() => this.resetForm(), 2000);
+                        } else {
+                            // CHANGED TO TOAST
+                            this.showToast(data.message || 'Error processing stock-out', 'error');
+                        }
+                    } catch (error) {
+                        // CHANGED TO TOAST
+                        this.showToast('Error: ' + error.message, 'error');
+                    } finally {
+                        this.submitting = false;
+                    }
+                },
+
+                showToast(message, type = 'success') {
+                    const toast = document.createElement('div');
+
+                    toast.className = `fixed bottom-6 right-6 px-6 py-4 rounded border shadow-2xl z-[99999] font-medium text-sm transition-all duration-300 transform translate-y-0 opacity-100 flex items-center gap-3 ${
+                        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
+                        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' :
+                        'bg-red-50 border-red-200 text-red-800'
+                    }`;
+
+                    let icon = '';
+                    if (type === 'success') {
+                        icon = `<svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                    } else if (type === 'warning') {
+                        icon = `<svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" /></svg>`;
+                    } else {
+                        icon = `<svg class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+                    }
+
+                    toast.innerHTML = `${icon} <span>${message}</span>`;
+                    document.body.appendChild(toast);
+
+                    setTimeout(() => {
+                        toast.classList.remove('translate-y-0', 'opacity-100');
+                        toast.classList.add('translate-y-4', 'opacity-0');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
+                },
+
+                resetForm() {
+                    this.form = {
+                        branch_id: {{ $userDefaultBranchId ?? 'null' }},
+                        items: [],
+                        reference_type: '',
+                        reference_id: null,
+                        notes: '',
+                    };
+                    this.message = '';
+                },
+            };
+        }
+    </script>
+    @endpush
+</x-app-layout>

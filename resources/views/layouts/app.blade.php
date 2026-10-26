@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
+        <title>{{ config('app.name', 'Laravel') }}</title>
+
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
+
+        <!-- Scripts -->
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    </head>
+    <body class="font-sans tracking-tight antialiased bg-indigo-50 text-slate-900">
+        {{--
+            Alpine state for the layout:
+            - `mobileOpen` (bool): controls the mobile overlay/sidebar (x-show/x-cloak). Used on small screens.
+            - `sidebarOpen` (bool): controls the desktop sidebar width (lg:w-72 vs lg:w-0).
+            Toggle behavior is handled inline on the hamburger button(s) below.
+            To change the initial collapsed state on desktop, change `sidebarOpen` to false.
+        --}}
+        <div x-data="{ mobileOpen: false, sidebarOpen: true }" class="min-h-screen lg:flex lg:h-screen lg:overflow-hidden">
+            <!-- Mobile overlay (visible only on small screens) -->
+            {{--
+                This overlay appears when `mobileOpen` is true and sits above the page
+                to block interactions with the content while the mobile sidebar is open.
+                Clicking it sets `mobileOpen = false` to close the sidebar.
+            --}}
+            <div
+                x-show="mobileOpen"
+                x-transition.opacity
+                @click="mobileOpen = false"
+                class="fixed inset-0 z-40 bg-slate-900/40 lg:hidden"
+                x-cloak
+            ></div>
+
+            <!-- Sidebar column (collapsible on desktop) -->
+            {{--
+                The sidebar lives inside this wrapper. We toggle the wrapper's width
+                on large screens by switching the `sidebarOpen` boolean which changes
+                the applied Tailwind class between `lg:w-72` and `lg:w-0`.
+
+                The actual sidebar component (`x-sidebar`) still uses translate-X
+                classes for mobile sliding behavior; the wrapper controls desktop
+                collapse so the main content can expand when collapsed.
+            --}}
+            <div
+                :class="sidebarOpen ? 'lg:w-64' : 'lg:w-0'"
+                class="relative lg:flex-shrink-0 lg:overflow-hidden lg:transition-[width] lg:duration-200"
+            >
+                <x-sidebar.container />
+            </div>
+
+            <!-- Main content -->
+            <div class="flex-1 lg:h-screen lg:overflow-y-auto">
+                <div :class="sidebarOpen ? 'mx-auto' : 'max-w-none'" class="flex h-full min-h-0 w-full flex-col py-6 sm:px-6 lg:py-8">
+                    @isset($header)
+                        <header class="mb-5 border-b border-slate-200 pb-4">
+                            <div class="flex items-center justify-between gap-6">
+                                <div class="flex flex-row gap-2">
+                                    {{--
+                                        Header hamburger button
+
+                                        - On small screens: opens the mobile sidebar (`mobileOpen = true`).
+                                        - On large screens: toggles the desktop sidebar width (`sidebarOpen = !sidebarOpen`).
+                                        This button is intentionally placed above the header title so
+                                        collapsing the sidebar does not reflow the header contents.
+                                    --}}
+                                    <button
+                                        type="button"
+                                        @click="if (window.innerWidth < 1024) { mobileOpen = true } else { sidebarOpen = !sidebarOpen }"
+                                        class="inline-flex items-center justify-center rounded-md border border-slate-200 p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-800"
+                                        aria-label="Toggle sidebar"
+                                    >
+                                        <!-- Hamburger Icon -->
+                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                                        </svg>
+                                    </button>
+
+                                    <div class="flex-shrink">
+                                        {{ $header }}
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    @php
+                                        $user = auth()->user();
+                                        $role = null;
+                                        if ($user) {
+                                            $role = $user->role ?? ($user->getRoleNames()->first() ?? null);
+                                        }
+                                    @endphp
+                                    @if ($user)
+                                        <div class="font-medium">{{ $user->name }}</div>
+                                        @if ($role)
+                                            <div class="text-xs text-slate-500">{{ $role }}</div>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+                        </header>
+                    @endisset
+
+                    <main class="flex-1 min-h-0">
+                        {{ $slot }}
+                    </main>
+                </div>
+            </div>
+        </div>
+        @stack('scripts')
+    </body>
+</html>
