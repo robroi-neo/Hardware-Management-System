@@ -54,7 +54,7 @@
                 class="px-4 py-2 bg-neutral-200 text-neutral-900 rounded-md hover:bg-neutral-300">
                 Cancel
             </button>
-            <button type="submit" onclick="toggleMOdal()"
+            <button type="button" onclick="confirmCreate()"
                 class="px-4 py-2 bg-neutral-900 text-white rounded-md hover:bg-neutral-700">
                 Confirm
             </button>
