@@ -2,15 +2,37 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
-class Supplier extends Model
+class   Supplier extends Model
 {
-    use HasFactory;
-    protected $fillable = ['supplier_name', 'address','contact_number', 'contact_person'];
-    public $timestamps = false;
+    //
+    protected $fillable = [
+        'supplier_name',
+        'contact_person',
+        'company_address',
+        'contact_number',
+        'contact_email',
+        'status',
+    ];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class);
+    }
+
+    public function invoices()
+    {
+        return $this->hasManyThrough(Invoice::class, Purchase::class);
+    }
+
+    public function purchaseDetails()
+    {
+        return $this->hasManyThrough(PurchaseDetail::class, Purchase::class);
+    }
 }
-
