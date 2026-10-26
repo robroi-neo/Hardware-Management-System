@@ -63,20 +63,23 @@ A comprehensive Laravel-based business management system for hardware retail ope
 
 | Component | Technology |
 |-----------|-----------|
-| **Framework** | Laravel 13 (latest) |
+| **Language** | PHP 8.3+ |
+| **Framework** | Laravel 13 |
 | **Database** | SQLite (single file) |
-| **Frontend** | Blade templates + Tailwind CSS + Alpine.js |
-| **Auth** | Laravel Sanctum + Sessions |
-| **RBAC** | Spatie/laravel-permission |
-| **Testing** | Pest.php (v4) |
+| **Frontend** | Blade templates + Tailwind CSS 3 + Alpine.js 3 |
+| **Asset Bundling** | Vite 8 + laravel-vite-plugin |
+| **Auth** | Laravel Breeze (session-based) |
+| **RBAC** | spatie/laravel-permission 8 |
+| **Testing** | Pest 4 (PHPUnit 12) |
 | **Code Formatting** | Pint (PSR-12) |
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- PHP 8.2+
-- Composer
-- Node.js & npm
+
+- **PHP 8.3+** with extensions: `pdo_sqlite`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `fileinfo`, `bcmath`, `curl`
+- **Composer 2.x** — use the latest release (`composer self-update`). Composer 2.2 LTS crashes while running Laravel 13's post-install scripts.
+- **Node.js** `^20.19.0` or `>=22.12.0` (required by Vite 8) and npm
 
 ### Installation
 
@@ -299,18 +302,45 @@ php artisan view:cache
 
 ## 📦 Dependencies
 
-### Production
-- **laravel/framework** (13.x)
-- **spatie/laravel-permission** - RBAC
-- **tailwindcss** - Styling
-- **alpinejs** - Frontend interactivity
+### PHP — production (`composer.json` → `require`)
 
-### Development
-- **pestphp/pest** - Testing
-- **laravel/pint** - Code formatting
-- **laravel/vite-plugin** - Asset bundling
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `php` | ^8.3 | Runtime |
+| `laravel/framework` | ^13.38 | Application framework |
+| `laravel/tinker` | ^3.0.2 | REPL (`php artisan tinker`) |
+| `spatie/laravel-permission` | ^8.3 | Roles & permissions (RBAC) |
 
-See `composer.json` and `package.json` for complete list.
+### PHP — development (`composer.json` → `require-dev`)
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `laravel/breeze` | ^2.4.2 | Authentication scaffolding |
+| `laravel/pail` | ^1.2.7 | Log tailing (used by `composer run dev`) |
+| `laravel/pint` | ^1.32 | Code formatter |
+| `pestphp/pest` | ^4.7 | Test framework |
+| `pestphp/pest-plugin-laravel` | ^4.1 | Laravel helpers for Pest |
+| `mockery/mockery` | ^1.6.15 | Mocking |
+| `fakerphp/faker` | ^1.24 | Fake data for factories/seeders |
+| `nunomaduro/collision` | ^8.9.5 | CLI error reporting |
+
+### Frontend (`package.json` → `devDependencies`)
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `vite` | ^8.3.5 | Dev server & bundler |
+| `laravel-vite-plugin` | ^3.2.0 | Laravel ↔ Vite integration |
+| `tailwindcss` | ^3.4.19 | Utility CSS (v3, run through PostCSS) |
+| `@tailwindcss/forms` | ^0.5.11 | Form element styles |
+| `postcss` | ^8.5.31 | CSS processing |
+| `autoprefixer` | ^10.6.1 | Vendor prefixes |
+| `alpinejs` | ^3.17.5 | Frontend interactivity |
+| `axios` | ^1.20.0 | HTTP client |
+| `concurrently` | ^9.2.5 | Runs the `composer run dev` stack |
+
+> **Tailwind is pinned to v3.** v4 replaces `tailwind.config.js`/PostCSS with a CSS-first setup and needs a dedicated migration. Until then, `npm audit` reports 3 moderate advisories in Tailwind 3's build-time CSS parser (`postcss-selector-parser`). That code only runs when assets are built and is not shipped to browsers.
+
+See `composer.json` and `package.json` for the source of truth.
 
 ## 🐛 Known Limitations (MVP)
 
@@ -359,7 +389,7 @@ This project is proprietary software. All rights reserved.
 
 ---
 
-**Last Updated**: April 22, 2026  
+**Last Updated**: October 26, 2026  
 **Version**: 1.0.0 (MVP)  
 **Status**: Active Development
 
