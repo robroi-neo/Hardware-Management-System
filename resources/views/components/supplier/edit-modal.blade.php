@@ -15,35 +15,35 @@
         <!-- Supplier ID (read-only) -->
         <div class="grid grid-cols-2 gap-1 items-center">
             <label class="font-semibold text-gray-700">Supplier ID:</label>
-            <input id="id" name="id" type="text" readonly class="p-2 bg-white text-neutral-700"
+            <input id="id" name="id" type="text" readonly class="p-2 bg-white text-neutral-700" required
                 disabled />
         </div>
 
         <!-- edit Name -->
         <div class="grid grid-cols-2 gap-1 items-center">
             <label class="font-semibold text-gray-700">Supplier name:</label>
-            <input id="edit_name" name="supplier_name" type="text"
+            <input id="edit_name" name="supplier_name" type="text" required
                 class="border border-neutral-300 rounded-md p-2 focus:ring-2 focus:ring-neutral-500 focus:outline-none" />
         </div>
 
         <!-- edit Address -->
         <div class="grid grid-cols-2 gap-1 items-center">
             <label class="font-semibold text-gray-700">Supplier Address:</label>
-            <input id="edit_address" name="address" type="text"
+            <input id="edit_address" name="address" type="text" required
                 class="border border-neutral-300 rounded-md p-2 focus:ring-2 focus:ring-neutral-500 focus:outline-none" />
         </div>
 
         <!-- edit Contact Person -->
         <div class="grid grid-cols-2 gap-1 items-center">
             <label class="font-semibold text-gray-700">Contact Person:</label>
-            <input id="edit_person" name="contact_person" type="text"
+            <input id="edit_person" name="contact_person" type="text" required
                 class="border border-neutral-300 rounded-md p-2 focus:ring-2 focus:ring-neutral-500 focus:outline-none" />
         </div>
 
         <!-- edit Contact Number-->
         <div class="grid grid-cols-2 gap-1 items-center">
             <label class="font-semibold text-gray-700">Contact Number:</label>
-            <input id="edit_contact" name="contact_number" type="text"
+            <input id="edit_contact" name="contact_number" type="text" required
                 class="border border-neutral-300 rounded-md p-2 focus:ring-2 focus:ring-neutral-500 focus:outline-none" />
         </div>
         <div class="flex">
@@ -91,15 +91,17 @@
     }
 
     function confirmEdit() {
+
+        let validity = document.getElementById("editSupplierForm").checkValidity();
+        if (!validity) {
+            document.getElementById("editSupplierForm").requestSubmit();
+            return
+        }
         const confirmation = confirm(
             "Editing this supplier will permanently modify their details in the system. This cannot be undone.\n\nDo you wish to continue?"
         );
-
         if (confirmation) {
-            document.getElementById("editSupplierForm").submit();
-        } else {
-            // Optional: close the modal or just stay
-            toggleEditModal(false);
+            document.getElementById("editSupplierForm").requestSubmit();
         }
     }
 </script>
