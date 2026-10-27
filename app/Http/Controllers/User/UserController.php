@@ -8,10 +8,14 @@ use App\Models\Supplier;
 use App\Models\User;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    /** Roles that can be assigned through the Users module. */
+    private const ROLES = ['admin', 'manager', 'cashier'];
+
     public function index(Request $request)
     {
         $sortBy = $request->query('sort_by', 'name');
@@ -85,11 +89,21 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
-            'phone'     => 'required|regex:/^09\d{9}$/',
-            'role'      => 'required|string|exists:roles,name',
+            'phone'     => ['required', 'regex:/^09\d{9}$/', Rule::unique('users', 'phone')->ignore($user->id)],
+            'role'      => ['required', Rule::in(self::ROLES)],
             'branch_id' => 'nullable|exists:branches,id',
             'status'    => 'required|in:active,inactive',
         ]);
+
+        // An admin must not lock themselves out by demoting or deactivating their own account.
+        if ($user->is($request->user())
+            && ($validated['role'] !== $beforeRole || $validated['status'] !== 'active')) {
+            $message = 'You cannot change your own role or deactivate your own account.';
+
+            return $request->expectsJson()
+                ? response()->json(['message' => $message], 422)
+                : back()->withInput()->with('error', $message);
+        }
 
         try {
             $user->update([
@@ -139,9 +153,9 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required',
             // Enforce Philippine mobile format: starts with 09 followed by 9 digits (total 11 digits)
-            'phone' => ['required', 'regex:/^09\\d{9}$/'],
+            'phone' => ['required', 'regex:/^09\\d{9}$/', 'unique:users,phone'],
             'address' => 'required',
-            'role' => 'required',
+            'role' => ['required', Rule::in(self::ROLES)],
             'pin' => 'required|string|min:4|max:10|confirmed',
             'pin_confirmation' => 'required',
             'branch_id' => 'required',
@@ -184,6 +198,14 @@ class UserController extends Controller
     }
     public function deactivate(Request $request, User $user)
     {
+        if ($user->is($request->user())) {
+            $message = 'You cannot deactivate your own account.';
+
+            return $request->expectsJson()
+                ? response()->json(['message' => $message], 422)
+                : back()->with('error', $message);
+        }
+
         try {
             $beforeStatus = $user->status;
              $user->update([

@@ -116,6 +116,7 @@ Route::middleware('auth')->group(function () {
         ->name('users.index');
 
     Route::put('/users/{user}', [UserController::class, 'update'])
+        ->middleware('permission:users.edit')
         ->name('users.update');
 
     // Create User this shit is the create user.
@@ -124,6 +125,7 @@ Route::middleware('auth')->group(function () {
         ->name('users.create');
     // Create user routes API
     Route::post('/users/create',[UserController::class,'store'])
+        ->middleware('permission:users.create')
         ->name('users.store');
 
     Route::patch('/users/{user}/deactivate', [UserController::class, 'deactivate'])
