@@ -96,7 +96,10 @@ Route::middleware('auth')->group(function () {
 
     // Supplier routes
     Route::resource('suppliers', \App\Http\Controllers\Supplier\SupplierController::class)
-        ->middleware('permission:suppliers.view');
+        ->middleware('permission:suppliers.view')
+        ->middlewareFor(['create', 'store'], 'permission:suppliers.create')
+        ->middlewareFor(['edit', 'update'], 'permission:suppliers.edit')
+        ->middlewareFor('destroy', 'permission:suppliers.delete');
 
     Route::patch('/suppliers/{supplier}/deactivate', [\App\Http\Controllers\Supplier\SupplierController::class, 'deactivate'])
         ->middleware('permission:suppliers.delete')
