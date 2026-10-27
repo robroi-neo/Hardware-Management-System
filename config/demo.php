@@ -17,6 +17,11 @@ return [
     // How often the data is put back to the clean snapshot.
     'reset_minutes' => (int) env('DEMO_RESET_MINUTES', 60),
 
+    // Reset automatically (scheduler, or the first request after the interval).
+    // Off by default so a local database is never overwritten; turn it on where
+    // the demo is hosted.
+    'auto_reset' => (bool) env('DEMO_AUTO_RESET', false),
+
     // Clean copy of the demo database, built by `php artisan demo:snapshot`.
     'snapshot_path' => env('DEMO_SNAPSHOT_PATH', database_path('demo-snapshot.sqlite')),
 

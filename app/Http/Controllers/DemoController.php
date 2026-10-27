@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Services\Demo\DemoReset;
 use App\Support\Demo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -107,5 +109,27 @@ class DemoController extends Controller
         $request->session()->put('demo', ['role' => $data['role'], 'started_at' => now()->toIso8601String()]);
 
         return redirect()->route(Demo::homeRoute($user));
+    }
+
+    /**
+     * "Reset data" in the demo banner. Limited to once every 5 minutes for everyone,
+     * since all visitors share the same data.
+     */
+    public function reset(Request $request, DemoReset $reset): RedirectResponse
+    {
+        if (RateLimiter::tooManyAttempts('demo-reset', 1)) {
+            $minutes = (int) ceil(RateLimiter::availableIn('demo-reset') / 60);
+
+            return back()->with('error', "The demo was reset recently. Try again in {$minutes} min.");
+        }
+
+        if (! $reset->restore()) {
+            return back()->with('error', 'Reset isn’t available here (no demo snapshot on this server).');
+        }
+
+        RateLimiter::hit('demo-reset', 300);
+
+        // Same accounts and branches exist in the snapshot, so the visitor stays in.
+        return redirect()->route(Demo::homeRoute($request->user()))->with('success', 'Demo data reset to the starting sample data.');
     }
 }

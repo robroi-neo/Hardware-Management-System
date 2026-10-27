@@ -24,6 +24,9 @@ Route::get('/demo/branch', [DemoController::class, 'branch'])->name('demo.branch
 Route::post('/demo/start', [DemoController::class, 'start'])
     ->middleware('throttle:20,1')
     ->name('demo.start');
+Route::post('/demo/reset', [DemoController::class, 'reset'])
+    ->middleware('auth')
+    ->name('demo.reset');
 
 
 # Routes for logged in users

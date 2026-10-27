@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Put the demo data back to the snapshot when the interval has passed
+        // (for hosts without a scheduler). Runs before the session or database is used.
+        $middleware->prepend(\App\Http\Middleware\ResetDemoIfDue::class);
+
         // There is no login page: signed-out visitors start the demo instead.
         $middleware->redirectGuestsTo(fn () => route('demo'));
 
