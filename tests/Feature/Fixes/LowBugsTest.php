@@ -95,3 +95,25 @@ test('#26 the removed terminal feature leaves nothing behind', function () {
     expect(fn () => app(\App\Services\Inventory\BranchContextService::class)->resolveTerminalBranchId($request))
         ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
 });
+
+// Bug #27: purchasing checkout/prepare reports the session branch.
+test('#27 purchasing checkout/prepare returns the session branch', function () {
+    $manager = userWithRole('manager');
+    $branch = $manager->branch;
+    $product = stockedProduct($branch->id, 0);
+
+    $this->actingAs($manager)->withSession(branchSession($branch));
+    $this->postJson('/purchasing/api/cart/add', ['product_id' => $product->id, 'quantity' => 2])->assertSuccessful();
+
+    $this->getJson('/purchasing/api/checkout/prepare')->assertOk()->assertJsonPath('data.branch_id', $branch->id);
+});
+
+// Bug #28: no real-looking phone numbers in the seeder.
+test('#28 the seeder uses obviously fake phone numbers', function () {
+    $seeder = file_get_contents(database_path('seeders/DatabaseSeeder.php'));
+
+    expect($seeder)->not->toContain('09362690603')
+        ->not->toContain('09287476832')
+        ->not->toContain('09108712969')
+        ->toContain('09000000001');
+});
