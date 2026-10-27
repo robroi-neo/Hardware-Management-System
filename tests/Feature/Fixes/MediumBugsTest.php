@@ -114,3 +114,49 @@ test('#15 inventory product search falls back to the session branch, or returns 
         ->getJson('/inventory/api/products/search?q=Ham')
         ->assertOk()->assertJsonPath('0.name', 'Hammer');
 });
+
+// Bug #16: every stock change must leave a movement record.
+function movementsFor(\App\Models\Product $product): array
+{
+    return \App\Models\InventoryMovement::where('product_id', $product->id)->orderBy('id')
+        ->get(['type', 'quantity_change', 'reference_type', 'reference_id'])
+        ->map(fn ($m) => [$m->type, (float) $m->quantity_change, $m->reference_type, $m->reference_id])
+        ->all();
+}
+
+test('#16 a sale and its refund both write stock movements', function () {
+    $manager = userWithRole('manager');
+    $branch = $manager->branch;
+    $product = stockedProduct($branch->id, 20);
+    $reason = \App\Models\RefundReason::create(['name' => 'Customer changed mind', 'is_active' => true]);
+
+    $sale = ringUpSale($this, $manager, $branch, $product, 3);
+    $this->postJson("/pos/transactions/{$sale->id}/refund", ['reason_id' => $reason->id])->assertSuccessful();
+
+    expect(movementsFor($product))->toBe([
+        ['out', -3.0, 'sale', $sale->id],
+        ['in', 3.0, 'sale', $sale->id],
+    ])->and(stockAt($branch->id, $product))->toBe(20.0);
+});
+
+test('#16 a purchase and its refund both write stock movements', function () {
+    $manager = userWithRole('manager');
+    $branch = $manager->branch;
+    $product = stockedProduct($branch->id, 0);
+    $supplier = \App\Models\Supplier::create(supplierPayload());
+    $reason = \App\Models\RefundReason::create(['name' => 'Damaged item', 'is_active' => true]);
+
+    $this->actingAs($manager)->withSession(branchSession($branch));
+    $this->postJson('/purchasing/api/cart/add', ['product_id' => $product->id, 'quantity' => 8, 'unit_price' => 90])->assertSuccessful();
+    $this->postJson('/purchasing/api/checkout/finalize', ['supplier_id' => $supplier->id, 'branch_id' => $branch->id])
+        ->assertSuccessful()->assertJsonPath('success', true);
+
+    $purchase = \App\Models\Purchase::latest('id')->firstOrFail();
+    $invoice = \App\Models\Invoice::where('purchase_id', $purchase->id)->firstOrFail();
+    $this->postJson("/purchasing/invoices/{$invoice->id}/refund", ['reason_id' => $reason->id])->assertOk();
+
+    expect(movementsFor($product))->toBe([
+        ['in', 8.0, 'purchase', $purchase->id],
+        ['out', -8.0, 'purchase', $purchase->id],
+    ])->and(stockAt($branch->id, $product))->toBe(0.0);
+});

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Purchasing;
 
+use App\Models\InventoryMovement;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Purchase;
@@ -242,6 +243,8 @@ class CheckoutController extends Controller
                     );
 
                     $inventory->increment('quantity', $quantity);
+
+                    InventoryMovement::record((int) $validated['branch_id'], $product->id, $quantity, 'purchase', $purchase->id, $request->user()->id);
 
                     $totalAmount += $subtotal;
                 }
