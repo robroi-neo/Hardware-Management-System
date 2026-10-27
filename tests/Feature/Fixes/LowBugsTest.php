@@ -28,3 +28,17 @@ test('#21 audit log Refunds filter returns sale and purchase refunds', function 
     expect($logs->total())->toBe(2)
         ->and(collect($logs->items())->pluck('action')->unique()->all())->toBe(['refund']);
 });
+
+// Bug #22: the lockout message must be attached to the phone field.
+test('#22 too many failed logins shows the lockout message on the phone field', function () {
+    $branch = makeBranch();
+    userWithRole('cashier', ['phone' => '09777777777']);
+
+    foreach (range(1, 5) as $_) {
+        $this->withSession(branchSession($branch))->post('/login', ['phone' => '09777777777', 'pin' => 'wrong']);
+    }
+
+    $this->withSession(branchSession($branch))
+        ->post('/login', ['phone' => '09777777777', 'pin' => 'wrong'])
+        ->assertSessionHasErrors(['phone' => trans('auth.throttle', ['seconds' => 60, 'minutes' => 1])]);
+});
