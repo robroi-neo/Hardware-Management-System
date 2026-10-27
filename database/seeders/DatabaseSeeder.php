@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
 
         // Default admin user
         $admin = User::firstOrCreate(
-            ['phone' => '09362690603'],
+            ['phone' => '09000000001'],
             [
                 'name' => 'Admin',
                 'pin' => Hash::make('1234'),
@@ -42,7 +42,7 @@ class DatabaseSeeder extends Seeder
 
         // Default cashier user
         $cashier = User::firstOrCreate(
-            ['phone' => '09287476832'],
+            ['phone' => '09000000002'],
             [
                 'name' => 'Cashier',
                 'pin' => Hash::make('1234'),
@@ -53,7 +53,7 @@ class DatabaseSeeder extends Seeder
 
         // Default manager user
         $manager = User::firstOrCreate(
-            ['phone' => '09108712969'],
+            ['phone' => '09000000003'],
             [
                 'name' => 'Manager',
                 'pin' => Hash::make('1234'),

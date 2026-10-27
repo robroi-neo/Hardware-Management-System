@@ -139,7 +139,7 @@ class CheckoutController extends Controller
                 'items' => $items,
                 'total' => $total,
                 'supplier_id' => $request->session()->get('purchasing_supplier_id'),
-                'branch_id' => $request->session()->get('purchasing_branch_id'),
+                'branch_id' => $request->session()->get('branch.id'),
                 'warnings' => $warnings,
             ],
         ]);
