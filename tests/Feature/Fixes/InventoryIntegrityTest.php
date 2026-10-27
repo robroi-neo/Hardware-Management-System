@@ -4,18 +4,7 @@ use App\Models\BranchInventory;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 
-function stockedProduct(int $branchId, float $quantity, string $name = 'Hammer'): Product
-{
-    $product = Product::create(['name' => $name, 'capital' => 100, 'unit' => 'piece']);
-    BranchInventory::create(['branch_id' => $branchId, 'product_id' => $product->id, 'quantity' => $quantity, 'status' => 'active']);
 
-    return $product;
-}
-
-function stockAt(int $branchId, Product $product): float
-{
-    return (float) BranchInventory::where(['branch_id' => $branchId, 'product_id' => $product->id])->value('quantity');
-}
 
 // Bug #5: a failed stock-out must not change any stock.
 test('#5 a stock-out with one short item changes nothing', function () {
