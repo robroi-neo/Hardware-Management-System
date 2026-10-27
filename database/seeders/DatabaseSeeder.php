@@ -20,9 +20,7 @@ class DatabaseSeeder extends Seeder
         // call database seeders
         $this->call([
             BranchSeeder::class,
-            ProductSeeder::class,
-            ProductFactorySeeder::class,
-            BranchInventorySeeder::class,
+            CatalogSeeder::class, // placeholder catalog from seeders/data/catalog.csv
             SupplierSeeder::class,
             RefundReasonSeeder::class,
         ]);

@@ -1,0 +1,86 @@
+branch,category,name,unit,capital,stock
+hardware,Fasteners,"Common Wire Nail 2""",kg,85,120
+hardware,Fasteners,"Common Wire Nail 3""",kg,85,95
+hardware,Fasteners,"Concrete Nail 2"" (box of 100)",box,95,40
+hardware,Fasteners,"Hex Bolt with Nut 1/2"" x 2""",piece,12,300
+hardware,Fasteners,"Tekscrew for Metal Roofing 2-1/2"" (box of 100)",box,320,25
+hardware,Fasteners,"Expansion Anchor 3/8""",piece,15,4
+hardware,Fasteners,Tie Wire GI #16,kg,110,60
+hardware,Hand Tools,Claw Hammer 16 oz,piece,280,18
+hardware,Hand Tools,"Hand Saw 22""",piece,350,10
+hardware,Hand Tools,Screwdriver Set 6-pc,set,260,14
+hardware,Hand Tools,"Adjustable Wrench 10""",piece,320,9
+hardware,Hand Tools,Measuring Tape 5 m,piece,145,30
+hardware,Hand Tools,"Combination Pliers 8""",piece,210,12
+hardware,Hand Tools,"Masonry Trowel 7""",piece,120,3
+hardware,Hand Tools,Steel Wheelbarrow,piece,2650,2
+hardware,Hand Tools,HSS Drill Bit Set 13-pc,set,480,0
+hardware,Electrical,THHN Wire 2.0 mm² (per meter),meter,28,500
+hardware,Electrical,Duplex Convenience Outlet,piece,85,45
+hardware,Electrical,One-Gang Switch,piece,70,50
+hardware,Electrical,LED Bulb 9W,piece,95,80
+hardware,Electrical,Electrical Tape,roll,35,100
+hardware,Electrical,Circuit Breaker 20A,piece,380,6
+hardware,Plumbing,"PVC Pipe 1/2"" x 3 m",length,95,70
+hardware,Plumbing,"PVC Elbow 1/2""",piece,12,200
+hardware,Plumbing,"Gate Valve 1/2""",piece,260,15
+hardware,Plumbing,Teflon Tape,roll,15,150
+hardware,Plumbing,PVC Solvent Cement 100 ml,piece,75,30
+hardware,Construction,Portland Cement 40 kg,bag,255,80
+hardware,Construction,Deformed Steel Bar 10 mm x 6 m,length,185,150
+hardware,Construction,"Plywood 1/4"" 4x8 ft",sheet,420,35
+hardware,Construction,"Concrete Hollow Block 4""",piece,14,800
+hardware,Construction,GI Corrugated Roofing Sheet 8 ft,sheet,390,0
+hardware,Paint,Latex Paint White 4 L,can,650,20
+hardware,Paint,Enamel Paint Black 1 L,can,280,25
+hardware,Paint,Paint Thinner,liter,140,40
+hardware,Paint,"Paint Roller 7""",piece,120,22
+hardware,Motor Parts,Spark Plug (standard underbone),piece,95,60
+hardware,Motor Parts,Drive Chain 428H x 120L,piece,520,12
+hardware,Motor Parts,Sprocket Set (underbone),set,750,8
+hardware,Motor Parts,Rear Brake Shoe (underbone),set,180,25
+hardware,Motor Parts,Clutch Lining Set,set,450,5
+hardware,Motor Parts,Air Filter Element (scooter),piece,250,14
+hardware,Motor Parts,Inner Tube 2.75-17,piece,210,20
+hardware,Motor Parts,Motorcycle Tire 2.75-17,piece,1150,6
+hardware,Motor Parts,Motorcycle Battery 12V 5Ah,piece,1450,4
+hardware,Motor Parts,Universal Side Mirror,pair,320,10
+hardware,Lubricants,4T Engine Oil,liter,290,48
+hardware,Lubricants,Brake Fluid DOT 3 250 ml,piece,120,30
+hardware,Lubricants,Chain Lube Spray 400 ml,piece,240,15
+hardware,Lubricants,Scooter Gear Oil 120 ml,piece,95,0
+tiles,Floor Tiles,Ceramic Floor Tile 40x40 cm Beige Matte (box of 6),box,330,120
+tiles,Floor Tiles,Ceramic Floor Tile 40x40 cm Gray Stone (box of 6),box,345,85
+tiles,Floor Tiles,Ceramic Floor Tile 30x30 cm Anti-Slip (box of 11),box,310,60
+tiles,Floor Tiles,Porcelain Tile 60x60 cm Polished White (box of 4),box,780,45
+tiles,Floor Tiles,Porcelain Tile 60x60 cm Oak Wood Look (box of 4),box,820,30
+tiles,Floor Tiles,Porcelain Tile 60x120 cm Marble Look (box of 2),box,1450,4
+tiles,Wall Tiles,Wall Tile 25x40 cm White Glossy (box of 10),box,360,70
+tiles,Wall Tiles,Wall Tile 25x40 cm Subway Pattern (box of 10),box,395,40
+tiles,Wall Tiles,Wall Tile 30x60 cm Concrete Look (box of 8),box,560,25
+tiles,Wall Tiles,Mosaic Tile Sheet 30x30 cm Blue Glass,sheet,185,50
+tiles,Wall Tiles,Mosaic Tile Sheet 30x30 cm Pebble,sheet,210,3
+tiles,Trim,Skirting Tile 8x60 cm Beige,piece,45,200
+tiles,Trim,Stair Nosing Tile 30x30 cm,piece,95,60
+tiles,Trim,Aluminum Tile Trim 10 mm x 2.4 m,length,145,80
+tiles,Trim,PVC Tile Edge Trim 2.4 m,length,65,0
+tiles,Vinyl & Laminate,"Vinyl Plank 6""x36"" Natural Oak (box, 2.6 sqm)",box,1250,35
+tiles,Vinyl & Laminate,"Vinyl Plank 6""x36"" Walnut (box, 2.6 sqm)",box,1290,20
+tiles,Vinyl & Laminate,"Peel-and-Stick Vinyl Tile 12""x12"" (pack of 20)",pack,690,40
+tiles,Vinyl & Laminate,"Laminate Flooring 8 mm (box, 2.2 sqm)",box,1480,12
+tiles,Vinyl & Laminate,"Foam Underlay 2 mm (roll, 10 sqm)",roll,520,18
+tiles,Adhesives & Grout,Tile Adhesive 25 kg,bag,295,90
+tiles,Adhesives & Grout,Tile Adhesive Heavy Duty 25 kg,bag,420,40
+tiles,Adhesives & Grout,Tile Grout 2 kg White,pack,95,150
+tiles,Adhesives & Grout,Tile Grout 2 kg Gray,pack,95,110
+tiles,Adhesives & Grout,Epoxy Grout 1 kg,pack,560,5
+tiles,Adhesives & Grout,Vinyl Flooring Adhesive 4 L,can,780,15
+tiles,Adhesives & Grout,Waterproofing Membrane 4 L,can,1350,10
+tiles,Tools & Accessories,Tile Spacer 3 mm (pack of 100),pack,45,200
+tiles,Tools & Accessories,Tile Leveling Clips (pack of 100),pack,380,30
+tiles,Tools & Accessories,Notched Trowel 6 mm,piece,160,25
+tiles,Tools & Accessories,Rubber Mallet,piece,180,15
+tiles,Tools & Accessories,"Manual Tile Cutter 24""",piece,2450,3
+tiles,Tools & Accessories,"Diamond Cutting Disc 4""",piece,220,40
+tiles,Tools & Accessories,Grout Float,piece,150,20
+tiles,Tools & Accessories,Tile Sealer,liter,480,0
