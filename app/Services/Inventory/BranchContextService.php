@@ -38,4 +38,29 @@ class BranchContextService
 
         return $branchId;
     }
+
+    /**
+     * Branch to filter a list by: admins get what they asked for (null = all
+     * branches); everyone else is locked to their session branch.
+     */
+    public function scopedBranchId(Request $request, mixed $requested = null): ?int
+    {
+        if ($request->user()?->hasRole('admin')) {
+            return ((int) $requested) ?: null;
+        }
+
+        return $this->selectedBranchId($request);
+    }
+
+    /**
+     * Whether the current user may see or act on a record from this branch.
+     */
+    public function canAccessBranch(Request $request, ?int $branchId): bool
+    {
+        if ($request->user()?->hasRole('admin')) {
+            return true;
+        }
+
+        return $branchId !== null && $branchId === $this->selectedBranchId($request);
+    }
 }

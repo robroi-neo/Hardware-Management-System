@@ -242,3 +242,41 @@ test('#19 POS browse hides products archived at this branch even if active elsew
 
     expect($names->all())->toContain('Hammer')->not->toContain('Old Drill');
 });
+
+// Bug #30 (found while fixing): non-admins only see and act on their own branch's sales and invoices.
+test('#30 a manager only sees their branch in Transactions and Invoice history', function () {
+    $hardware = makeBranch('Hardware');
+    $tiles = makeBranch('Tiles');
+    $manager = userWithRole('manager', ['branch_id' => $hardware->id]);
+    $admin = userWithRole('admin', ['branch_id' => $hardware->id]);
+    saleOn(now()->toDateTimeString(), $hardware->id, 100);
+    saleOn(now()->toDateTimeString(), $tiles->id, 40);
+    invoiceIssuedOn(now()->toDateTimeString(), $hardware->id);
+    invoiceIssuedOn(now()->toDateTimeString(), $tiles->id);
+
+    $as = fn ($user, $url) => $this->actingAs($user)->withSession(branchSession($hardware))->get($url)->assertOk();
+
+    expect($as($manager, '/pos/transactions')->viewData('transactions')->total())->toBe(1)
+        ->and($as($manager, '/pos/transactions?branch_id='.$tiles->id)->viewData('transactions')->total())->toBe(1)
+        ->and($as($manager, '/purchasing/invoice-history?branch_id='.$tiles->id)->viewData('invoices')->total())->toBe(1)
+        ->and($as($admin, '/pos/transactions')->viewData('transactions')->total())->toBe(2)
+        ->and($as($admin, '/purchasing/invoice-history')->viewData('invoices')->total())->toBe(2);
+});
+
+test('#30 a manager cannot open or refund another branch\'s sale or invoice', function () {
+    $hardware = makeBranch('Hardware');
+    $tiles = makeBranch('Tiles');
+    $manager = userWithRole('manager', ['branch_id' => $hardware->id]);
+    $reason = \App\Models\RefundReason::create(['name' => 'Damaged item', 'is_active' => true]);
+    $otherSale = saleOn(now()->toDateTimeString(), $tiles->id, 40);
+    $otherInvoice = invoiceIssuedOn(now()->toDateTimeString(), $tiles->id);
+
+    $this->actingAs($manager)->withSession(branchSession($hardware));
+    $this->getJson("/pos/transactions/{$otherSale->id}")->assertForbidden();
+    $this->postJson("/pos/transactions/{$otherSale->id}/refund", ['reason_id' => $reason->id])->assertForbidden();
+    $this->getJson("/purchasing/invoices/{$otherInvoice->id}")->assertForbidden();
+    $this->postJson("/purchasing/invoices/{$otherInvoice->id}/refund", ['reason_id' => $reason->id])->assertForbidden();
+
+    expect((bool) $otherSale->fresh()->refunded)->toBeFalse()
+        ->and((bool) $otherInvoice->fresh()->refunded)->toBeFalse();
+});

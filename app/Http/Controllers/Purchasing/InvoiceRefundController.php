@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Purchasing;
 
+use App\Services\Inventory\BranchContextService;
 use App\Models\InventoryMovement;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
@@ -19,6 +20,8 @@ class InvoiceRefundController extends Controller
 {
     public function store(Request $request, Invoice $invoice): JsonResponse
     {
+        abort_unless(app(BranchContextService::class)->canAccessBranch($request, $invoice->purchase?->branch_id), 403);
+
         $validated = $request->validate([
             'reason_id' => ['required', 'integer', 'exists:refund_reasons,id'],
             'note' => ['nullable', 'string', 'max:1000'],
