@@ -2,64 +2,60 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Sale;
+use App\Models\Branch;
 use App\Models\BranchInventory;
+use App\Models\Sale;
+use App\Services\Inventory\BranchContextService;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function __construct(
+        private readonly BranchContextService $branchContextService,
+    ) {}
+
+    public function index(Request $request)
     {
-        // Earnings
+        // Non-admins always see their session branch. Admins see all branches
+        // unless they pick one, the same as the inventory pages.
+        $isAdmin = $request->user()->hasRole('admin');
+        $branchId = $isAdmin
+            ? ((int) $request->query('branch_id', 0) ?: null)
+            : $this->branchContextService->selectedBranchId($request);
+
+        // Sales that count toward earnings: not refunded, in the chosen branch.
+        $sales = fn () => Sale::query()
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
+            ->where(fn ($q) => $q->whereNull('refunded')->orWhere('refunded', false));
+
+        $inventory = fn () => BranchInventory::query()
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId));
+
         $now = Carbon::now();
         $startOfToday = $now->copy()->startOfDay();
-        $startOfWeekAgo = $now->copy()->subDays(7)->startOfDay();
+        // Last 7 days including today.
+        $startOfWeek = $now->copy()->subDays(6)->startOfDay();
 
-        // Sum of total_amount for last 7 days (including today)
-        $earnings_last_week = Sale::whereBetween('date', [$startOfWeekAgo, $now])->sum('total_amount');
+        $earnings_last_week = $sales()->whereBetween('date', [$startOfWeek, $now])->sum('total_amount');
+        $earnings_today = $sales()->where('date', '>=', $startOfToday)->sum('total_amount');
+        $transactions_today = $sales()->where('date', '>=', $startOfToday)->count();
 
-        // Earnings today
-        $earnings_today = Sale::where('date', '>=', $startOfToday)->sum('total_amount');
+        $in_stock_items = (float) $inventory()->sum('quantity');
+        $low_stock_items = $inventory()->where('quantity', '<=', 5)->where('quantity', '>', 0)->count();
+        $out_of_stock_items = $inventory()->where('quantity', '<=', 0)->count();
 
-        // Transactions today (non-refunded)
-        $transactions_today = Sale::where('date', '>=', $startOfToday)
-            ->where(function ($q) {
-                // If refunded column exists, exclude refunded sales
-                $q->whereNull('refunded')->orWhere('refunded', false);
-            })->count();
-
-        // Inventory overview
-        // Total in-stock quantity across all branches
-        $in_stock_items = (float) BranchInventory::sum('quantity');
-
-        // Low stock items: entries with small quantity (threshold 5)
-        $low_stock_items = BranchInventory::where('quantity', '<=', 5)
-            ->where('quantity', '>', 0)->count();
-
-        // Out of stock items
-        $out_of_stock_items = BranchInventory::where('quantity', '<=', 0)->count();
-
-        // Weekly transactions count and revenue per day (last 7 days)
-        $days = collect();
+        $days = [];
         $transactions_by_day = [];
         $revenue_by_day = [];
 
         for ($i = 6; $i >= 0; $i--) {
             $day = $now->copy()->subDays($i)->startOfDay();
             $dayEnd = $day->copy()->endOfDay();
-            $label = $day->format('M j');
-            $days->push($label);
 
-            $transactions_count = Sale::whereBetween('date', [$day, $dayEnd])
-                ->where(function ($q) {
-                    $q->whereNull('refunded')->orWhere('refunded', false);
-                })->count();
-
-            $dayRevenue = Sale::whereBetween('date', [$day, $dayEnd])->sum('total_amount');
-
-            $transactions_by_day[] = $transactions_count;
-            $revenue_by_day[] = (float) $dayRevenue;
+            $days[] = $day->format('M j');
+            $transactions_by_day[] = $sales()->whereBetween('date', [$day, $dayEnd])->count();
+            $revenue_by_day[] = (float) $sales()->whereBetween('date', [$day, $dayEnd])->sum('total_amount');
         }
 
         return view('modules.dashboard', [
@@ -69,9 +65,12 @@ class DashboardController extends Controller
             'in_stock_items' => $in_stock_items,
             'low_stock_items' => $low_stock_items,
             'out_of_stock_items' => $out_of_stock_items,
-            'weekly_labels' => $days->toArray(),
+            'weekly_labels' => $days,
             'weekly_transactions' => $transactions_by_day,
             'weekly_revenue' => $revenue_by_day,
+            'isAdmin' => $isAdmin,
+            'branches' => $isAdmin ? Branch::all() : collect(),
+            'filterBranchId' => $branchId,
         ]);
     }
 }

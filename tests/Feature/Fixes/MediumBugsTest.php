@@ -160,3 +160,68 @@ test('#16 a purchase and its refund both write stock movements', function () {
         ['out', -8.0, 'purchase', $purchase->id],
     ])->and(stockAt($branch->id, $product))->toBe(0.0);
 });
+
+function saleOn(string $date, int $branchId, float $amount, bool $refunded = false): \App\Models\Sale
+{
+    return \App\Models\Sale::create([
+        'date' => $date, 'user_id' => \App\Models\User::first()->id, 'total_amount' => $amount,
+        'branch_id' => $branchId, 'payment_method' => 'cash', 'refunded' => $refunded,
+    ]);
+}
+
+// Bug #17: dashboard earnings exclude refunds, and "last week" is 7 days.
+test('#17 dashboard earnings leave out refunded sales and count exactly 7 days', function () {
+    $this->travelTo(now()->setDate(2026, 10, 27)->setTime(15, 0));
+    $admin = userWithRole('admin');
+    $branch = $admin->branch;
+
+    saleOn('2026-10-27 09:00:00', $branch->id, 100);          // today
+    saleOn('2026-10-27 10:00:00', $branch->id, 999, true);    // today, refunded
+    saleOn('2026-10-21 09:00:00', $branch->id, 50);           // 7th day back (in)
+    saleOn('2026-10-20 09:00:00', $branch->id, 70);           // 8th day back (out)
+
+    $response = $this->actingAs($admin)->withSession(branchSession($branch))->get('/dashboard')->assertOk();
+
+    expect((float) $response->viewData('earnings_today'))->toBe(100.0)
+        ->and((float) $response->viewData('earnings_last_week'))->toBe(150.0)
+        ->and($response->viewData('transactions_today'))->toBe(1);
+});
+
+// Bug #18: dashboard figures follow the selected branch.
+test('#18 dashboard shows only the session branch for non-admins; admins can pick', function () {
+    $this->travelTo(now()->setDate(2026, 10, 27)->setTime(15, 0));
+    $hardware = makeBranch('Hardware');
+    $tiles = makeBranch('Tiles');
+    $manager = userWithRole('manager', ['branch_id' => $hardware->id]);
+    $manager->givePermissionTo('dashboard.view');
+    $admin = userWithRole('admin', ['branch_id' => $hardware->id]);
+
+    saleOn('2026-10-27 09:00:00', $hardware->id, 100);
+    saleOn('2026-10-27 09:30:00', $tiles->id, 40);
+    stockedProduct($hardware->id, 0, 'Hammer');   // out of stock at Hardware only
+    stockedProduct($tiles->id, 50, 'Tile');
+
+    $mine = $this->actingAs($manager)->withSession(branchSession($hardware))->get('/dashboard?branch_id='.$tiles->id);
+    expect((float) $mine->viewData('earnings_today'))->toBe(100.0)
+        ->and($mine->viewData('out_of_stock_items'))->toBe(1);
+
+    $all = $this->actingAs($admin)->withSession(branchSession($hardware))->get('/dashboard');
+    expect((float) $all->viewData('earnings_today'))->toBe(140.0);
+
+    $picked = $this->actingAs($admin)->withSession(branchSession($hardware))->get('/dashboard?branch_id='.$tiles->id);
+    expect((float) $picked->viewData('earnings_today'))->toBe(40.0)
+        ->and($picked->viewData('out_of_stock_items'))->toBe(0);
+});
+
+test('#18 the dashboard renders the branch filter for admins only', function () {
+    $hardware = makeBranch('Hardware');
+    makeBranch('Tiles');
+    $admin = userWithRole('admin', ['branch_id' => $hardware->id]);
+    $manager = userWithRole('manager', ['branch_id' => $hardware->id]);
+    $manager->givePermissionTo('dashboard.view');
+
+    $this->actingAs($admin)->withSession(branchSession($hardware))->get('/dashboard')
+        ->assertOk()->assertSee('Filter by Branch');
+    $this->actingAs($manager)->withSession(branchSession($hardware))->get('/dashboard')
+        ->assertOk()->assertDontSee('Filter by Branch');
+});
