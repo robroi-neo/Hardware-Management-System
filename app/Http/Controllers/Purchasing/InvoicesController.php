@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Purchasing;
 
+use App\Services\Inventory\BranchContextService;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\RefundReason;
@@ -24,7 +25,7 @@ class InvoicesController extends Controller
             ? $request->query('sort_dir')
             : 'desc';
 
-        $filterBranchId = $request->query('branch_id', null);
+        $filterBranchId = app(BranchContextService::class)->scopedBranchId($request, $request->query('branch_id'));
 
         // Build query
         $query = Invoice::with(['purchase.supplier', 'purchase.details', 'refundedBy']);
@@ -81,7 +82,8 @@ class InvoicesController extends Controller
         // Get all suppliers for filter dropdown
         $suppliers = Supplier::where('status', '=', 'active')->orderBy('supplier_name')->get();
 
-        $allBranches = Branch::all();
+        // Non-admins only ever see their own branch.
+        $allBranches = $request->user()->hasRole('admin') ? Branch::all() : Branch::whereKey($filterBranchId)->get();
 
         return view('modules.purchasing.invoices', [
             'invoices' => $invoices,

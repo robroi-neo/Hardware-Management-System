@@ -115,6 +115,6 @@ test('#10 a cashier cannot open sale or invoice details; a manager can', functio
     $this->actingAs($cashier)->getJson("/pos/transactions/{$sale->id}")->assertForbidden();
     $this->actingAs($cashier)->getJson("/purchasing/invoices/{$invoice->id}")->assertForbidden();
 
-    $this->actingAs($manager)->getJson("/pos/transactions/{$sale->id}")->assertOk();
-    $this->actingAs($manager)->getJson("/purchasing/invoices/{$invoice->id}")->assertOk();
+    $this->actingAs($manager)->withSession(branchSession($branch))->getJson("/pos/transactions/{$sale->id}")->assertOk();
+    $this->actingAs($manager)->withSession(branchSession($branch))->getJson("/purchasing/invoices/{$invoice->id}")->assertOk();
 });

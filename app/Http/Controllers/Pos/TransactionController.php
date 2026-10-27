@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Pos;
 
+use App\Services\Inventory\BranchContextService;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\RefundReason;
@@ -24,7 +25,7 @@ class TransactionController extends Controller
             ? $request->query('sort_dir')
             : 'desc';
 
-        $filterBranchId = $request->query('branch_id', null);
+        $filterBranchId = app(BranchContextService::class)->scopedBranchId($request, $request->query('branch_id'));
 
         $query = Sale::with(['user']);
 
@@ -65,7 +66,8 @@ class TransactionController extends Controller
             ->withQueryString(); // preserves all filters + sort in pagination links
 
         // Get all branches for dropdown (only used if admin)
-        $allBranches = Branch::all();
+        // Non-admins only ever see their own branch.
+        $allBranches = $request->user()->hasRole('admin') ? Branch::all() : Branch::whereKey($filterBranchId)->get();
 
         return view('modules.pos.transactions', [
             'transactions' => $transactions,
@@ -77,8 +79,10 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function show(Sale $sale)
+    public function show(Request $request, Sale $sale)
     {
+        abort_unless(app(BranchContextService::class)->canAccessBranch($request, $sale->branch_id), 403);
+
         $sale->load('items.product', 'refundedBy:id,name');
 
         return response()->json([

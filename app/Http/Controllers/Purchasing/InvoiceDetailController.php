@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\Purchasing;
 
+use Illuminate\Http\Request;
+use App\Services\Inventory\BranchContextService;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 
 class InvoiceDetailController extends Controller
 {
-    public function show(Invoice $invoice)
+    public function show(Request $request, Invoice $invoice)
     {
+        abort_unless(app(BranchContextService::class)->canAccessBranch($request, $invoice->purchase?->branch_id), 403);
+
         $invoice->load('purchase.supplier', 'purchase.details.product', 'refundedBy:id,name');
 
         return response()->json([

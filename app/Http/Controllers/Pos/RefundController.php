@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Pos;
 
+use App\Services\Inventory\BranchContextService;
 use App\Http\Controllers\Controller;
 use App\Models\Sale;
 use App\Services\Pos\RefundService;
@@ -13,6 +14,8 @@ class RefundController extends Controller
 {
     public function store(Request $request, Sale $sale, RefundService $service)
     {
+        abort_unless(app(BranchContextService::class)->canAccessBranch($request, $sale->branch_id), 403);
+
         $validated = $request->validate([
             'reason_id' => ['required', 'integer', 'exists:refund_reasons,id'],
             'note' => ['nullable', 'string', 'max:1000'],
