@@ -99,3 +99,38 @@ test('#2 an admin cannot deactivate themselves via the deactivate action', funct
 
     expect($admin->fresh()->status)->toBe('active');
 });
+
+// Bug #3: deactivated users must not be able to log in or keep using the app.
+test('#3 an inactive user cannot log in', function () {
+    $branch = makeBranch();
+    $user = userWithRole('cashier', ['status' => 'inactive', 'phone' => '09555555555']);
+
+    $this->withSession(branchSession($branch))
+        ->post('/login', ['phone' => '09555555555', 'pin' => '1234'])
+        ->assertSessionHasErrors('phone');
+
+    $this->assertGuest();
+});
+
+test('#3 an active user can still log in', function () {
+    $branch = makeBranch();
+    userWithRole('cashier', ['phone' => '09666666666']);
+
+    $this->withSession(branchSession($branch))
+        ->post('/login', ['phone' => '09666666666', 'pin' => '1234'])
+        ->assertRedirect();
+
+    $this->assertAuthenticated();
+});
+
+test('#3 a user deactivated mid-session is signed out on the next request', function () {
+    $branch = makeBranch();
+    $user = userWithRole('cashier');
+
+    $this->actingAs($user)->withSession(branchSession($branch))->get('/pos')->assertOk();
+
+    $user->update(['status' => 'inactive']);
+
+    $this->get('/pos')->assertRedirect('/');
+    $this->assertGuest();
+});
