@@ -27,7 +27,16 @@ class StockOutController extends Controller
     {
         $q = $request->query('q');
         $limit = min(max((int) $request->query('limit', 20), 1), 50);
-        $branchId = (int) $request->query('branch_id', 0) ?: null;
+        // Admins may search any branch; everyone else searches their session branch.
+        $requested = (int) $request->query('branch_id', 0) ?: null;
+        $branchId = $request->user()->hasRole('admin')
+            ? ($requested ?? $this->branchContextService->selectedBranchId($request))
+            : $this->branchContextService->selectedBranchId($request);
+
+        if (! $branchId) {
+            return response()->json(['message' => 'Select a branch first.'], 422);
+        }
+
         return response()->json(
             $this->productAvailabilityService->searchActiveProducts($q, $limit, $branchId)
         );

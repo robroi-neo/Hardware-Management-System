@@ -101,3 +101,16 @@ test('#14 a purchase refund still works when stock covers it', function () {
     expect(stockAt($branch->id, $product))->toBe(2.0)
         ->and((bool) $invoice->fresh()->refunded)->toBeTrue();
 });
+
+// Bug #15: product search on stock-in/out must not 500 without a branch.
+test('#15 inventory product search falls back to the session branch, or returns 422 without one', function () {
+    $admin = userWithRole('admin');
+    $branch = $admin->branch;
+    stockedProduct($branch->id, 5, 'Hammer');
+
+    $this->actingAs($admin)->getJson('/inventory/api/products/search?q=Ham')->assertStatus(422);
+
+    $this->actingAs($admin)->withSession(branchSession($branch))
+        ->getJson('/inventory/api/products/search?q=Ham')
+        ->assertOk()->assertJsonPath('0.name', 'Hammer');
+});
