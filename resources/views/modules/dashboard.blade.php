@@ -6,6 +6,21 @@
     </x-slot>
 
     <div class="space-y-6">
+        @if($isAdmin)
+            <form class="flex justify-end">
+                <x-filters.dropdown-filter
+                    :items="$branches"
+                    :selected="$filterBranchId"
+                    name="branch_id"
+                    label="Filter by Branch"
+                    placeholder="All Branches"
+                    valueField="id"
+                    displayField="name"
+                    :autoSubmit="true"
+                />
+            </form>
+        @endif
+
         <section class="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <article class="rounded-xl border border-slate-200 bg-white p-6 lg:col-span-1">
                 <p class="text-lg text-slate-500"> Weekly Earnings</p>
