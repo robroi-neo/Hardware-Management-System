@@ -110,9 +110,11 @@ test('#27 purchasing checkout/prepare returns the session branch', function () {
 
 // Bug #28: no real-looking phone numbers in the seeder.
 test('#28 the seeder uses obviously fake phone numbers', function () {
-    $seeder = file_get_contents(database_path('seeders/DatabaseSeeder.php'));
+    // Demo user phones now live in config/demo.php.
+    $sources = file_get_contents(database_path('seeders/DatabaseSeeder.php'))
+        .file_get_contents(config_path('demo.php'));
 
-    expect($seeder)->not->toContain('09362690603')
+    expect($sources)->not->toContain('09362690603')
         ->not->toContain('09287476832')
         ->not->toContain('09108712969')
         ->toContain('09000000001');

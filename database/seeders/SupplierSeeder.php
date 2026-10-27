@@ -12,56 +12,25 @@ class SupplierSeeder extends Seeder
      */
     public function run(): void
     {
+        // Fictional suppliers for the demo. Emails use the reserved .example domain
+        // and phone numbers are obviously fake.
         $suppliers = [
-            [
-                'supplier_name' => 'TechWorks Inc',
-                'contact_person' => 'John Smith',
-                'company_address' => '123 Industrial Ave, Tech City, TC 12345',
-                'contact_number' => fake()->unique()->numerify('09#########'),
-                'contact_email' => 'sales@techworks.com',
-                'status' => 'active',
-            ],
-            [
-                'supplier_name' => 'Global Electronics Ltd',
-                'contact_person' => 'Maria Garcia',
-                'company_address' => '456 Commerce Boulevard, Trade Port, TP 54321',
-                'contact_number' => fake()->unique()->numerify('09#########'),
-                'contact_email' => 'orders@globalelec.com',
-                'status' => 'active',
-            ],
-            [
-                'supplier_name' => 'Prime Hardware Distributors',
-                'contact_person' => 'David Chen',
-                'company_address' => '789 Enterprise Road, Supply City, SC 67890',
-                'contact_number' => fake()->unique()->numerify('09#########'),
-                'contact_email' => 'procurement@primehw.com',
-                'status' => 'active',
-            ],
-            [
-                'supplier_name' => 'FastShip Components',
-                'contact_person' => 'Sarah Johnson',
-                'company_address' => '321 Logistics Way, Distribution Zone, DZ 11223',
-                'contact_number' => fake()->unique()->numerify('09#########'),
-                'contact_email' => 'support@fastship.com',
-                'status' => 'active',
-            ],
-            [
-                'supplier_name' => 'Reliable Supply Co',
-                'contact_person' => 'Robert Williams',
-                'company_address' => '654 Trade Center, Warehouse District, WD 33445',
-                'contact_number' => fake()->unique()->numerify('09#########'),
-                'contact_email' => 'sales@reliablesupply.com',
-                'status' => 'active',
-            ],
-            [
-                'supplier_name' => 'Vintage Tech Supplies',
-                'contact_person' => 'Emily Brown',
-                'company_address' => '987 Heritage Plaza, Old Town, OT 55667',
-                'contact_number' => fake()->unique()->numerify('09#########'),
-                'contact_email' => 'info@vintagetech.com',
-                'status' => 'inactive',
-            ],
+            ['Davao Builders Supply', 'Carlo Villanueva', 'J.P. Laurel Ave, Davao City', '09000000101', 'sales@davaobuilders.example', 'active'],
+            ['Mindanao Motor Parts Trading', 'Grace Dizon', 'Apokon Rd, Tagum City', '09000000102', 'orders@mindanaomotor.example', 'active'],
+            ['Southern Tiles & Ceramics Depot', 'Paolo Sison', 'National Highway, Panabo City', '09000000103', 'sales@southerntiles.example', 'active'],
+            ['Tagum Steel and Cement Center', 'Maricel Gomez', 'Rizal St, Tagum City', '09000000104', 'steel@tagumsteel.example', 'active'],
+            ['Island Paints Distribution', 'Dennis Lim', 'Lanang, Davao City', '09000000105', 'orders@islandpaints.example', 'active'],
+            ['Panabo Pipe & Electrical', 'Rowena Tan', 'Quezon St, Panabo City', '09000000106', 'info@panabopipe.example', 'inactive'],
         ];
+
+        $suppliers = array_map(fn ($s) => [
+            'supplier_name' => $s[0],
+            'contact_person' => $s[1],
+            'company_address' => $s[2],
+            'contact_number' => $s[3],
+            'contact_email' => $s[4],
+            'status' => $s[5],
+        ], $suppliers);
 
         foreach ($suppliers as $supplier) {
             Supplier::create($supplier);

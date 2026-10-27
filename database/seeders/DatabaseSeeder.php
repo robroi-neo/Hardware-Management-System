@@ -2,10 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 
 class DatabaseSeeder extends Seeder
@@ -27,45 +29,48 @@ class DatabaseSeeder extends Seeder
 
         $this->call(RolePermissionSeeder::class);
 
-        // Default admin user
-        $admin = User::firstOrCreate(
-            ['phone' => '09000000001'],
-            [
-                'name' => 'Admin',
-                'pin' => Hash::make('1234'),
-                'status' => 'active',
-                'branch_id' => 1, // assign to first branch by default
-            ]
-        );
+        $hardware = Branch::orderBy('id')->value('id');
+        $tiles = Branch::orderBy('id')->skip(1)->value('id') ?? $hardware;
 
-        // Default cashier user
-        $cashier = User::firstOrCreate(
-            ['phone' => '09000000002'],
-            [
-                'name' => 'Cashier',
-                'pin' => Hash::make('1234'),
-                'status' => 'active',
-                'branch_id' => 1,
-            ]
-        );
+        // Demo users, one per role (config/demo.php). Visitors are signed in as these.
+        foreach (config('demo.users') as $role => $demo) {
+            $user = User::updateOrCreate(
+                ['phone' => $demo['phone']],
+                [
+                    'name' => $demo['name'],
+                    'pin' => Hash::make('1234'),
+                    'status' => 'active',
+                    'branch_id' => $hardware,
+                ]
+            );
+            $user->syncRoles([$role]);
+        }
 
-        // Default manager user
-        $manager = User::firstOrCreate(
-            ['phone' => '09000000003'],
-            [
-                'name' => 'Manager',
-                'pin' => Hash::make('1234'),
-                'status' => 'active',
-                'branch_id' => 1,
-            ]
-        );
+        // A few named staff so the Users page and logs look like a real store.
+        $admin = User::where('phone', config('demo.users.admin.phone'))->first();
+        $staff = [
+            ['Jun Mercado', '09000000011', 'cashier', $hardware, 'active'],
+            ['Ana Reyes', '09000000012', 'cashier', $tiles, 'active'],
+            ['Liza Bautista', '09000000013', 'manager', $tiles, 'active'],
+            ['Ramon Cruz', '09000000014', 'cashier', $hardware, 'inactive'],
+        ];
 
-        $admin->syncRoles(['admin']);
-        $cashier->syncRoles(['cashier']);
-        $manager->syncRoles(['manager']);
+        foreach ($staff as [$name, $phone, $role, $branchId, $status]) {
+            $user = User::updateOrCreate(
+                ['phone' => $phone],
+                [
+                    'name' => $name,
+                    'pin' => Hash::make(Str::random(12)), // not meant to sign in
+                    'status' => $status,
+                    'branch_id' => $branchId,
+                    'created_by' => $admin?->id,
+                    'address' => 'Mawab, Davao de Oro',
+                ]
+            );
+            $user->syncRoles([$role]);
+        }
 
-        User::factory(50)->create()->each(function ($user) {
-            $user->assignRole('cashier');
-        });
+        // About four weeks of sales, refunds, purchases and stock movements.
+        $this->call(DemoHistorySeeder::class);
     }
 }
