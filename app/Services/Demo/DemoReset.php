@@ -125,7 +125,10 @@ class DemoReset
             return 0;
         }
 
-        return max(0, (int) Carbon::parse($builtAt)->startOfDay()->diffInDays(now()->startOfDay()));
+        // Compare calendar days in the app's timezone (the build time may be stored in another).
+        $built = Carbon::parse($builtAt)->setTimezone(config('app.timezone'))->startOfDay();
+
+        return max(0, (int) $built->diffInDays(now()->startOfDay()));
     }
 
     /** Move every history date forward by $days, in the SQLite file at $path. */
