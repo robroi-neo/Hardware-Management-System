@@ -54,12 +54,11 @@ class OverviewController extends Controller
             $query->where('branch_id', $displayBranchId);
         }
 
-        // Filter by status (product.status)
+        // Filter by status. Archiving is per branch, so this is branch_inventory.status
+        // (products has no status column).
         $allowedStatuses = ['active', 'inactive'];
         if ($filterStatus && in_array($filterStatus, $allowedStatuses)) {
-            $query->whereHas('product', function ($q) use ($filterStatus) {
-                $q->where('status', $filterStatus);
-            });
+            $query->where('branch_inventory.status', $filterStatus);
         }
 
         // Filter by search term
