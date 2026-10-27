@@ -42,3 +42,16 @@ test('#22 too many failed logins shows the lockout message on the phone field', 
         ->post('/login', ['phone' => '09777777777', 'pin' => 'wrong'])
         ->assertSessionHasErrors(['phone' => trans('auth.throttle', ['seconds' => 60, 'minutes' => 1])]);
 });
+
+// Bug #23: invoice quantity input follows the unit's precision.
+test('#23 the new-invoice page gets unit rules and uses a per-unit step', function () {
+    $manager = userWithRole('manager');
+    $branch = $manager->branch;
+
+    $this->actingAs($manager)->withSession(branchSession($branch))
+        ->get('/purchasing/new-invoice')
+        ->assertOk()
+        ->assertSee(':step="unitStep(item.product_unit)"', false)
+        ->assertSee('"kg":{"step":0.01', false)
+        ->assertDontSee('step="1"', false);
+});

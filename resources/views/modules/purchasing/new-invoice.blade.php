@@ -114,12 +114,12 @@
                                             <input
                                                 type="number"
                                                 x-model.number="item.quantity"
-                                                min="1"
+                                                :min="unitStep(item.product_unit)"
                                                 max="100000"
-                                                step="1"
+                                                :step="unitStep(item.product_unit)"
                                                 @input.debounce.300ms="
                                                     if (item.quantity > 100000) item.quantity = 100000;
-                                                    if (item.quantity < 1) item.quantity = 1;
+                                                    if (item.quantity < unitStep(item.product_unit)) item.quantity = unitStep(item.product_unit);
                                                     updateCartItem(item.product_id, 'quantity', item.quantity);
                                                 "
                                                 @paste.prevent
@@ -477,6 +477,15 @@
     <script>
         function purchasingApp() {
             return {
+                // Quantity rules per unit (Product::UNIT_RULES): whole numbers for pieces,
+                // decimals for kg, meter, liter and so on. The server enforces the same rules.
+                unitRules: @json(\App\Models\Product::UNIT_RULES),
+
+                unitStep(unit) {
+                    const rule = this.unitRules[String(unit ?? '').trim().toLowerCase()];
+                    return rule ? rule.step : 1;
+                },
+
                 selectedSupplier: @json($selectedSupplierId ?? ''),
                 selectedBranch: '{{ $branchId }}',  // Auto-set from session
                 suppliers: @json($suppliers),  // Add this for contact details
