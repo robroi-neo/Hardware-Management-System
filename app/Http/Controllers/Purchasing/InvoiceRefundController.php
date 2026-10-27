@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\BranchInventory;
 use App\Models\Invoice;
 use App\Models\RefundReason;
+use App\Services\Inventory\StockMovementException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -49,7 +50,7 @@ class InvoiceRefundController extends Controller
             }
 
             DB::transaction(function () use ($invoice, $reason, $validated) {
-                $invoiceToRefund = Invoice::with(['purchase.details', 'refundedBy'])
+                $invoiceToRefund = Invoice::with(['purchase.details.product', 'refundedBy'])
                     ->whereKey($invoice->id)
                     ->lockForUpdate()
                     ->firstOrFail();
@@ -64,21 +65,35 @@ class InvoiceRefundController extends Controller
                     throw new \RuntimeException('Associated purchase record not found for this invoice.');
                 }
 
-                foreach ($purchase->details as $detail) {
-                    $inventory = BranchInventory::where([
-                        'branch_id' => $purchase->branch_id,
-                        'product_id' => $detail->product_id,
-                    ])->lockForUpdate()->first();
+                // Combine lines per product, then check stock for all of them before
+                // changing anything: a refund must not push stock below zero.
+                $quantities = $purchase->details
+                    ->groupBy('product_id')
+                    ->map(fn ($lines) => (float) $lines->sum('quantity'));
 
-                    if (! $inventory) {
-                        $inventory = BranchInventory::create([
-                            'branch_id' => $purchase->branch_id,
-                            'product_id' => $detail->product_id,
-                            'quantity' => 0,
-                        ]);
+                $inventories = BranchInventory::where('branch_id', $purchase->branch_id)
+                    ->whereIn('product_id', $quantities->keys())
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('product_id');
+
+                $short = [];
+                foreach ($quantities as $productId => $quantity) {
+                    $available = (float) ($inventories[$productId]->quantity ?? 0);
+                    if ($available < $quantity) {
+                        $name = $purchase->details->firstWhere('product_id', $productId)?->product?->name ?? "Product {$productId}";
+                        $short[] = "{$name} (in stock: {$available}, to return: {$quantity})";
                     }
+                }
 
-                    $inventory->decrement('quantity', $detail->quantity);
+                if ($short) {
+                    throw new StockMovementException(
+                        'Cannot refund: some items have already been sold. ' . implode('; ', $short)
+                    );
+                }
+
+                foreach ($quantities as $productId => $quantity) {
+                    $inventories[$productId]->decrement('quantity', $quantity);
                 }
 
                 $oldValues = [
@@ -121,6 +136,11 @@ class InvoiceRefundController extends Controller
                 'success' => true,
                 'message' => 'Invoice refunded successfully. Inventory has been restored.',
             ]);
+        } catch (StockMovementException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
