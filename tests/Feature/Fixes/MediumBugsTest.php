@@ -59,3 +59,45 @@ test('#13 sale details keep the original unit price and cost after the product c
         ->and((float) $item['markup'])->toBe(25.0)
         ->and((float) $item['subtotal'])->toBe(250.0);
 });
+
+function invoiceWithLine(int $branchId, \App\Models\Product $product, float $qty): Invoice
+{
+    $invoice = invoiceIssuedOn(now()->toDateTimeString(), $branchId);
+    \App\Models\PurchaseDetail::create([
+        'purchase_id' => $invoice->purchase_id, 'product_id' => $product->id,
+        'quantity' => $qty, 'unit_price' => 100, 'subtotal' => 100 * $qty,
+    ]);
+
+    return $invoice;
+}
+
+// Bug #14: refunding a purchase must not push stock below zero.
+test('#14 a purchase refund is refused when the items were already sold', function () {
+    $manager = userWithRole('manager');
+    $branch = $manager->branch;
+    $product = stockedProduct($branch->id, 3); // bought 10, 7 already sold
+    $invoice = invoiceWithLine($branch->id, $product, 10);
+    $reason = \App\Models\RefundReason::create(['name' => 'Damaged item', 'is_active' => true]);
+
+    $this->actingAs($manager)->withSession(branchSession($branch))
+        ->postJson("/purchasing/invoices/{$invoice->id}/refund", ['reason_id' => $reason->id])
+        ->assertStatus(422)->assertJsonPath('success', false);
+
+    expect(stockAt($branch->id, $product))->toBe(3.0)
+        ->and((bool) $invoice->fresh()->refunded)->toBeFalse();
+});
+
+test('#14 a purchase refund still works when stock covers it', function () {
+    $manager = userWithRole('manager');
+    $branch = $manager->branch;
+    $product = stockedProduct($branch->id, 12);
+    $invoice = invoiceWithLine($branch->id, $product, 10);
+    $reason = \App\Models\RefundReason::create(['name' => 'Damaged item', 'is_active' => true]);
+
+    $this->actingAs($manager)->withSession(branchSession($branch))
+        ->postJson("/purchasing/invoices/{$invoice->id}/refund", ['reason_id' => $reason->id])
+        ->assertOk()->assertJsonPath('success', true);
+
+    expect(stockAt($branch->id, $product))->toBe(2.0)
+        ->and((bool) $invoice->fresh()->refunded)->toBeTrue();
+});
