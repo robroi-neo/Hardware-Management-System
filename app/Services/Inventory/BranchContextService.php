@@ -31,14 +31,8 @@ class BranchContextService
     public function resolveTerminalBranchId(Request $request): int
     {
         $branchId = $this->selectedBranchId($request);
-        if ($branchId) {
-            return $branchId;
-        }
 
-        $sessionTerminal = $request->session()->get('pos_terminal', []);
-        $branchId = (int) ($sessionTerminal['branch_id'] ?? 0);
-
-        if ($branchId < 1) {
+        if (! $branchId) {
             abort(422, 'Branch is not selected. Please select a branch first.');
         }
 

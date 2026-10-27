@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Inventory;
 use App\Http\Controllers\Controller;
 use App\Models\InventoryMovement;
 use App\Models\Branch;
-use App\Models\PosTerminal;
 use Illuminate\Http\Request;
 
 class StockMovementController extends Controller

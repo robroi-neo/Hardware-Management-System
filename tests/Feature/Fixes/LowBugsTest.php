@@ -65,3 +65,33 @@ test('#24 a manager can open the dashboard; a cashier still cannot', function ()
     $this->actingAs($manager)->withSession(branchSession($branch))->get('/dashboard')->assertOk();
     $this->actingAs($cashier)->withSession(branchSession($branch))->get('/dashboard')->assertForbidden();
 });
+
+// Bug #25, #26: every PHP file parses, and no terminal-era leftovers remain.
+test('#25 every PHP file under app/ parses', function () {
+    $broken = [];
+    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path('app')));
+    foreach ($files as $file) {
+        if ($file->getExtension() !== 'php') {
+            continue;
+        }
+        exec('php -l '.escapeshellarg($file->getPathname()).' 2>&1', $out, $code);
+        if ($code !== 0) {
+            $broken[] = str_replace(base_path().'/', '', $file->getPathname());
+        }
+    }
+
+    expect($broken)->toBe([]);
+});
+
+test('#26 the removed terminal feature leaves nothing behind', function () {
+    expect(method_exists(\App\Models\Branch::class, 'terminals'))->toBeFalse()
+        ->and(file_exists(app_path('Http/Middleware/TestMiddleware.php')))->toBeFalse();
+
+    // A stale pos_terminal session key must not be used as a branch.
+    $request = \Illuminate\Http\Request::create('/');
+    $request->setLaravelSession(app('session.store'));
+    $request->session()->put('pos_terminal', ['branch_id' => 1]);
+
+    expect(fn () => app(\App\Services\Inventory\BranchContextService::class)->resolveTerminalBranchId($request))
+        ->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+});
