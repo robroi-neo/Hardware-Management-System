@@ -54,7 +54,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/purchasing/invoice-history', [\App\Http\Controllers\Purchasing\InvoicesController::class, 'index'])
         ->middleware('permission:purchases.view-history')->name('purchasing.invoice-history');
 
-    Route::get('purchasing/invoices/{invoice}', [InvoiceDetailController::class, 'show'])->name('purchasing.invoices.show');
+    Route::get('purchasing/invoices/{invoice}', [InvoiceDetailController::class, 'show'])
+        ->middleware('permission:purchases.view-history')->name('purchasing.invoices.show');
 
     Route::post('/purchasing/invoices/{invoice}/refund', [InvoiceRefundController::class, 'store'])
         ->middleware('permission:purchases.refund')
@@ -145,8 +146,14 @@ Route::middleware('auth')->group(function () {
 
     // POS API endpoints
     Route::prefix('pos/api')->group(function () {
-        Route::get('products/search', [ProductController::class, 'search'])->name('pos.api.products.search');
-        Route::get('products/browse', [ProductController::class, 'browse'])->name('pos.api.products.browse');
+        // Product lookup is shared by the POS and the stock overview page.
+        Route::get('products/search', [ProductController::class, 'search'])
+            ->middleware('permission:pos.access|inventory.view-overview')->name('pos.api.products.search');
+        Route::get('products/browse', [ProductController::class, 'browse'])
+            ->middleware('permission:pos.access|inventory.view-overview')->name('pos.api.products.browse');
+    });
+
+    Route::prefix('pos/api')->middleware('permission:sales.create')->group(function () {
 
         Route::get('cart', [PosController::class, 'getCart'])->name('pos.api.cart.get');
         Route::post('cart/add', [PosController::class, 'addItem'])->name('pos.api.cart.add');
@@ -159,10 +166,11 @@ Route::middleware('auth')->group(function () {
     });
 
 // Moved out — resolves to /pos/transactions/{sale}
-    Route::get('pos/transactions/{sale}', [TransactionController::class, 'show'])->name('pos.transactions.show');
+    Route::get('pos/transactions/{sale}', [TransactionController::class, 'show'])
+        ->middleware('permission:sales.view-history')->name('pos.transactions.show');
 
     // Inventory API endpoints
-    Route::prefix('inventory/api')->group(function () {
+    Route::prefix('inventory/api')->middleware('permission:inventory.update')->group(function () {
         Route::get('products/search', [\App\Http\Controllers\Inventory\StockInController::class, 'searchProducts'])->name('inventory.api.products.search');
         Route::post('stock-in/store', [\App\Http\Controllers\Inventory\StockInController::class, 'store'])->name('inventory.api.stock-in.store');
         Route::post('stock-out/store', [\App\Http\Controllers\Inventory\StockOutController::class, 'store'])->name('inventory.api.stock-out.store');
