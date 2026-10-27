@@ -225,3 +225,20 @@ test('#18 the dashboard renders the branch filter for admins only', function () 
     $this->actingAs($manager)->withSession(branchSession($hardware))->get('/dashboard')
         ->assertOk()->assertDontSee('Filter by Branch');
 });
+
+// Bug #19: POS browse must hide products archived at the current branch.
+test('#19 POS browse hides products archived at this branch even if active elsewhere', function () {
+    $hardware = makeBranch('Hardware');
+    $tiles = makeBranch('Tiles');
+    $cashier = userWithRole('cashier', ['branch_id' => $hardware->id]);
+
+    $archivedHere = \App\Models\Product::create(['name' => 'Old Drill', 'capital' => 100, 'unit' => 'piece']);
+    \App\Models\BranchInventory::create(['branch_id' => $hardware->id, 'product_id' => $archivedHere->id, 'quantity' => 0, 'status' => 'inactive']);
+    \App\Models\BranchInventory::create(['branch_id' => $tiles->id, 'product_id' => $archivedHere->id, 'quantity' => 5, 'status' => 'active']);
+    stockedProduct($hardware->id, 5, 'Hammer');
+
+    $names = collect($this->actingAs($cashier)->withSession(branchSession($hardware))
+        ->getJson('/pos/api/products/browse')->assertOk()->json('data'))->pluck('name');
+
+    expect($names->all())->toContain('Hammer')->not->toContain('Old Drill');
+});
