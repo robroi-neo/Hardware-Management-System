@@ -2,17 +2,6 @@
 
 use App\Models\Supplier;
 
-function supplierPayload(array $overrides = []): array
-{
-    return array_merge([
-        'supplier_name' => 'Acme Hardware Supply',
-        'contact_person' => 'Juan Dela Cruz',
-        'company_address' => 'Davao City',
-        'contact_number' => '09170000000',
-        'contact_email' => 'acme@example.com',
-        'status' => 'active',
-    ], $overrides);
-}
 
 // Bug #8: each supplier action must check its own permission.
 test('#8 a manager without suppliers.delete cannot delete a supplier', function () {

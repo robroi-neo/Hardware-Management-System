@@ -86,3 +86,28 @@ function branchSession(\App\Models\Branch $branch): array
 {
     return ['branch' => ['id' => $branch->id, 'name' => $branch->name, 'address' => $branch->address]];
 }
+
+function supplierPayload(array $overrides = []): array
+{
+    return array_merge([
+        'supplier_name' => 'Acme Hardware Supply',
+        'contact_person' => 'Juan Dela Cruz',
+        'company_address' => 'Davao City',
+        'contact_number' => '09170000000',
+        'contact_email' => 'acme@example.com',
+        'status' => 'active',
+    ], $overrides);
+}
+
+function stockedProduct(int $branchId, float $quantity, string $name = 'Hammer'): \App\Models\Product
+{
+    $product = \App\Models\Product::create(['name' => $name, 'capital' => 100, 'unit' => 'piece']);
+    \App\Models\BranchInventory::create(['branch_id' => $branchId, 'product_id' => $product->id, 'quantity' => $quantity, 'status' => 'active']);
+
+    return $product;
+}
+
+function stockAt(int $branchId, \App\Models\Product $product): float
+{
+    return (float) \App\Models\BranchInventory::where(['branch_id' => $branchId, 'product_id' => $product->id])->value('quantity');
+}

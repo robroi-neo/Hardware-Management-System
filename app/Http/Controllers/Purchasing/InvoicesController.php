@@ -60,11 +60,11 @@ class InvoicesController extends Controller
 
         // Filter by date range
         if ($dateFrom = $request->query('date_from')) {
-            $query->whereDate('date', '>=', $dateFrom);
+            $query->whereDate('date_issued', '>=', $dateFrom);
         }
 
         if ($dateTo = $request->query('date_to')) {
-            $query->whereDate('date', '<=', $dateTo);
+            $query->whereDate('date_issued', '<=', $dateTo);
         }
 
         if ($filterBranchId) {
