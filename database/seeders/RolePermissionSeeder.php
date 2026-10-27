@@ -75,6 +75,7 @@ class RolePermissionSeeder extends Seeder
 
         // Manager: mostly sales, inventory, reports, users
         $managerRole->syncPermissions([
+            'dashboard.view',
             'pos.access',
 
             'sales.create',
