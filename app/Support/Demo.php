@@ -30,4 +30,30 @@ class Demo
     {
         return $user->can('dashboard.view') ? 'dashboard' : 'pos';
     }
+
+    /**
+     * "Try these" checklist for a role: [label, route name].
+     */
+    public static function tasks(string $role): array
+    {
+        return match ($role) {
+            'admin' => [
+                ['Look around the dashboard', 'dashboard'],
+                ['Add a new cashier', 'users.create'],
+                ['See who did what in the activity log', 'audit-logs.user-activity'],
+                ['Compare stock across both branches', 'inventory.overview'],
+            ],
+            'manager' => [
+                ['Ring up a sale', 'pos'],
+                ['Receive stock from a supplier', 'purchasing.new-invoice'],
+                ['Refund a sale and watch stock return', 'pos.transactions'],
+                ['Check the stock movement log', 'inventory.stock-movements'],
+            ],
+            default => [
+                ['Search for a product', 'pos'],
+                ['Ring up a sale with a markup', 'pos'],
+                ['Switch to the other branch and compare', 'demo.branch'],
+            ],
+        };
+    }
 }

@@ -82,6 +82,14 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        if (\App\Support\Demo::isDemoUser($user)) {
+            $message = 'Demo accounts can’t be changed. Try editing another staff member.';
+
+            return $request->expectsJson()
+                ? response()->json(['message' => $message], 422)
+                : back()->with('error', $message);
+        }
+
         $before = $user->only(['name', 'phone', 'branch_id', 'status']);
         $beforeRole = $user->roles->first()?->name;
 
@@ -198,6 +206,14 @@ class UserController extends Controller
     }
     public function deactivate(Request $request, User $user)
     {
+        if (\App\Support\Demo::isDemoUser($user)) {
+            $message = 'Demo accounts can’t be changed. Try editing another staff member.';
+
+            return $request->expectsJson()
+                ? response()->json(['message' => $message], 422)
+                : back()->with('error', $message);
+        }
+
         if ($user->is($request->user())) {
             $message = 'You cannot deactivate your own account.';
 

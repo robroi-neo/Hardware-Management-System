@@ -282,7 +282,7 @@
                         </clipPath>
                     </defs>
                 </svg>
-                Logout
+                Exit demo
             </button>
         </form>
     </div>

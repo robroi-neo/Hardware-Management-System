@@ -57,6 +57,7 @@
 
             <!-- Main content -->
             <div class="flex-1 lg:h-screen lg:overflow-y-auto">
+                <x-demo-banner />
                 <div :class="sidebarOpen ? 'mx-auto' : 'max-w-none'" class="flex h-full min-h-0 w-full flex-col py-6 sm:px-6 lg:py-8">
                     @isset($header)
                         <header class="mb-5 border-b border-slate-200 pb-4">
@@ -94,6 +95,16 @@
                                             $role = $user->role ?? ($user->getRoleNames()->first() ?? null);
                                         }
                                     @endphp
+                                    @isset($demo)
+                                        {{-- Switch sample branch (demo) --}}
+                                        <a href="{{ route('demo.branch', ['role' => $demo['role']]) }}"
+                                           class="mb-1 inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-indigo-950 hover:bg-slate-50"
+                                           title="Switch sample branch">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>
+                                            <span class="max-w-[14rem] truncate">{{ $demo['branch'] }}</span>
+                                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                                        </a>
+                                    @endisset
                                     @if ($user)
                                         <div class="font-medium">{{ $user->name }}</div>
                                         @if ($role)

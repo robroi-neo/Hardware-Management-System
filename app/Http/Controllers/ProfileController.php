@@ -26,6 +26,10 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        if (\App\Support\Demo::isDemoUser($request->user())) {
+            return Redirect::route('profile.edit')->with('error', 'Profile changes are turned off for demo accounts.');
+        }
+
         $request->user()->fill($request->validated());
 
         $request->user()->save();
