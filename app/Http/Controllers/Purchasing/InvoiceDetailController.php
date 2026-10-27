@@ -14,8 +14,8 @@ class InvoiceDetailController extends Controller
         return response()->json([
             'id'             => $invoice->id,
             'purchase_id'    => $invoice->purchase_id,
-            'date_issued'    => $invoice->date_issued->format('Y-m-d'),
-            'date_due'       => $invoice->date_due->format('Y-m-d'),
+            'date_issued'    => $invoice->date_issued?->format('Y-m-d'),
+            'date_due'       => $invoice->date_due?->format('Y-m-d'),
             'total_amount'   => (float) $invoice->total_amount,
             'supplier_name'  => $invoice->purchase->supplier->supplier_name,
             'branch_name'    => $invoice->purchase->branch->name,
