@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Purchasing;
 
+use App\Models\InventoryMovement;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\BranchInventory;
@@ -94,6 +95,7 @@ class InvoiceRefundController extends Controller
 
                 foreach ($quantities as $productId => $quantity) {
                     $inventories[$productId]->decrement('quantity', $quantity);
+                    InventoryMovement::record($purchase->branch_id, (int) $productId, -$quantity, 'purchase', $purchase->id, auth()->id());
                 }
 
                 $oldValues = [

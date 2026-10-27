@@ -23,6 +23,22 @@ class InventoryMovement extends Model
         'created_at' => 'datetime',
     ];
 
+    /**
+     * Log a stock change. Positive $change is stock in, negative is stock out.
+     */
+    public static function record(int $branchId, int $productId, float $change, string $referenceType, ?int $referenceId, ?int $userId): self
+    {
+        return self::create([
+            'branch_id' => $branchId,
+            'product_id' => $productId,
+            'user_id' => $userId,
+            'type' => $change >= 0 ? 'in' : 'out',
+            'quantity_change' => $change,
+            'reference_type' => $referenceType,
+            'reference_id' => $referenceId,
+        ]);
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');

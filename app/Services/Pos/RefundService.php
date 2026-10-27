@@ -2,6 +2,7 @@
 
 namespace App\Services\Pos;
 
+use App\Models\InventoryMovement;
 use App\Models\AuditLog;
 use App\Models\BranchInventory;
 use App\Models\RefundReason;
@@ -60,6 +61,8 @@ class RefundService
                         'quantity' => $item->quantity,
                     ]);
                 }
+
+                InventoryMovement::record($saleToRefund->branch_id, $item->product_id, (float) $item->quantity, 'sale', $saleToRefund->id, $actorId);
             }
 
             $oldValues = [

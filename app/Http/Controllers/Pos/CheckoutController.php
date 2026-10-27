@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Pos;
 
+use App\Models\InventoryMovement;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -141,6 +142,8 @@ class CheckoutController extends Controller
                 $subtotal = $selling * $qty;
 
                 // Persist each line item
+                InventoryMovement::record($branchId, $p->id, -$qty, 'sale', $sale->id, $request->user()->id);
+
                 $sale->items()->create([
                     'product_id'    => $p->id,
                     'quantity'      => $qty,
