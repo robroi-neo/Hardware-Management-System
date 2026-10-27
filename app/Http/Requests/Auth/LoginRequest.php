@@ -53,6 +53,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if ($user->status !== 'active') {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'phone' => 'This account has been deactivated. Ask an admin to reactivate it.',
+            ]);
+        }
+
         Auth::login($user, $this->boolean('remember'));
 
         RateLimiter::clear($this->throttleKey());
