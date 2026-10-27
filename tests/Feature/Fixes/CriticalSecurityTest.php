@@ -134,3 +134,13 @@ test('#3 a user deactivated mid-session is signed out on the next request', func
     $this->get('/pos')->assertRedirect('/');
     $this->assertGuest();
 });
+
+// Bug #4: users must not be able to delete their own account.
+test('#4 a user cannot delete their own account', function () {
+    $user = userWithRole('cashier');
+
+    $response = $this->actingAs($user)->delete('/profile', ['password' => '1234']);
+
+    expect($response->status())->toBeIn([404, 405]);
+    expect(\App\Models\User::find($user->id))->not->toBeNull();
+});
