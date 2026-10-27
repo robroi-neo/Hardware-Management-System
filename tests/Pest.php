@@ -44,7 +44,45 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Load the real roles and permissions (RolePermissionSeeder).
+ */
+function seedRoles(): void
 {
-    // ..
+    test()->seed(\Database\Seeders\RolePermissionSeeder::class);
+}
+
+function makeBranch(string $name = 'Hardware Branch'): \App\Models\Branch
+{
+    return \App\Models\Branch::create(['name' => $name, 'address' => 'Test Address']);
+}
+
+/**
+ * An active user with the given spatie role. Seeds roles and a branch if needed.
+ */
+function userWithRole(string $role, array $attributes = []): \App\Models\User
+{
+    if (\Spatie\Permission\Models\Role::count() === 0) {
+        seedRoles();
+    }
+
+    $branch = \App\Models\Branch::first() ?? makeBranch();
+
+    $user = \App\Models\User::factory()->create(array_merge([
+        'status' => 'active',
+        'branch_id' => $branch->id,
+        'created_by' => null,
+    ], $attributes));
+
+    $user->assignRole($role);
+
+    return $user;
+}
+
+/**
+ * Session payload the app expects after branch selection.
+ */
+function branchSession(\App\Models\Branch $branch): array
+{
+    return ['branch' => ['id' => $branch->id, 'name' => $branch->name, 'address' => $branch->address]];
 }
