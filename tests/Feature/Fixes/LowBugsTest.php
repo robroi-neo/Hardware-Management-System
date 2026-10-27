@@ -55,3 +55,13 @@ test('#23 the new-invoice page gets unit rules and uses a per-unit step', functi
         ->assertSee('"kg":{"step":0.01', false)
         ->assertDontSee('step="1"', false);
 });
+
+// Bug #24: managers can open the dashboard.
+test('#24 a manager can open the dashboard; a cashier still cannot', function () {
+    $manager = userWithRole('manager');
+    $cashier = userWithRole('cashier');
+    $branch = $manager->branch;
+
+    $this->actingAs($manager)->withSession(branchSession($branch))->get('/dashboard')->assertOk();
+    $this->actingAs($cashier)->withSession(branchSession($branch))->get('/dashboard')->assertForbidden();
+});
