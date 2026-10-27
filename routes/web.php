@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Pos\CheckoutController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\Pos\ProductController;
@@ -12,9 +13,14 @@ use App\Http\Controllers\Purchasing\InvoiceDetailController;
 use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('auth.select-branch');
-});
+// Public landing page (demo flow, screen 1).
+Route::get('/', LandingController::class)->name('landing');
+
+// Entry point for every "Try the demo" button. Until the demo role and branch
+// screens exist, it leads to the current branch picker and login.
+Route::get('/demo', fn () => redirect()->route('branch.select'))
+    ->middleware('guest')
+    ->name('demo');
 
 
 # Routes for logged in users
@@ -38,7 +44,7 @@ Route::middleware('auth')->group(function () {
         // Get selected branch from session (set in branch selection before login)
         $branch = session('branch');
         if (!$branch || !isset($branch['id'])) {
-            return redirect('/')->with('error', 'No branch selected. Please select a branch first.');
+            return redirect()->route('branch.select')->with('error', 'No branch selected. Please select a branch first.');
         }
 
         $suppliers = \App\Models\Supplier::where('status', '=', 'active')->get();
