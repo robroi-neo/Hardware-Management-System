@@ -35,13 +35,6 @@ test('signed-in users are sent from the landing page into the app', function () 
     $this->actingAs($cashier)->get('/')->assertRedirect(route('pos'));
 });
 
-test('the branch picker still works at its new address until the demo entry replaces it', function () {
-    $branch = makeBranch();
-
-    $this->get('/select-branch')->assertOk()->assertSee('Select branch');
-    $this->post('/select-branch', ['branch_id' => $branch->id])->assertRedirect(route('login'));
-    $this->get('/demo')->assertRedirect(route('branch.select'));
-});
 
 test('logging out returns to the landing page', function () {
     $user = userWithRole('cashier');

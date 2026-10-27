@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DemoController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Pos\CheckoutController;
 use App\Http\Controllers\Pos\PosController;
@@ -16,11 +17,13 @@ use Illuminate\Support\Facades\Route;
 // Public landing page (demo flow, screen 1).
 Route::get('/', LandingController::class)->name('landing');
 
-// Entry point for every "Try the demo" button. Until the demo role and branch
-// screens exist, it leads to the current branch picker and login.
-Route::get('/demo', fn () => redirect()->route('branch.select'))
-    ->middleware('guest')
-    ->name('demo');
+// Demo entry: step 1 (role), step 2 (sample branch), then one-click sign-in.
+// Also used to switch role or branch from inside the demo.
+Route::get('/demo', [DemoController::class, 'role'])->name('demo');
+Route::get('/demo/branch', [DemoController::class, 'branch'])->name('demo.branch');
+Route::post('/demo/start', [DemoController::class, 'start'])
+    ->middleware('throttle:20,1')
+    ->name('demo.start');
 
 
 # Routes for logged in users
