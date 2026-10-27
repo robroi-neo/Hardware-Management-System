@@ -145,6 +145,7 @@ class CheckoutController extends Controller
                     'product_id'    => $p->id,
                     'quantity'      => $qty,
                     'unit_price'    => $selling,
+                    'unit_cost'     => $p->capital,
                     'markup' => $markup,
                     'subtotal'      => $subtotal,
                 ]);

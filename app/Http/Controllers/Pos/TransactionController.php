@@ -96,9 +96,10 @@ class TransactionController extends Controller
                 'product_name' => $item->product->name,
                 'unit'         => $item->product->unit,
                 'quantity'     => (float) $item->quantity,
-                'cost'         => (float) $item->product->capital,
+                // Prices as sold; the product's current capital may have changed since.
+                'cost'         => (float) $item->unit_cost,
                 'markup'       => (float) $item->markup,
-                'unit_price'   => (float) ($item->product->capital + $item->markup),
+                'unit_price'   => (float) $item->unit_price,
                 'subtotal'     => (float) $item->subtotal,
             ]),
         ]);
