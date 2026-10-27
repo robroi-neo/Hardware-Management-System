@@ -44,18 +44,29 @@ test('restore puts the snapshot back over a changed database', function () {
         ->and(file_exists($target.'.restoring'))->toBeFalse();
 });
 
-test('restore moves history dates forward so it ends today', function () {
-    $this->travelTo(now()->setDate(2026, 10, 27)->setTime(15, 0));
+test('restore moves history forward so the latest sale was 15 minutes ago', function () {
+    $this->travelTo(now()->setDate(2026, 10, 27)->setTime(15, 0, 0));
     $snapshot = config('demo.snapshot_path');
     tinyDatabase($snapshot, '2026-10-24 10:00:00');
-    file_put_contents($snapshot.'.json', json_encode(['built_at' => '2026-10-24T12:00:00+00:00']));
     $target = $this->dir.'/live.sqlite';
     touch($target);
 
     app(DemoReset::class)->restore($target);
 
     expect(rows($target, 'select date, created_at, refunded_at from sales'))
-        ->toBe([['date' => '2026-10-27 10:00:00', 'created_at' => '2026-10-27 10:00:00', 'refunded_at' => null]]);
+        ->toBe([['date' => '2026-10-27 14:45:00', 'created_at' => '2026-10-27 14:45:00', 'refunded_at' => null]]);
+});
+
+test('restore never pushes history into the future', function () {
+    $this->travelTo(now()->setDate(2026, 10, 27)->setTime(15, 0, 0));
+    $snapshot = config('demo.snapshot_path');
+    tinyDatabase($snapshot, '2026-10-27 14:55:00'); // already newer than 15 minutes ago
+    $target = $this->dir.'/live.sqlite';
+    touch($target);
+
+    app(DemoReset::class)->restore($target);
+
+    expect(rows($target, 'select date from sales'))->toBe([['date' => '2026-10-27 14:55:00']]);
 });
 
 test('restore does nothing without a snapshot or a SQLite file database', function () {
@@ -132,4 +143,15 @@ test('with auto reset off (the default), requests never reset the data', functio
 
     expect(config('demo.auto_reset'))->toBeFalse();
     $this->get('/');
+});
+
+test('messages from demo actions are shown on app pages', function () {
+    $branch = makeBranch();
+    $manager = userWithRole('manager');
+    $session = branchSession($branch) + ['demo' => ['role' => 'manager']];
+
+    $this->actingAs($manager)->withSession($session + ['success' => 'Demo data reset to the starting sample data.'])
+        ->get('/dashboard')->assertSee('Demo data reset to the starting sample data.');
+    $this->actingAs($manager)->withSession($session + ['error' => 'The demo was reset recently. Try again in 5 min.'])
+        ->get('/dashboard')->assertSee('The demo was reset recently');
 });

@@ -116,7 +116,35 @@ npm run dev
 composer run dev
 ```
 
-Visit `http://localhost:8000` and select terminal → login to access the system.
+Visit `http://localhost:8000`, click **Try the live demo**, pick a role and a sample branch. There is no login: visitors are signed in as that role's demo user.
+
+## 🧪 Live Demo
+
+The public deployment is demo-only. The landing page (`/`) leads to `/demo` (pick a role), `/demo/branch` (pick a sample branch), and into the app as the demo user for that role.
+
+| Role | Demo user | Lands on |
+|------|-----------|----------|
+| Admin | Demo Admin (`09000000001`) | Dashboard |
+| Manager | Demo Manager (`09000000003`) | Dashboard |
+| Cashier | Demo Cashier (`09000000002`) | POS |
+
+- **Sample data:** `php artisan migrate:fresh --seed` loads the placeholder catalogs from `database/seeders/data/catalog.csv` (edit it in a spreadsheet) and about four weeks of sales, refunds and purchases.
+- **In the app:** an amber banner shows the role, branch and next reset, with *Try these*, *Switch role*, *Reset data* and *Exit demo*. Demo accounts can't be edited.
+- **Settings:** `config/demo.php`.
+
+### Hourly reset
+
+```bash
+php artisan demo:snapshot   # build the clean copy (database/demo-snapshot.sqlite)
+php artisan demo:reset      # put the live database back to it now
+```
+
+On the host, set `DEMO_AUTO_RESET=true` (it is off by default so a local database is never overwritten). The data then resets every `DEMO_RESET_MINUTES` (60):
+
+- if the host runs `php artisan schedule:run` every minute, on schedule;
+- otherwise, on the first visit after the interval.
+
+Each reset moves the history forward so the latest sale is a few minutes old. Keep `SESSION_DRIVER=file` and `CACHE_STORE=file` (as in `.env.example`) so visitors stay signed in across a reset. After changing seeders or the catalog, run `demo:snapshot` again.
 
 ## 📝 Project Structure
 

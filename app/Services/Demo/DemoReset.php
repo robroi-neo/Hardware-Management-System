@@ -14,10 +14,10 @@ use RuntimeException;
  *
  * - buildSnapshot(): migrate + seed a fresh SQLite file and keep it as the snapshot.
  * - restore(): copy the snapshot over the live database (atomic rename), shifting
- *   its dates forward so the history always ends today.
+ *   its dates forward so the latest sale is always a few minutes old.
  *
  * Only works with a file-based SQLite database. The snapshot's build time is kept
- * next to it in "<snapshot>.json".
+ * next to it in "<snapshot>.json" for reference.
  */
 class DemoReset
 {
@@ -92,7 +92,7 @@ class DemoReset
                 throw new RuntimeException('Could not copy the demo snapshot.');
             }
 
-            $this->shiftDates($temp, $this->daysSinceSnapshot());
+            $this->shiftDates($temp, $this->secondsToShift($temp));
 
             $isLive = $target === $this->liveDatabasePath();
             if ($isLive) {
@@ -115,26 +115,30 @@ class DemoReset
         }
     }
 
-    /** Whole days between the snapshot's build date and today. */
-    public function daysSinceSnapshot(): int
+    /**
+     * Seconds to move history forward so the latest sale lands 15 minutes ago.
+     * That keeps "today" filled at any hour and nothing in the future.
+     */
+    public function secondsToShift(string $path): int
     {
-        $meta = $this->snapshotPath().'.json';
-        $builtAt = is_file($meta) ? (json_decode((string) file_get_contents($meta), true)['built_at'] ?? null) : null;
+        $pdo = new PDO('sqlite:'.$path);
+        $hasSales = $pdo->query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'sales'")->fetchColumn();
+        $latest = $hasSales ? $pdo->query('SELECT MAX(date) FROM sales')->fetchColumn() : null;
 
-        if (! $builtAt) {
+        if (! $latest) {
             return 0;
         }
 
-        // Compare calendar days in the app's timezone (the build time may be stored in another).
-        $built = Carbon::parse($builtAt)->setTimezone(config('app.timezone'))->startOfDay();
+        // Stored dates are in the app timezone (Laravel's default for SQLite).
+        $latestAt = Carbon::parse($latest, config('app.timezone'));
 
-        return max(0, (int) $built->diffInDays(now()->startOfDay()));
+        return max(0, (int) $latestAt->diffInSeconds(now()->subMinutes(15), false));
     }
 
-    /** Move every history date forward by $days, in the SQLite file at $path. */
-    public function shiftDates(string $path, int $days): void
+    /** Move every history date forward by $seconds, in the SQLite file at $path. */
+    public function shiftDates(string $path, int $seconds): void
     {
-        if ($days <= 0) {
+        if ($seconds <= 0) {
             return;
         }
 
@@ -144,7 +148,7 @@ class DemoReset
         foreach (self::DATE_COLUMNS as $table => $columns) {
             $existing = array_column($pdo->query("PRAGMA table_info(\"{$table}\")")->fetchAll(PDO::FETCH_ASSOC), 'name');
             foreach (array_intersect($columns, $existing) as $column) {
-                $pdo->exec("UPDATE \"{$table}\" SET \"{$column}\" = datetime(\"{$column}\", '+{$days} days') WHERE \"{$column}\" IS NOT NULL");
+                $pdo->exec("UPDATE \"{$table}\" SET \"{$column}\" = datetime(\"{$column}\", '+{$seconds} seconds') WHERE \"{$column}\" IS NOT NULL");
             }
         }
     }

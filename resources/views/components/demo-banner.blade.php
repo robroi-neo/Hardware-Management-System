@@ -35,6 +35,13 @@
             </div>
         </div>
 
+        {{-- Messages from demo actions (reset, blocked edits) --}}
+        @foreach (['success' => 'border-emerald-200 bg-emerald-50 text-emerald-900', 'error' => 'border-rose-200 bg-rose-50 text-rose-900'] as $key => $classes)
+            @if (session($key))
+                <div role="{{ $key === 'error' ? 'alert' : 'status' }}" class="border-t px-4 py-2 text-sm sm:px-6 {{ $classes }}">{{ session($key) }}</div>
+            @endif
+        @endforeach
+
         {{-- "Try these" checklist --}}
         <div x-show="open" x-cloak x-transition.opacity class="border-t border-amber-200 bg-amber-50 px-4 py-3 sm:px-6">
             <ol class="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-x-6">
