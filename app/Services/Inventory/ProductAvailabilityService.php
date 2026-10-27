@@ -27,8 +27,9 @@ class ProductAvailabilityService
     {
         $products = Product::query()
             ->search($query)
-            ->whereHas('branchInventories', function ($q) {
-                $q->where('status', 'active');
+            ->whereHas('branchInventories', function ($q) use ($branchId) {
+                $q->where('status', 'active')
+                    ->when($branchId, fn ($q) => $q->where('branch_id', $branchId));
             })
             ->paginate($perPage, ['id', 'name', 'unit', 'capital']);
 
