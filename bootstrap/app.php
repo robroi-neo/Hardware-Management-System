@@ -11,6 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // There is no login page: signed-out visitors start the demo instead.
+        $middleware->redirectGuestsTo(fn () => route('demo'));
+
         $middleware->web(append: [
             \App\Http\Middleware\EnsureUserIsActive::class,
         ]);

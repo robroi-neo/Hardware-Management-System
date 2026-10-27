@@ -91,7 +91,7 @@ class DemoController extends Controller
 
         $user = Demo::user($data['role']);
 
-        if (! $user) {
+        if (! $user || $user->status !== 'active') {
             // Can happen for a moment while the demo data is being reset.
             return redirect()->route('demo')->with('error', 'The demo is resetting. Try again in a few seconds.');
         }

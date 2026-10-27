@@ -9,7 +9,7 @@ test('guests see the landing page at /', function () {
         ->assertSee('Everything the store runs on')
         ->assertSee('The demo in three steps')
         ->assertDontSee('Staff login')
-        ->assertDontSee(route('login'));
+        ->assertDontSee('/login');
 });
 
 test('every call to action on the landing page leads to the demo', function () {
@@ -41,4 +41,13 @@ test('logging out returns to the landing page', function () {
 
     $this->actingAs($user)->post('/logout')->assertRedirect('/');
     $this->get('/')->assertOk()->assertSee('Try the live demo');
+});
+
+test('the old branch picker and login are gone; guests are sent to the demo', function () {
+    foreach (['/login', '/select-branch'] as $url) {
+        $this->get($url)->assertNotFound();
+    }
+
+    $this->get('/dashboard')->assertRedirect(route('demo'));
+    $this->get('/pos')->assertRedirect(route('demo'));
 });

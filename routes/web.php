@@ -47,7 +47,7 @@ Route::middleware('auth')->group(function () {
         // Get selected branch from session (set in branch selection before login)
         $branch = session('branch');
         if (!$branch || !isset($branch['id'])) {
-            return redirect()->route('branch.select')->with('error', 'No branch selected. Please select a branch first.');
+            return redirect()->route('demo')->with('error', 'Pick a sample branch to continue.');
         }
 
         $suppliers = \App\Models\Supplier::where('status', '=', 'active')->get();
