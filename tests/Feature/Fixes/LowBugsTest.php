@@ -15,3 +15,16 @@ test('#20 stock overview status filter matches the branch inventory status', fun
     expect($names('inactive'))->toBe(['Old Drill'])
         ->and($names('active'))->toBe(['Hammer']);
 });
+
+// Bug #21: the audit log "Refunds" filter must find refunds.
+test('#21 audit log Refunds filter returns sale and purchase refunds', function () {
+    $admin = userWithRole('admin');
+    \App\Models\AuditLog::create(['user_id' => $admin->id, 'entity_type' => 'sale', 'entity_id' => 1, 'action' => 'created']);
+    \App\Models\AuditLog::create(['user_id' => $admin->id, 'entity_type' => 'sale', 'entity_id' => 1, 'action' => 'refund']);
+    \App\Models\AuditLog::create(['user_id' => $admin->id, 'entity_type' => 'purchase', 'entity_id' => 2, 'action' => 'refund']);
+
+    $logs = $this->actingAs($admin)->get('/audit-logs/user-activity?entity_type=refund')->assertOk()->viewData('logs');
+
+    expect($logs->total())->toBe(2)
+        ->and(collect($logs->items())->pluck('action')->unique()->all())->toBe(['refund']);
+});

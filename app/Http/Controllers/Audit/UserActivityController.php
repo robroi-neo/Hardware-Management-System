@@ -45,7 +45,10 @@ class UserActivityController extends Controller
             });
         }
 
-        if (in_array($entityType, ['sale', 'refund', 'purchase', 'user', 'product', 'other'], true)) {
+        if ($entityType === 'refund') {
+            // Refunds are logged on the sale or purchase they belong to, with action "refund".
+            $logsQuery->where('action', 'refund');
+        } elseif (in_array($entityType, ['sale', 'purchase', 'user', 'product', 'other'], true)) {
             $logsQuery->where('entity_type', $entityType);
         }
 
