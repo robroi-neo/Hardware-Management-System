@@ -14,14 +14,14 @@ class BranchSeeder extends Seeder
     {
         DB::table('branches')->insert([
             [
-                'name' => "Milaran's Hardware and Motor Parts",
-                'address' => 'Provincial Rd, Mawab, Davao de Oro',
+                'name' => "Hardware & Motor Parts Branch",
+                'address' => 'Sample St, Davao de Oro',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => "Milaran's Tiles and Flooring Division",
-                'address' => 'Provincial Rd, Mawab, Davao de Oro',
+                'name' => "Tiles & Flooring Branch",
+                'address' => 'Sample St, Davao de Oro',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

@@ -18,8 +18,8 @@ use RuntimeException;
 class CatalogSeeder extends Seeder
 {
     private const BRANCH_NAMES = [
-        'hardware' => "Milaran's Hardware and Motor Parts",
-        'tiles' => "Milaran's Tiles and Flooring Division",
+        'hardware' => "Hardware & Motor Parts Branch",
+        'tiles' => "Tiles & Flooring Branch",
     ];
 
     public function run(): void

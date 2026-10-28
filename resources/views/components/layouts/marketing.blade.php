@@ -11,7 +11,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ $title ?? 'RNM-HMS · Hardware Management System' }}</title>
+        <title>{{ $title ?? 'HMS · Hardware Management System' }}</title>
         @if ($description)
             <meta name="description" content="{{ $description }}">
         @endif

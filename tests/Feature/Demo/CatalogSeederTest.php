@@ -9,8 +9,8 @@ use Database\Seeders\CatalogSeeder;
 beforeEach(function () {
     $this->seed(BranchSeeder::class);
     $this->seed(CatalogSeeder::class);
-    $this->hardware = Branch::where('name', "Milaran's Hardware and Motor Parts")->firstOrFail();
-    $this->tiles = Branch::where('name', "Milaran's Tiles and Flooring Division")->firstOrFail();
+    $this->hardware = Branch::where('name', "Hardware & Motor Parts Branch")->firstOrFail();
+    $this->tiles = Branch::where('name', "Tiles & Flooring Branch")->firstOrFail();
 });
 
 test('each branch gets its own catalog', function () {

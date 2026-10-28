@@ -8,8 +8,8 @@
     <div class="mb-8 flex items-center gap-3 px-2">
         <x-application-logo />
         <div>
-            <p class="text-base font-semibold leading-4 text-white">RNM Hardware</p>
-            <p class="text-sm text-slate-300">Management System</p>
+            <p class="text-base font-semibold leading-4 text-white">HMS</p>
+            <p class="text-sm text-slate-300">Hardware Management System</p>
         </div>
 
         <button

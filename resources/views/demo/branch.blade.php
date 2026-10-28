@@ -1,4 +1,4 @@
-<x-layouts.marketing title="Live demo · Pick a branch · RNM-HMS">
+<x-layouts.marketing title="Live demo · Pick a branch · HMS">
     <div class="flex min-h-screen flex-col bg-slate-100">
         @include('demo._header')
 

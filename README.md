@@ -1,4 +1,4 @@
-# RNM Hardware Management System
+# Hardware Management System
 
 A comprehensive Laravel-based business management system for hardware retail operations, featuring point-of-sale (POS), inventory management, purchasing, and audit logging capabilities.
 
@@ -149,7 +149,7 @@ Each reset moves the history forward so the latest sale is a few minutes old. Ke
 ## 📝 Project Structure
 
 ```
-rnm-hardware-management/
+hardware-management-system/
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/
@@ -190,7 +190,7 @@ rnm-hardware-management/
 
 ### Environment Variables
 ```env
-APP_NAME="RNM Hardware Management"
+APP_NAME="Hardware Management System"
 APP_ENV=local
 DB_CONNECTION=sqlite
 DB_DATABASE=/full/path/to/database.sqlite
@@ -406,7 +406,7 @@ See `composer.json` and `package.json` for the source of truth.
 
 ## 📞 Support
 
-For questions about the RNM Hardware Management System, refer to:
+For questions about the Hardware Management System, refer to:
 - `AGENTS.md` for architecture decisions
 - `COMPONENTS.md` for UI component usage
 - Code comments for implementation details

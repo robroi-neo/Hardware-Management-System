@@ -23,8 +23,8 @@ test('every call to action on the landing page leads to the demo', function () {
 
 test('the landing page shows both branches', function () {
     $this->get('/')
-        ->assertSee('Hardware and Motor Parts')
-        ->assertSee('Tiles and Flooring Division');
+        ->assertSee('Hardware & Motor Parts Branch')
+        ->assertSee('Tiles & Flooring Branch');
 });
 
 test('signed-in users are sent from the landing page into the app', function () {
@@ -50,4 +50,10 @@ test('the old branch picker and login are gone; guests are sent to the demo', fu
 
     $this->get('/dashboard')->assertRedirect(route('demo'));
     $this->get('/pos')->assertRedirect(route('demo'));
+});
+
+test('public pages never mention the real store', function () {
+    foreach (['/', '/demo', '/demo/branch?role=manager'] as $page) {
+        expect($this->get($page)->getContent())->not->toMatch('/RNM|Milaran|Mawab/i');
+    }
 });

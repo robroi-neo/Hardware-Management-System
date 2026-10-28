@@ -28,7 +28,7 @@ test('every app page shows the demo banner with role and branch', function () {
         $this->get($page)->assertOk()
             ->assertSee('Demo mode')
             ->assertSee('Manager')
-            ->assertSee('Tiles and Flooring')
+            ->assertSee('Tiles & Flooring Branch')
             ->assertSee('Switch role')
             ->assertSee('Exit demo');
     }
@@ -100,4 +100,13 @@ test('a visitor whose demo account disappeared (reset) is told and sent back to 
 
     $this->get('/dashboard')->assertRedirect(route('demo'));
     $this->get('/demo')->assertSee('The demo data was just reset');
+});
+
+test('no demo page mentions the real store', function () {
+    startDemo($this, 'admin', $this->hardware);
+
+    foreach (['/dashboard', '/pos', '/inventory/overview', '/users'] as $page) {
+        $html = $this->get($page)->assertOk()->getContent();
+        expect($html)->not->toMatch('/RNM|Milaran|Mawab/i');
+    }
 });

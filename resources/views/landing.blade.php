@@ -16,8 +16,8 @@
     ];
 
     $branches = [
-        ['Branch 1', 'Hardware and Motor Parts', 'Provincial Rd, Mawab, Davao de Oro'],
-        ['Branch 2', 'Tiles and Flooring Division', 'Provincial Rd, Mawab, Davao de Oro'],
+        ['Branch 1', 'Hardware & Motor Parts Branch', 'Sample St, Davao de Oro'],
+        ['Branch 2', 'Tiles & Flooring Branch', 'Sample St, Davao de Oro'],
     ];
 
     $steps = [
@@ -28,14 +28,14 @@
 @endphp
 
 <x-layouts.marketing
-    title="RNM-HMS · Live demo of a hardware store management system"
+    title="HMS · Live demo of a hardware store management system"
     description="Point of sale, inventory, purchasing and suppliers for a two-division hardware store. Try the live demo with sample data."
 >
     {{-- Top bar --}}
     <header class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5">
         <a href="{{ route('landing') }}" class="flex items-center gap-2.5">
             <span class="h-10 w-10 [&>svg]:h-10 [&>svg]:w-10"><x-application-logo /></span>
-            <span class="text-base font-semibold text-indigo-950">RNM-HMS</span>
+            <span class="text-base font-semibold text-indigo-950">HMS</span>
         </a>
         <nav aria-label="Primary" class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             <a href="#modules" class="text-slate-700 hover:text-indigo-700">Modules</a>
@@ -48,7 +48,7 @@
     {{-- Hero --}}
     <section class="mx-auto flex max-w-6xl flex-wrap items-center gap-12 px-6 pb-20 pt-14">
         <div class="flex min-w-0 flex-[1_1_420px] flex-col gap-5">
-            <span class="self-start rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-800">Built for Milaran’s Hardware · Mawab, Davao de Oro</span>
+            <span class="self-start rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-800">Built for a two-branch hardware store · Davao de Oro</span>
             <h1 class="text-4xl font-bold leading-[1.08] tracking-tight text-indigo-950 sm:text-5xl">Two divisions. One counter. Every bolt and tile accounted for.</h1>
             <p class="max-w-xl text-lg leading-relaxed text-slate-600">Point of sale, inventory, purchasing and suppliers in one system, with stock tracked separately for the hardware store and the tiles division.</p>
             <div class="mt-2 flex flex-wrap gap-3">
@@ -160,7 +160,7 @@
     <footer class="border-t border-slate-200">
         <div class="mx-auto flex max-w-6xl flex-wrap justify-between gap-3 px-6 py-7 text-sm text-slate-500">
             {{-- TODO: replace with the team / course credit --}}
-            <span>RNM Hardware Management System · [Team / course credit]</span>
+            <span>Hardware Management System · [Team / course credit]</span>
             <a href="https://github.com/robroi-neo/Hardware-Management-System" class="text-indigo-700 hover:text-indigo-900">Source on GitHub</a>
         </div>
     </footer>
