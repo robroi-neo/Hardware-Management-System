@@ -25,6 +25,16 @@
         ['Pick a sample branch', 'Hardware & Motor Parts or Tiles & Flooring, each with its own stock.'],
         ['Click around', 'Ring up a sale, receive stock, issue a refund. You can’t break anything.'],
     ];
+
+    // "Meet the team" band, from config/team.php.
+    $team = collect(config('team.members', []))->map(function (array $member) {
+        $words = preg_split('/\s+/', trim($member['name'] ?? ''), -1, PREG_SPLIT_NO_EMPTY);
+
+        return $member + [
+            'initials' => mb_strtoupper(mb_substr($words[0] ?? '?', 0, 1).(count($words) > 1 ? mb_substr(end($words), 0, 1) : '')),
+        ];
+    });
+    $credits = array_filter(config('team.credits', []));
 @endphp
 
 <x-layouts.marketing
@@ -41,6 +51,9 @@
             <a href="#modules" class="text-slate-700 hover:text-indigo-700">Modules</a>
             <a href="#branches" class="text-slate-700 hover:text-indigo-700">Branches</a>
             <a href="#how" class="text-slate-700 hover:text-indigo-700">How the demo works</a>
+            @if ($team->isNotEmpty())
+                <a href="#team" class="text-slate-700 hover:text-indigo-700">Team</a>
+            @endif
             <a href="{{ route('demo') }}" class="rounded-lg bg-[#4E55F0] px-4 py-2.5 font-semibold text-white hover:bg-indigo-700">Try the demo</a>
         </nav>
     </header>
@@ -157,10 +170,66 @@
         </div>
     </section>
 
+    {{-- Meet the team (names, roles and credits live in config/team.php) --}}
+    @if ($team->isNotEmpty())
+        <section id="team" class="bg-indigo-950 text-white">
+            <div class="mx-auto flex max-w-6xl flex-col gap-10 px-6 pb-14 pt-20">
+                <div class="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
+                    <div class="flex max-w-xl flex-col gap-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-300">Made by</span>
+                        <h2 class="text-3xl font-semibold sm:text-4xl">Meet the team</h2>
+                    </div>
+                    @if (config('team.intro'))
+                        <p class="max-w-md leading-relaxed text-slate-300">{{ config('team.intro') }}</p>
+                    @endif
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($team as $member)
+                        <article class="flex flex-col gap-4">
+                            @if (! empty($member['photo']))
+                                <img src="{{ asset($member['photo']) }}" alt="Photo of {{ $member['name'] }}" class="aspect-[4/3] w-full rounded-2xl border border-white/10 object-cover">
+                            @else
+                                <div role="img" aria-label="{{ $member['name'] }}" class="flex aspect-[4/3] items-center justify-center rounded-2xl border border-white/10 bg-indigo-900 text-4xl font-semibold text-indigo-300">{{ $member['initials'] }}</div>
+                            @endif
+                            <div class="flex flex-col gap-1">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-indigo-300">{{ $member['role'] ?? '' }}</span>
+                                <h3 class="text-xl font-semibold">{{ $member['name'] }}</h3>
+                                @if (! empty($member['note']))
+                                    <p class="mt-1 text-sm leading-relaxed text-slate-300">“{{ $member['note'] }}”</p>
+                                @endif
+                            </div>
+                            @if (! empty($member['github']) || ! empty($member['linkedin']))
+                                <div class="flex gap-4 text-sm font-medium">
+                                    @if (! empty($member['github']))
+                                        <a href="{{ $member['github'] }}" class="text-indigo-200 hover:text-white" rel="noopener" target="_blank">GitHub<span class="sr-only"> profile of {{ $member['name'] }}</span></a>
+                                    @endif
+                                    @if (! empty($member['linkedin']))
+                                        <a href="{{ $member['linkedin'] }}" class="text-indigo-200 hover:text-white" rel="noopener" target="_blank">LinkedIn<span class="sr-only"> profile of {{ $member['name'] }}</span></a>
+                                    @endif
+                                </div>
+                            @endif
+                        </article>
+                    @endforeach
+                </div>
+
+                @if ($credits)
+                    <dl class="grid grid-cols-2 gap-5 border-t border-white/15 pt-7 lg:grid-cols-4">
+                        @foreach ($credits as $label => $value)
+                            <div class="flex flex-col gap-1">
+                                <dt class="text-xs text-indigo-300">{{ $label }}</dt>
+                                <dd class="font-medium">{{ $value }}</dd>
+                            </div>
+                        @endforeach
+                    </dl>
+                @endif
+            </div>
+        </section>
+    @endif
+
     <footer class="border-t border-slate-200">
         <div class="mx-auto flex max-w-6xl flex-wrap justify-between gap-3 px-6 py-7 text-sm text-slate-500">
-            {{-- TODO: replace with the team / course credit --}}
-            <span>Hardware Management System · [Team / course credit]</span>
+            <span>Hardware Management System @if ($team->isNotEmpty()) · Built by {{ $team->pluck('name')->join(', ', ' and ') }} @endif</span>
             <a href="https://github.com/robroi-neo/Hardware-Management-System" class="text-indigo-700 hover:text-indigo-900">Source on GitHub</a>
         </div>
     </footer>
