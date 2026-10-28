@@ -64,7 +64,7 @@ class DatabaseSeeder extends Seeder
                     'status' => $status,
                     'branch_id' => $branchId,
                     'created_by' => $admin?->id,
-                    'address' => 'Davao de Oro',
+                    'address' => 'Sample City',
                 ]
             );
             $user->syncRoles([$role]);

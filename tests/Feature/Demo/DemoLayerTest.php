@@ -107,6 +107,6 @@ test('no demo page mentions the real store', function () {
 
     foreach (['/dashboard', '/pos', '/inventory/overview', '/users'] as $page) {
         $html = $this->get($page)->assertOk()->getContent();
-        expect($html)->not->toMatch('/RNM|Milaran|Mawab/i');
+        expect($html)->not->toMatch('/RNM|Milaran|Mawab|Davao de Oro/i');
     }
 });

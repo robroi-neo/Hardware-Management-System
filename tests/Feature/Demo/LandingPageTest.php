@@ -91,6 +91,6 @@ test('the team section is hidden when no members are configured', function () {
 
 test('public pages never mention the real store', function () {
     foreach (['/', '/demo', '/demo/branch?role=manager'] as $page) {
-        expect($this->get($page)->getContent())->not->toMatch('/RNM|Milaran|Mawab/i');
+        expect($this->get($page)->getContent())->not->toMatch('/RNM|Milaran|Mawab|Davao de Oro/i');
     }
 });

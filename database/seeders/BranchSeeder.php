@@ -15,13 +15,13 @@ class BranchSeeder extends Seeder
         DB::table('branches')->insert([
             [
                 'name' => "Hardware & Motor Parts Branch",
-                'address' => 'Sample St, Davao de Oro',
+                'address' => '123 Sample St',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'name' => "Tiles & Flooring Branch",
-                'address' => 'Sample St, Davao de Oro',
+                'address' => '125 Sample St',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

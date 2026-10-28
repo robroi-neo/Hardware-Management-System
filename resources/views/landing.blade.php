@@ -16,8 +16,8 @@
     ];
 
     $branches = [
-        ['Branch 1', 'Hardware & Motor Parts Branch', 'Sample St, Davao de Oro'],
-        ['Branch 2', 'Tiles & Flooring Branch', 'Sample St, Davao de Oro'],
+        ['Branch 1', 'Hardware & Motor Parts Branch', '123 Sample St'],
+        ['Branch 2', 'Tiles & Flooring Branch', '125 Sample St'],
     ];
 
     $steps = [
@@ -60,7 +60,7 @@
     {{-- Hero --}}
     <section class="mx-auto flex max-w-6xl flex-wrap items-center gap-12 px-6 pb-20 pt-14">
         <div class="flex min-w-0 flex-[1_1_420px] flex-col gap-5">
-            <span class="self-start rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-800">Built for a two-branch hardware store · Davao de Oro</span>
+            <span class="self-start rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-800">Built for a two-branch hardware store</span>
             <h1 class="text-4xl font-bold leading-[1.08] tracking-tight text-indigo-950 sm:text-5xl">Two divisions. One counter. Every bolt and tile accounted for.</h1>
             <p class="max-w-xl text-lg leading-relaxed text-slate-600">Point of sale, inventory, purchasing and suppliers in one system, with stock tracked separately for the hardware store and the tiles division.</p>
             <div class="mt-2 flex flex-wrap gap-3">
