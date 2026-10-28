@@ -2,6 +2,30 @@
 
 A comprehensive Laravel-based business management system for hardware retail operations, featuring point-of-sale (POS), inventory management, purchasing, and audit logging capabilities.
 
+## 📸 Screenshots
+
+All screenshots use the demo's sample data, signed in as the Admin at the Hardware & Motor Parts Branch.
+
+### Dashboard
+![Dashboard with weekly earnings, today's sales, stock summary and weekly charts](docs/screenshots/dashboard.png)
+
+The dashboard is the first screen for admins and managers. It shows this week's earnings, today's earnings and transaction count, and a stock summary that flags low-stock and out-of-stock items. Two charts break down transactions and revenue for the last seven days. Admins can filter everything by branch.
+
+### Point of Sale
+![POS screen with four products in the current order, per-item markup and a running total](docs/screenshots/pos.png)
+
+Cashiers search or browse the current branch's products and build the order on the left. Each line shows the cost price, and the cashier adds a markup per item to set the selling price. The summary on the right keeps a running total. Checkout deducts the stock from that branch in a single transaction, and past sales can be refunded from Transactions.
+
+### Inventory
+![Stock overview sorted by quantity, with out-of-stock and low-stock items at the top](docs/screenshots/inventory.png)
+
+Stock Overview lists every product with its quantity, unit cost and total value at each branch, plus a status badge (In Stock, Low Stock, Out of Stock). It can be searched, filtered by branch or status, and sorted. Out-of-stock products can be archived. Manual stock in/out and a full stock movement log sit in the same menu.
+
+### Purchasing
+![New invoice for a supplier with four products, unit prices and a total](docs/screenshots/purchasing.png)
+
+Managers record supplier deliveries as invoices. They pick a supplier (its contact details appear below), add products with the quantity and agreed unit price, and set payment terms such as Net 30. A product that doesn't exist yet can be created on the spot. Finalizing the invoice adds the stock to the branch automatically.
+
 ## 🎯 Features
 
 ### Point of Sale (POS) System
