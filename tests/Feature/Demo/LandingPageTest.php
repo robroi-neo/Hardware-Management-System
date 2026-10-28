@@ -59,7 +59,6 @@ test('the landing page shows the team from config/team.php', function () {
         ->assertSee('href="#team"', false)
         ->assertSee('Team Member A')
         ->assertSee('Project lead · Back end')
-        ->assertSee('Adviser')
         ->assertSee('Built by Team Member A, Team Member B and Team Member C')
         ->assertDontSee('[Team / course credit]');
 });

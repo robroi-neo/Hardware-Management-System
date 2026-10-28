@@ -34,7 +34,6 @@
             'initials' => mb_strtoupper(mb_substr($words[0] ?? '?', 0, 1).(count($words) > 1 ? mb_substr(end($words), 0, 1) : '')),
         ];
     });
-    $credits = array_filter(config('team.credits', []));
 @endphp
 
 <x-layouts.marketing
@@ -170,10 +169,10 @@
         </div>
     </section>
 
-    {{-- Meet the team (names, roles and credits live in config/team.php) --}}
+    {{-- Meet the team (names, roles and links live in config/team.php) --}}
     @if ($team->isNotEmpty())
         <section id="team" class="bg-indigo-950 text-white">
-            <div class="mx-auto flex max-w-6xl flex-col gap-10 px-6 pb-14 pt-20">
+            <div class="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-20">
                 <div class="flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
                     <div class="flex max-w-xl flex-col gap-3">
                         <span class="text-xs font-semibold uppercase tracking-wider text-indigo-300">Made by</span>
@@ -212,17 +211,6 @@
                         </article>
                     @endforeach
                 </div>
-
-                @if ($credits)
-                    <dl class="grid grid-cols-2 gap-5 border-t border-white/15 pt-7 lg:grid-cols-4">
-                        @foreach ($credits as $label => $value)
-                            <div class="flex flex-col gap-1">
-                                <dt class="text-xs text-indigo-300">{{ $label }}</dt>
-                                <dd class="font-medium">{{ $value }}</dd>
-                            </div>
-                        @endforeach
-                    </dl>
-                @endif
             </div>
         </section>
     @endif

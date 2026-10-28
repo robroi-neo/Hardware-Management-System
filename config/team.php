@@ -6,7 +6,6 @@
 | Placeholder content for now: replace the names, roles and notes with your own.
 | - photo: a path under public/ (e.g. 'images/team/ana.jpg'), or null to show initials.
 | - github / linkedin: full URLs, or null to hide that link.
-| - credits: label => value, shown in a row under the team. Remove a line to hide it.
 */
 
 return [
@@ -37,12 +36,5 @@ return [
             'github' => null,
             'linkedin' => null,
         ],
-    ],
-
-    'credits' => [
-        'Course' => 'Course name',
-        'School' => 'School name',
-        'Adviser' => 'Adviser name',
-        'Stack' => 'Laravel · Alpine.js · Tailwind CSS',
     ],
 ];
